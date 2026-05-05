@@ -1,4 +1,5 @@
 import pg from "pg";
+import { logger } from "./logger";
 import type { UtmifyCustomer, UtmifyTrackingParams } from "./utmify";
 
 export interface StoredTx {
@@ -17,41 +18,53 @@ const memByExtId = new Map<string, string>();
 
 const dbUrl = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
 const pool = dbUrl
-  ? new pg.Pool({ connectionString: dbUrl, max: 5, ssl: { rejectUnauthorized: false } })
+  ? new pg.Pool({ connectionString: dbUrl, max: 5 })
   : null;
 
-// Migrations seguras — rodam na inicialização
-if (pool) {
-  pool.query(`
-    CREATE TABLE IF NOT EXISTS transactions (
-      order_id            TEXT PRIMARY KEY,
-      external_id         TEXT,
-      status              TEXT NOT NULL DEFAULT 'waiting_payment',
-      amount_in_cents     INTEGER NOT NULL,
-      customer            JSONB NOT NULL,
-      tracking            JSONB NOT NULL,
-      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      paid_at             TIMESTAMPTZ,
-      utmify_notified_at  TIMESTAMPTZ
-    )
-  `)
-  .then(() => Promise.all([
-    pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS external_id TEXT`),
-    pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS utmify_notified_at TIMESTAMPTZ`),
-    pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_external_id ON transactions(external_id)`),
-    pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)`),
-    pool.query(`CREATE TABLE IF NOT EXISTS webhook_logs (
-      id          SERIAL PRIMARY KEY,
-      received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      source      TEXT NOT NULL DEFAULT 'lumina',
-      headers     JSONB,
-      body        JSONB
-    )`),
-  ]))
-  .catch((err) => {
-    console.error("[txStore] Erro nas migrations:", err.message);
-  });
+async function runMigrations() {
+  if (!pool) {
+    logger.warn("[txStore] Sem banco configurado — usando memória");
+    return;
+  }
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        order_id            TEXT PRIMARY KEY,
+        external_id         TEXT,
+        status              TEXT NOT NULL DEFAULT 'waiting_payment',
+        amount_in_cents     INTEGER NOT NULL,
+        customer            JSONB NOT NULL,
+        tracking            JSONB NOT NULL,
+        created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        paid_at             TIMESTAMPTZ,
+        utmify_notified_at  TIMESTAMPTZ
+      )
+    `);
+    logger.info("[txStore] Tabela transactions pronta");
+
+    await Promise.all([
+      pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS external_id TEXT`),
+      pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS utmify_notified_at TIMESTAMPTZ`),
+      pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_external_id ON transactions(external_id)`),
+      pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)`),
+    ]);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS webhook_logs (
+        id          SERIAL PRIMARY KEY,
+        received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        source      TEXT NOT NULL DEFAULT 'lumina',
+        headers     JSONB,
+        body        JSONB
+      )
+    `);
+    logger.info("[txStore] Tabela webhook_logs pronta");
+  } catch (err) {
+    logger.error({ err }, "[txStore] Erro nas migrations");
+  }
 }
+
+runMigrations();
 
 function rowToTx(row: Record<string, unknown>): StoredTx {
   return {
