@@ -1,0 +1,72 @@
+<div id="doacao-modal" class="doacao-modal is-open" role="dialog" aria-modal="true" aria-labelledby="doacao-modal-heading" aria-hidden="false">
+  <div class="doacao-modal__backdrop" id="doacao-modal-backdrop"></div>
+  <div class="doacao-modal__panel">
+    <button type="button" class="pix-modal__close" id="doacao-modal-close" aria-label="Fechar">×</button>
+    <span id="doacao-modal-heading" class="sr-only">Doar para a vaquinha</span>
+    <div id="doacao-dock-mobile"><div id="section-donation" class="bg-white rounded-lg shadow-sm p-6 box-doacao-sticky" data-arrecadado-atual="106612.68" data-meta="200000">
+              <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Heloisa precisa deu um tratamento urgente</h2>
+
+              <div class="mb-4">
+                <h3 class="text-2xl font-bold text-teal-600" id="vaquinha-arrecadado-valor">R$&nbsp;106.612,68</h3>
+                <p class="text-gray-500">arrecadados de R$&nbsp;200.000,00</p>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                <div class="bg-teal-500 h-2.5 rounded-full" id="vaquinha-progresso-barra" style="width: 53.31%; transition: width 900ms;"></div>
+              </div>
+              <div class="flex justify-between text-sm text-gray-500 mb-6">
+                <span id="vaquinha-progresso-pct">53,31% Completo</span>
+              </div>
+
+                              <form id="form-doacao" class="space-y-6" action="config/dutty.php" method="post" data-pix-nome-favorecido="Doação Solidária" data-pix-local-storage-ativo="1" data-pix-max-geracoes="1" data-pix-aviso-banco-ativo="0" data-formulario-completo="0" data-valor-personalizado-ativo="0" data-valor-minimo="20" data-valor-maximo="1000" data-doadores-recentes-ativo="1" data-checkout-externo-ativo="1" data-checkout-externo-url="" data-checkout-externo-toggle-ativo="0" data-checkout-externo-apenas-mapeados="0" data-checkout-externo-links-json="{&quot;30&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/trinta&quot;,&quot;35&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/trinta-cinco&quot;,&quot;40&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/quarenta&quot;,&quot;50&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/cinquenta&quot;,&quot;60&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/sessenta&quot;,&quot;75&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/setentacinco&quot;,&quot;100&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/cem&quot;,&quot;150&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/centoecinquenta&quot;,&quot;200&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/duzentos&quot;,&quot;300&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/trezentos&quot;,&quot;400&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/quatrocentos&quot;,&quot;500&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/quinhentos&quot;,&quot;750&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/setencentosecinquente&quot;,&quot;1000&quot;:&quot;https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/mil&quot;}">
+  <input type="hidden" name="id_vaquinha" value="217" id="066ab5f6-2560-3eb6-5d1b-a5bb0d3d5d0e">
+  <input type="hidden" name="nome_vaquinha" id="nome_vaquinha" value="Heloisa precisa deu um tratamento urgente">
+  <input type="hidden" name="utm_raw" id="utm_raw" value="fbclid=IwY2xjawRXdu5leHRuA2FlbQIxMABicmlkETEyNjdZN3dDV1Rha0FKV01wc3J0YwZhcHBfaWQPNTQxNjM5NDkzODg5MDI1AAEe4vMS575WQbJNI1_qnuey2U47abwpL3cOqrf7OZFidhP6_xEmkg7TnpLquis_aem_SW6-48ApEcSY-czPg_p1Rg">
+
+  <!-- UTM / FB params: criamos já os inputs e o JS abaixo preenche -->
+  <input type="hidden" name="utm_source" value="organic" id="76507cac-7fea-b3fa-a457-b9f978cb7574">
+  <input type="hidden" name="utm_campaign" value="organic" id="d2b64c71-95ad-bc62-582c-659f3b50d25e">
+  <input type="hidden" name="utm_medium" value="organic" id="eca286e0-d824-30ba-2409-86da8dd36212">
+  <input type="hidden" name="utm_content" value="organic" id="752a4d8f-311e-45c2-2d03-766ad5ce0126">
+  <input type="hidden" name="utm_term" value="organic" id="976f9fd5-521e-a703-b617-7745432d704a">
+  <input type="hidden" name="fbclid" value="IwY2xjawRXdu5leHRuA2FlbQIxMABicmlkETEyNjdZN3dDV1Rha0FKV01wc3J0YwZhcHBfaWQPNTQxNjM5NDkzODg5MDI1AAEe4vMS575WQbJNI1_qnuey2U47abwpL3cOqrf7OZFidhP6_xEmkg7TnpLquis_aem_SW6-48ApEcSY-czPg_p1Rg" id="e9b5e78e-f3c1-2e92-5d86-147fc99b7dff">
+  <input type="hidden" name="fbc" value="fb.1.1776981919918.IwY2xjawRXdu5leHRuA2FlbQIxMABicmlkETEyNjdZN3dDV1Rha0FKV01wc3J0YwZhcHBfaWQPNTQxNjM5NDkzODg5MDI1AAEe4vMS575WQbJNI1_qnuey2U47abwpL3cOqrf7OZFidhP6_xEmkg7TnpLquis_aem_SW6-48ApEcSY-czPg_p1Rg" id="976b9de6-a955-6878-78dc-9696264d7665">
+  <input type="hidden" name="fbp" value="fb.1.1776981035907.726373663361711291" id="458e182c-8a52-eed3-68e9-1febf5723030">
+  <input type="hidden" name="ttclid" value="organic" id="50bac9fe-931e-727f-06e2-a93611482921">
+  <input type="hidden" name="external_id" value="f63b8ffb2044e1949f319e41cc53190c" id="bd1cf0b3-fadc-4296-0ad3-a1d7fcaffc89">
+  <input type="hidden" name="email" value="" id="4b0cd85c-bbfe-c8d4-f1ac-34765fd6b0ce">
+  <input type="hidden" name="telefone" value="25954534451" id="b572fc2c-ede7-d140-56e0-5284cb99dca1">
+
+  <div>
+    <label class="block text-sm sm:text-base font-semibold text-gray-700 mb-2 sm:mb-3">Escolha o valor da sua contribuição:</label>
+    <div class="valor-btns-grid grid grid-cols-2 mb-3 sm:mb-4">
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors shadow-sm sm:shadow hover:bg-gray-200 bg-teal-500 text-white" data-valor="30" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/trinta" id="b40351a9-aa3e-e46d-7935-3372e3687a78"><span class="valor-btn__valor">R$ 30,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="35" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/trinta-cinco" id="af517cb3-ad20-4952-2975-58eaac0fc8c3"><span class="valor-btn__valor">R$ 35,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="40" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/quarenta" id="5b7f6aca-98d8-ed4d-c0ae-be0c56b8c13c"><span class="valor-btn__valor">R$ 40,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors shadow-sm sm:shadow hover:bg-gray-200 bg-gray-100 text-gray-800" data-valor="50" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/cinquenta" id="3a37ffab-f1f7-432a-d8d9-9031c08698fc"><span class="valor-btn__valor">R$ 50,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="60" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/sessenta" id="2791c441-7af7-a962-6f00-0a96b0308aa7"><span class="valor-btn__valor">R$ 60,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors shadow-sm sm:shadow valor-btn--mais-escolhido bg-gray-100 text-gray-800" data-valor="75" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/setentacinco" id="29174bb0-aaa1-7e29-bcbc-ee2abd281432"><span class="valor-btn__selo" aria-hidden="true" style="">Mais Escolhido</span><span class="valor-btn__valor">R$ 75,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors shadow-sm sm:shadow hover:bg-gray-200 bg-gray-100 text-gray-800" data-valor="100" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/cem" id="8854ecc3-364c-2414-b731-6b6e9164d7e2"><span class="valor-btn__valor">R$ 100,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="150" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/centoecinquenta" id="c4ce5a2d-2c8a-fc8d-76e0-21308db93b4a"><span class="valor-btn__valor">R$ 150,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors shadow-sm sm:shadow hover:bg-gray-200 bg-gray-100 text-gray-800" data-valor="200" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/duzentos" id="63fb155a-77a2-3a1c-27c8-7ab89adeb36e"><span class="valor-btn__valor">R$ 200,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="300" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/trezentos" id="ec5b1d5c-2e8c-5650-0c35-7664c242f22f"><span class="valor-btn__valor">R$ 300,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="400" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/quatrocentos" id="c6e88468-7466-2641-ac71-20ca5485ffe7"><span class="valor-btn__valor">R$ 400,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="500" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/quinhentos" id="13e43a5e-a565-1bd0-c23d-c7593931ffb3"><span class="valor-btn__valor">R$ 500,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="750" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/setencentosecinquente" id="e43effbc-4051-c813-225f-5c255bfeee46"><span class="valor-btn__valor">R$ 750,00</span></button>
+      <button type="button" class="valor-btn py-3 px-3 sm:py-3.5 sm:px-5 text-center transition-colors bg-gray-100 text-gray-800 shadow-sm sm:shadow hover:bg-gray-200" data-valor="1000" data-checkout-url="https://pay.pagamento-pendente.online/checkout/94a0cefa-9456-4454-bb83-b5d559dbaab7/mil" id="ea30951c-66e7-1a92-e520-643a8162dd86"><span class="valor-btn__valor">R$ 1.000,00</span></button>
+    </div>
+
+    <div class="mt-2 hidden" id="valor-personalizado-wrap" aria-hidden="true">
+      <input type="hidden" id="valor-doacao" name="valor-doacao" value="30">
+    </div>
+
+  </div>
+ 
+  <input type="hidden" name="nome_doador" id="nome-doador" value="Anônimo">
+  <input type="hidden" name="mensagem" id="mensagem" value="">
+  
+  <p class="text-sm text-gray-500 text-center">Pagamento processado de forma segura via PIX</p>
+</form>
+
+            </div></div>
+  </div>
+</div>

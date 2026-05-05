@@ -1,0 +1,31 @@
+Preciso fazer o deploy deste projeto Replit na Railway e historicamente aparecem 3 erros em sequência. Resolva todos de uma vez só:
+
+Erro 1 — Versão errada do pnpm (ERR_PNPM_LOCKFILE_CONFIG_MISMATCH)
+O lockfile foi gerado pelo pnpm v10 mas a Railway instala v9. Corrija adicionando ao package.json raiz:
+"packageManager": "pnpm@10.26.1"
+(verifique a versão exata com pnpm --version e use ela)
+
+Erro 2 — PORT obrigatório durante o build estático
+O vite.config.ts do artifact joga erro se PORT não estiver definida, mas a Railway não fornece isso no build. Torne PORT opcional fora do modo dev:
+
+const isBuild = process.argv.includes("build");
+if (!isBuild && !rawPort) { throw new Error(...) }
+const port = Number(rawPort ?? "3000");
+if (!isBuild && (isNaN(port) || port <= 0)) { throw new Error(...) }
+
+Erro 3 — BASE_PATH obrigatório durante o build
+Mesmo problema. Troque o check por um fallback:
+
+const basePath = process.env.BASE_PATH ?? "/";
+
+Arquivo railway.toml na raiz:
+
+[build]
+buildCommand = "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/SLUG run build"
+
+(substitua SLUG pelo nome do artifact, ex: transito-site)
+
+Variável no painel da Railway (Variables):
+RAILPACK_SPA_OUTPUT_DIR = artifacts/SLUG/dist/public
+
+Faça todas essas correções de uma vez e confirme que o servidor local ainda sobe normalmente.

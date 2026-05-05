@@ -1,0 +1,240 @@
+Implemente a integração com a UTMify no backend Node.js/Express/TypeScript deste projeto
+para rastrear vendas geradas (PIX criado) e vendas pagas (pagamento confirmado).
+
+---
+
+## VARIÁVEL DE AMBIENTE NECESSÁRIA
+
+Adicione ao arquivo de secrets:
+- UTMIFY_TOKEN  →  token de API obtido no painel da UTMify (Settings → API)
+
+---
+
+## 1. ARQUIVO: server/utils/utmifyService.ts
+
+Crie este arquivo exatamente assim:
+
+const UTMIFY_TOKEN    = process.env.UTMIFY_TOKEN || '';
+const UTMIFY_PLATFORM = 'Nome do seu Produto';   // Ex: 'Minha Plataforma'
+const PRODUCT_ID      = 'id-do-produto';         // Ex: 'assinatura-mensal'
+const PRODUCT_NAME    = 'Nome do Produto';        // Ex: 'Assinatura Mensal'
+
+export interface UtmifyCustomer {
+  name:     string;
+  email:    string;
+  phone:    string;   // deve incluir o prefixo 55 (Brasil)
+  document: string;   // apenas dígitos (CPF)
+  ip?:      string;   // opcional — NUNCA enviar como null, omitir se indisponível
+}
+
+export interface UtmifyTrackingParams {
+  src:          string | null;
+  sck:          string | null;
+  utm_source:   string | null;
+  utm_campaign: string | null;
+  utm_medium:   string | null;
+  utm_content:  string | null;
+  utm_term:     string | null;
+}
+
+export interface UtmifyOrderPayload {
+  orderId:       string;
+  status:        'waiting_payment' | 'paid';
+  createdAt:     Date;
+  approvedAt:    Date | null;   // null quando waiting_payment, Date real quando paid
+  customer:      UtmifyCustomer;
+  amountInCents: number;        // valor em centavos
+  tracking:      UtmifyTrackingParams;
+}
+
+function formatDate(date: Date): string {
+  // Formato exigido: "YYYY-MM-DD HH:MM:SS"
+  return date.toISOString().replace('T', ' ').substring(0, 19);
+}
+
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('55') && digits.length >= 12) return digits;
+  return `55${digits}`;  // adiciona prefixo Brasil obrigatório
+}
+
+export async function sendUtmifyOrder(payload: UtmifyOrderPayload): Promise<void> {
+  try {
+    const { amountInCents } = payload;
+    const gatewayFeeInCents      = Math.round(amountInCents * 0.0599); // 5.99% taxa gateway
+    const userCommissionInCents  = amountInCents - gatewayFeeInCents;
+
+    const body: Record<string, any> = {
+      orderId:       payload.orderId,
+      platform:      UTMIFY_PLATFORM,
+      paymentMethod: 'pix',
+      status:        payload.status,
+      createdAt:     formatDate(payload.createdAt),
+      approvedDate:  payload.approvedAt ? formatDate(payload.approvedAt) : null,
+      customer: {
+        name:     payload.customer.name,
+        email:    payload.customer.email || '',
+        phone:    formatPhone(payload.customer.phone || ''),
+        document: (payload.customer.document || '').replace(/\D/g, ''),
+        country:  'BR',
+        // ATENÇÃO: ip só é incluído quando disponível — NUNCA enviar null (causa HTTP 400)
+        ...(payload.customer.ip ? { ip: payload.customer.ip } : {}),
+      },
+      products: [
+        {
+          id:          PRODUCT_ID,
+          name:        PRODUCT_NAME,
+          planId:      null,
+          planName:    null,
+          quantity:    1,
+          priceInCents: amountInCents,
+        }
+      ],
+      trackingParameters: {
+        src:          payload.tracking.src          || null,
+        sck:          payload.tracking.sck          || null,
+        utm_source:   payload.tracking.utm_source   || null,
+        utm_campaign: payload.tracking.utm_campaign || null,
+        utm_medium:   payload.tracking.utm_medium   || null,
+        utm_content:  payload.tracking.utm_content  || null,
+        utm_term:     payload.tracking.utm_term     || null,
+      },
+      commission: {
+        totalPriceInCents:      amountInCents,
+        gatewayFeeInCents,
+        userCommissionInCents,
+      },
+      isTest: false,
+    };
+
+    const controller = new AbortController();
+    const timeout    = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch('https://api.utmify.com.br/api-credentials/orders', {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-token':  UTMIFY_TOKEN,
+      },
+      body:   JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '(sem corpo)');
+      console.warn(`[UTMify] HTTP ${response.status} para pedido ${payload.orderId}: ${errorText}`);
+    } else {
+      console.log(`[UTMify] ✅ Evento '${payload.status}' enviado: ${payload.orderId} R$ ${(amountInCents / 100).toFixed(2)}`);
+    }
+  } catch (err: any) {
+    // Falha silenciosa — UTMify nunca deve derrubar o fluxo principal
+    console.warn(`[UTMify] Falha silenciosa: ${err.message}`);
+  }
+}
+
+---
+
+## 2. ONDE CHAMAR — EVENTO: waiting_payment (PIX gerado)
+
+No momento em que o PIX for gerado e salvo no banco, dispare:
+
+import { sendUtmifyOrder } from './utils/utmifyService';
+
+// Captura IP real do cliente
+const clientIp = (req.headers['x-forwarded-for'] as string || '')
+  .split(',')[0].trim() || undefined;
+
+sendUtmifyOrder({
+  orderId:       transaction_id,          // ID da transação gerado pelo gateway
+  status:        'waiting_payment',
+  createdAt:     new Date(),
+  approvedAt:    null,                    // obrigatoriamente null aqui
+  customer: {
+    name:     nome_do_cliente,
+    email:    email_do_cliente || '',
+    phone:    telefone_do_cliente || '',
+    document: cpf_apenas_digitos,
+    ip:       clientIp,                   // omitido automaticamente se undefined
+  },
+  amountInCents: Math.round(valor * 100), // ex: 97.00 → 9700
+  tracking: {
+    src:          utmData.src          || null,
+    sck:          utmData.sck          || null,
+    utm_source:   utmData.utm_source   || null,
+    utm_campaign: utmData.utm_campaign || null,
+    utm_medium:   utmData.utm_medium   || null,
+    utm_content:  utmData.utm_content  || null,
+    utm_term:     utmData.utm_term     || null,
+  },
+}).catch(() => {}); // falha silenciosa
+
+---
+
+## 3. ONDE CHAMAR — EVENTO: paid (pagamento confirmado)
+
+No webhook do gateway (quando status === 'paid') ou no polling de confirmação,
+APÓS atualizar o banco, dispare com deduplicação:
+
+// Busque a transação no banco ANTES de atualizar o status
+const txBefore = await db.query.transactions.findFirst({
+  where: eq(transactions.transactionId, txId)
+});
+const alreadyPaid = txBefore?.status === 'paid';
+
+// Atualiza banco
+await db.update(transactions)
+  .set({ status: 'paid' })
+  .where(eq(transactions.transactionId, txId));
+
+// Dispara evento UTMify apenas se não foi disparado antes (deduplicação)
+if (txBefore && !alreadyPaid) {
+  const amtCents = Math.round(parseFloat(txBefore.amount) * 100);
+
+  sendUtmifyOrder({
+    orderId:       txId,
+    status:        'paid',
+    createdAt:     txBefore.createdAt || new Date(),
+    approvedAt:    new Date(),              // data real da confirmação
+    customer: {
+      name:     txBefore.nome,
+      email:    txBefore.email  || '',
+      phone:    txBefore.phone  || '',
+      document: txBefore.cpf,
+    },
+    amountInCents: amtCents,
+    tracking: {
+      src:          txBefore.utmSrc      || null,
+      sck:          txBefore.utmSck      || null,
+      utm_source:   txBefore.utmSource   || null,
+      utm_campaign: txBefore.utmCampaign || null,
+      utm_medium:   txBefore.utmMedium   || null,
+      utm_content:  txBefore.utmContent  || null,
+      utm_term:     txBefore.utmTerm     || null,
+    },
+  }).catch(() => {});
+}
+
+---
+
+## REGRAS CRÍTICAS (falhar aqui causa HTTP 400 na API)
+
+1. PHONE: sempre com prefixo 55 (Brasil). Ex: "11999991234" → "5511999991234"
+2. DOCUMENT: somente dígitos. Ex: "123.456.789-09" → "12345678909"
+3. IP: NUNCA enviar como null. Se não tiver, omitir o campo completamente
+4. approvedDate: null para waiting_payment, data real para paid (nunca inverter)
+5. Deduplicação: verificar se a transação já está 'paid' ANTES de disparar o evento paid
+   — webhooks duplicados são comuns e causariam contagem dupla de vendas
+
+---
+
+## RESUMO DO FLUXO
+
+PIX gerado  → sendUtmifyOrder({ status: 'waiting_payment', approvedAt: null })
+PIX pago    → sendUtmifyOrder({ status: 'paid', approvedAt: new Date() })
+
+A UTMify recebe os dois eventos e identifica:
+- Leads (waiting_payment) = quantos PIXs foram gerados
+- Vendas confirmadas (paid) = quantos foram efetivamente pagos

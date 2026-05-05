@@ -1,0 +1,236 @@
+Integre a API de PIX da Lumina Pagamentos em um backend Node.js/TypeScript (Express).
+Siga cada detalhe abaixo com atenção — todos foram validados em produção.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. CREDENCIAIS E URL BASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- URL base da API: https://api.luminapagamentos.com.br/api/v1
+- Autenticação: Bearer token no header Authorization
+- Variável de ambiente: LUMINA_SECRET_KEY
+- Header obrigatório: Authorization: Bearer <LUMINA_SECRET_KEY>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. CRIAR TRANSAÇÃO PIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Endpoint: POST https://api.luminapagamentos.com.br/api/v1/transaction.pixPayments
+Headers:
+  Authorization: Bearer <LUMINA_SECRET_KEY>
+  Content-Type: application/json
+Payload (todos os campos são obrigatórios):
+{
+  "name": "Nome Completo do Cliente",
+  "email": "email@cliente.com",
+  "document": {
+    "number": "12345678900",   // CPF sem máscara
+    "type": "cpf"
+  },
+  "phone": "11999999999",      // Somente números, com DDD
+  "paymentMethod": "PIX",
+  "amount": 9700,              // Valor em CENTAVOS (R$ 97,00 = 9700)
+  "traceable": true,
+  "items": [
+    {
+      "title": "Nome do Produto",
+      "unitPrice": 9700,       // Mesmo valor em centavos
+      "quantity": 1,
+      "tangible": false
+    }
+  ],
+  "cep": "01001000",
+  "street": "Nome da Rua",
+  "number": "1",
+  "complement": "",
+  "district": "Nome do Bairro",
+  "city": "Cidade",
+  "state": "SP",
+  "externalId": "seu-id-unico-aqui",
+  "postbackUrl": "https://seusite.com/api/webhook/lumina"
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. ⚠️ ATENÇÃO CRÍTICA: FORMATO DA RESPOSTA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+A API da Lumina NÃO retorna o JSON diretamente. Ela retorna SEMPRE
+um objeto com wrapper {"_body": {...}, "_status": 200}.
+Exemplo de resposta real da API:
+{
+  "_body": {
+    "id": "lum_1776445190239_88bc500a",
+    "transactionId": "6e6a42d0-4339-410f-ab74-9bf93950ad43",
+    "status": "PENDING",
+    "externalId": "seu-id-unico",
+    "amount": 9700,
+    "method": "PIX",
+    "pix": {
+      "qrCode": "00020101021226800014br.gov.bcb.pix...",  // código PIX copia e cola
+      "qrCodeBase64": null,                               // pode ser null
+      "qrCodeProcessing": true
+    },
+    "timestamps": {
+      "expiresAt": "2026-04-19T16:59:50.433Z",
+      "createdAt": "2026-04-17T16:59:51.125Z"
+    }
+  },
+  "_status": 200
+}
+PORTANTO, ao parsear a resposta:
+  const responseData = await response.json();
+  const txData = responseData._body || responseData.data || responseData;
+  const pixCode = txData?.pix?.qrCode || txData?.pix?.qrcode;
+  const txId    = txData?.id || txData?.transactionId;
+NÃO faça: responseData.pix.qrCode  ← ERRADO, vai ser undefined
+FAÇA:     responseData._body.pix.qrCode  ← CORRETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. CONSULTAR STATUS DA TRANSAÇÃO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Endpoint: GET https://api.luminapagamentos.com.br/api/v1/transaction/{id}
+  - {id} = o valor de txData.id (formato: "lum_...")
+  - Mesmos headers de autenticação
+Resposta também usa o wrapper _body:
+  const responseData = await response.json();
+  const txData = responseData._body || responseData.data || responseData;
+  const status = txData?.status; // "PENDING", "APPROVED", "CANCELLED", "EXPIRED"
+Mapeamento de status:
+  "APPROVED"  → pagamento confirmado (pago)
+  "PENDING"   → aguardando pagamento
+  "PROCESSING"→ processando
+  "CANCELLED" → cancelado
+  "EXPIRED"   → expirado
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. WEBHOOK DE NOTIFICAÇÃO (postbackUrl)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+A Lumina envia um POST para a postbackUrl quando o status muda.
+O body do webhook TAMBÉM pode usar o wrapper _body, trate igual:
+  const body = req.body;
+  const txData = body._body || body.data || body;
+  const txId      = txData?.id || txData?.transactionId || body.id;
+  const rawStatus = txData?.status || body.status;
+Status que indica pagamento aprovado: "APPROVED"
+Sempre responder 200 para o webhook, mesmo em caso de erro interno.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. EXEMPLO COMPLETO DA CLASSE EM TYPESCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+class LuminaPagamentosAPI {
+  private baseUrl = 'https://api.luminapagamentos.com.br/api/v1';
+  private secretKey: string;
+  constructor(secretKey: string) {
+    this.secretKey = secretKey;
+  }
+  private get headers() {
+    return {
+      'Authorization': `Bearer ${this.secretKey}`,
+      'Content-Type': 'application/json'
+    };
+  }
+  async createPixTransaction(data: {
+    amount: number;        // em reais (ex: 97.00)
+    customer_name: string;
+    customer_email: string;
+    customer_phone: string;
+    customer_cpf: string;
+    postbackUrl: string;
+    externalId: string;
+  }) {
+    const amountInCents = Math.round(data.amount * 100);
+    const payload = {
+      name: data.customer_name,
+      email: data.customer_email,
+      document: {
+        number: data.customer_cpf.replace(/\D/g, ''),
+        type: 'cpf'
+      },
+      phone: data.customer_phone.replace(/\D/g, ''),
+      paymentMethod: 'PIX',
+      amount: amountInCents,
+      traceable: true,
+      items: [{
+        title: 'Nome do Produto',
+        unitPrice: amountInCents,
+        quantity: 1,
+        tangible: false
+      }],
+      cep: '01001000',
+      street: 'Rua Padrão',
+      number: '1',
+      complement: '',
+      district: 'Centro',
+      city: 'São Paulo',
+      state: 'SP',
+      externalId: data.externalId,
+      postbackUrl: data.postbackUrl
+    };
+    const response = await fetch(
+      `${this.baseUrl}/transaction.pixPayments`,
+      { method: 'POST', headers: this.headers, body: JSON.stringify(payload) }
+    );
+    // ⚠️ CRÍTICO: extrair _body antes de acessar qualquer campo
+    const responseData = await response.json();
+    const txData = responseData._body || responseData.data || responseData;
+    if (!response.ok && response.status !== 201) {
+      throw new Error(`Lumina API error: ${JSON.stringify(txData)}`);
+    }
+    const pixCode = txData?.pix?.qrCode || txData?.pix?.qrcode;
+    const txId    = txData?.id || txData?.transactionId;
+    if (!pixCode) {
+      throw new Error('QR Code PIX não retornado pela Lumina');
+    }
+    return {
+      success: true,
+      transaction_id: txId,
+      pix_code: pixCode,
+      status: 'pending'
+    };
+  }
+  async checkPaymentStatus(transactionId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/transaction/${transactionId}`,
+      { method: 'GET', headers: this.headers }
+    );
+    const responseData = await response.json();
+    // ⚠️ CRÍTICO: extrair _body
+    const txData = responseData._body || responseData.data || responseData;
+    const rawStatus = txData?.status || 'PENDING';
+    const PAID = ['APPROVED', 'approved', 'PAID', 'paid', 'COMPLETED', 'completed'];
+    const EXPIRED = ['CANCELLED', 'cancelled', 'EXPIRED', 'expired', 'CANCELED'];
+    return {
+      success: true,
+      status: PAID.includes(rawStatus) ? 'paid'
+            : EXPIRED.includes(rawStatus) ? 'expired'
+            : 'pending',
+      raw_status: rawStatus,
+      transaction_id: transactionId
+    };
+  }
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. EXEMPLO DO WEBHOOK HANDLER (Express)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+app.post('/api/webhook/lumina', async (req, res) => {
+  try {
+    const body = req.body;
+    // ⚠️ CRÍTICO: extrair _body se existir
+    const txData    = body._body || body.data || body;
+    const txId      = txData?.id || txData?.transactionId || body.id;
+    const rawStatus = txData?.status || body.status;
+    const PAID_STATUSES = ['APPROVED', 'approved', 'PAID', 'paid', 'COMPLETED', 'authorized'];
+    const isPaid = PAID_STATUSES.includes(rawStatus);
+    if (isPaid && txId) {
+      // Atualizar status no banco de dados para 'paid'
+      // Disparar eventos de conversão (UTMify, Facebook CAPI, etc.)
+    }
+    // Sempre responder 200
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(200).json({ success: true }); // 200 mesmo em erro
+  }
+});
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. RESUMO DOS ERROS MAIS COMUNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ Erro: "QR Code não encontrado" / pixCode é undefined
+   ✅ Solução: Extrair _body antes — const txData = responseData._body || responseData
+❌ Erro: DNS não resolve / "api.luminabanking.com.br"
+   ✅ Solução: URL correta é api.luminapagamentos.com.br (não luminabanking)
+❌ Erro: API retorna 500 para todas as requisições
+   ✅ Solução: Contatar suporte da Lumina para ativar a chave sk_live_...
+❌ Erro: Webhook não detecta pagamento
+   ✅ Solução: Extrair _body no webhook também, e verificar status "APPROVED"
+❌ Erro: amount em reais em vez de centavos
+   ✅ Solução: Multiplicar por 100 — Math.round(valorEmReais * 100)

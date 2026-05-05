@@ -1,0 +1,78 @@
+Esse projeto é um clone do vakinha.com.br já configurado (estrutura, fontes Montserrat + Lato, verde #24CA68, navbar, footer, tabs, barra sticky mobile). Preciso que você troque todo o conteúdo da campanha da Júlia para a campanha da Heloísa. Siga cada instrução abaixo:
+
+1. VALORES DA CAMPANHA — em src/pages/Home.tsx:
+
+ARRECADADO = 106587.68
+META = 200000
+PCT = 53.29
+
+2. FOTO DE CAPA — substitua public/img/julia.webp e public/img/julia-opt.png pela foto da Heloísa. Otimize para WebP se possível. Atualize o index.html no preload da imagem também.
+
+3. HEROSECTION — src/components/HeroSection.tsx:
+
+Título: Heloísa precisa de um tratamento urgente para sobreviver
+Organizador: avatar com letra "F", nome "Família da Heloísa"
+ID da campanha: #3812047
+Data de criação: manter lógica dinâmica (new Date() - 4 dias)
+4. HISTÓRIA DA CAMPANHA — aba "Sobre" em src/components/CampaignContent.tsx. Reescreva com este conteúdo (mantendo o estilo emocional e os destaques em negrito):
+
+Título da seção 1: ⚠️ Heloísa tem 1 ano e 8 meses e já foi desenganada pelos médicos
+
+Heloísa tem apenas 1 ano e 8 meses. Uma criança que ainda deveria estar aprendendo a andar, a falar, a descobrir o mundo. Mas desde muito cedo, a vida da Heloísa se tornou uma batalha pela sobrevivência.
+
+Ela foi diagnosticada com nefroblastoma — um tipo de câncer que atinge principalmente crianças pequenas. Embora esse tumor costume ter boas chances de cura, a Heloísa caiu na cruel porcentagem dos 8% que não respondem aos tratamentos convencionais.
+
+Mesmo sendo tão pequena, ela já passou por 3 cirurgias e enfrentou uma nova recidiva da doença. Tudo que existia dentro dos protocolos tradicionais já foi tentado. A resposta esperada nunca veio.
+
+A realidade hoje é devastadora: Heloísa não tem mais tratamento disponível no hospital. Os médicos já esgotaram as opções. E a família vive agora uma corrida contra o tempo — em busca de uma nova chance que só existe fora do sistema público.
+
+Essa chance tem nome: um tratamento particular experimental que pode dar à Heloísa a oportunidade de continuar vivendo. Mas para iniciá-lo, a família precisa arrecadar R$ 200.000,00.
+
+Sozinhos, eles não conseguem. Cada dia que passa é precioso. Qualquer demora pode significar perder essa última oportunidade.
+
+Título da seção 2: 🙏 A esperança da Heloísa depende de todos nós
+
+Heloísa ainda está aqui. Ainda luta. E a família dela não desistiu.
+
+Cada real doado nessa campanha vai diretamente para viabilizar o tratamento particular — a única porta que ainda está aberta para ela.
+
+Não precisa ser muito. Se cada pessoa que ler essa história contribuir com R$ 30, R$ 50 ou R$ 100, juntos chegamos lá. Juntos damos à Heloísa o que ela mais precisa agora: tempo.
+
+Se você não puder contribuir agora, compartilhe essa história. Um compartilhamento pode chegar até a pessoa certa. Pode mudar tudo.
+
+Heloísa tem 1 ano e 8 meses e merece ter a chance de completar o segundo. Ajude a escrever esse próximo capítulo.
+
+5. ABA ATUALIZAÇÕES — 2 updates em CampaignContent.tsx:
+
+Update 1 — "Iniciamos o processo para o tratamento 🙏" / data: 22 abr. 2026 / texto: "Graças ao esforço de todos vocês, conseguimos protocolar o pedido para o início do tratamento particular da Heloísa. Cada doação está fazendo diferença real. Continuem compartilhando — precisamos chegar na meta." / reações: 248
+Update 2 — "Obrigado por cada real doado" / data: 21 abr. 2026 / texto: "A família da Heloísa quer agradecer do fundo do coração a cada pessoa que doou ou compartilhou. Vocês estão nos dando forças para continuar lutando. A Heloísa precisa de vocês." / reações: 193
+6. ABA QUEM AJUDOU — atualize os nomes e mensagens para soarem naturais para uma bebê de 1 ano, ex: "Que Deus cure essa princesinha!", "Meu coração vai junto com o de vocês.", etc.
+
+7. PIXEL UTMIFY — em index.html, troque o window.pixelId para:
+
+69eacb1f12da313c2e14cd81
+
+8. PRODUTO LUMINA E UTMIFY — nos arquivos artifacts/api-server/src/lib/lumina.ts e utmify.ts, troque o nome do produto para:
+
+Hot - Assinatura semanal - Heloisa
+
+E o product ID da UTMify para:
+
+hot-assinatura-semanal-heloisa
+
+Depois reinicie o servidor da API.
+
+9. BOTÕES DE DOAÇÃO — troque os textos dos CTAs de "JÚLIA" para "HELOÍSA":
+
+"QUERO AJUDAR A HELOÍSA"
+"QUERO AJUDAR AGORA"
+"Quero Ajudar 💚" na sticky bar mobile
+10. DOAÇÃO MODAL / FORMULÁRIO — em DonationForm.tsx e DoacaoModal.tsx, troque qualquer referência a "Julia" / "Júlia" pelo nome "Heloísa".
+
+11. NOME DA CAMPANHA NO FORMULÁRIO — em Home.tsx, troque o campo nome_vaquinha para:
+
+Heloisa precisa de um tratamento urgente
+
+12. COMPARTILHAMENTO — na sticky bar mobile em Home.tsx, troque o título do navigator.share para:
+
+Heloísa precisa da sua ajuda

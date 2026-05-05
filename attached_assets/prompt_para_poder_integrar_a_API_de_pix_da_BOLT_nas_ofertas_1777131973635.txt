@@ -1,0 +1,189 @@
+prompt para poder integrar a API de pix da BOLT nas ofertas:
+
+Implemente a integração de pagamento PIX usando a API da Bolt Pagamentos no backend Node.js/Express/TypeScript deste projeto.
+---
+## VARIÁVEIS DE AMBIENTE NECESSÁRIAS
+Adicione ao arquivo de secrets/env:
+- BOLT_SECRET_KEY      → chave secreta fornecida pela Bolt Pagamentos
+- BOLT_COMPANY_ID      → ID da empresa na Bolt Pagamentos
+- PRODUCTION_URL       → URL pública do projeto em produção (ex: https://seusite.com)
+                         usado para montar o postbackUrl do webhook
+---
+## 1. CLASSE BoltPagamentosAPI
+Crie a classe abaixo no arquivo de rotas do backend (ou em um arquivo separado server/boltApi.ts):
+import QRCode from 'qrcode';
+class BoltPagamentosAPI {
+  private baseUrl = "https://api.sistema.boltpagamentos.com/functions/v1";
+  private authHeader: string;
+  constructor(secretKey: string, companyId: string) {
+    const credentials = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
+    this.authHeader = `Basic ${credentials}`;
+  }
+  async createPixTransaction(data: {
+    amount: string;             // valor em reais, ex: "97.00"
+    customer_name: string;
+    customer_email: string;
+    customer_phone: string;     // apenas dígitos, com DDD
+    customer_cpf: string;       // apenas dígitos
+    product_title: string;      // nome do produto
+    description: string;        // descrição da cobrança
+    postback_url: string;       // URL pública do webhook: https://seusite.com/api/webhook/bolt
+  }) {
+    const amountInCents = Math.round(parseFloat(data.amount) * 100);
+    const phone = data.customer_phone.replace(/\D/g, '');
+    const cpf   = data.customer_cpf.replace(/\D/g, '');
+    const payload = {
+      amount: amountInCents,
+      paymentMethod: "PIX",
+      pix: { expiresInDays: 1 },
+      customer: {
+        name: data.customer_name,
+        email: data.customer_email,
+        phone: phone,
+        document: cpf ? { number: cpf, type: 'cpf' } : undefined
+      },
+      items: [
+        {
+          title: data.product_title,
+          unitPrice: amountInCents,
+          quantity: 1
+        }
+      ],
+      postbackUrl: data.postback_url,
+      description: data.description
+    };
+    const response = await fetch(`${this.baseUrl}/transactions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': this.authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok && response.status !== 201) {
+      const err = await response.text();
+      throw new Error(`Bolt API error ${response.status}: ${err}`);
+    }
+    const responseData = await response.json();
+    const txData    = responseData.data || responseData;
+    const pixQrcode = txData?.pix?.qrcode || txData?.pixQrcode || txData?.qrCode;
+    const txId      = txData?.id || txData?.transactionId;
+    if (!pixQrcode) throw new Error('Código PIX não retornado pela API');
+    // Gera imagem base64 do QR Code
+    let qrCodeImage: string | null = null;
+    try {
+      qrCodeImage = await QRCode.toDataURL(pixQrcode, {
+        width: 300, margin: 2,
+        color: { dark: '#000000', light: '#ffffff' }
+      });
+    } catch {}
+    return {
+      success: true,
+      transaction_id: txId,
+      pix_code: pixQrcode,      // código copia-e-cola
+      qr_code_image: qrCodeImage, // data:image/png;base64,...
+      status: 'pending',
+      amount: data.amount
+    };
+  }
+  async checkPaymentStatus(transactionId: string) {
+    const response = await fetch(`${this.baseUrl}/transactions/${transactionId}`, {
+      method: 'GET',
+      headers: { 'Authorization': this.authHeader }
+    });
+    if (!response.ok) return { status: 'pending', transaction_id: transactionId };
+    const responseData = await response.json();
+    const txData    = responseData.data || responseData;
+    const rawStatus = txData?.status || 'pending';
+    let status = 'pending';
+    if (['paid','approved','completed','PAID','APPROVED','COMPLETED'].includes(rawStatus)) {
+      status = 'paid';
+    } else if (['expired','cancelled','canceled','EXPIRED','CANCELLED','CANCELED'].includes(rawStatus)) {
+      status = 'expired';
+    }
+    return { status, transaction_id: transactionId, raw_status: rawStatus };
+  }
+}
+---
+## 2. ROTA: GERAR PIX — POST /api/generate-pix
+app.post("/api/generate-pix", async (req, res) => {
+  try {
+    const { nome, email, telefone, cpf, valor } = req.body;
+    const secretKey = process.env.BOLT_SECRET_KEY!;
+    const companyId = process.env.BOLT_COMPANY_ID!;
+    if (!secretKey || !companyId) {
+      return res.status(500).json({ error: 'Bolt não configurado' });
+    }
+    const productionUrl = process.env.PRODUCTION_URL || `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    const boltApi = new BoltPagamentosAPI(secretKey, companyId);
+    const result  = await boltApi.createPixTransaction({
+      amount:        valor || '97.00',
+      customer_name:  nome,
+      customer_email: email,
+      customer_phone: telefone,
+      customer_cpf:   cpf,
+      product_title:  'Assinatura mensal',
+      description:    'Taxa Administrativa',
+      postback_url:   `${productionUrl}/api/webhook/bolt`
+    });
+    // Salve result.transaction_id no banco vinculado ao CPF/usuário
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+---
+## 3. ROTA: VERIFICAR STATUS — GET /api/check-payment/:transactionId
+app.get("/api/check-payment/:transactionId", async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const secretKey = process.env.BOLT_SECRET_KEY!;
+    const companyId = process.env.BOLT_COMPANY_ID!;
+    const boltApi = new BoltPagamentosAPI(secretKey, companyId);
+    const result  = await boltApi.checkPaymentStatus(transactionId);
+    // Se status === 'paid', atualize no banco e dispare eventos de conversão
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+---
+## 4. ROTA: WEBHOOK BOLT — POST /api/webhook/bolt
+// Bolt chama este endpoint automaticamente quando o pagamento é confirmado.
+// Configure esta URL no painel da Bolt como postbackUrl.
+app.post("/api/webhook/bolt", async (req, res) => {
+  try {
+    const { data } = req.body;
+    const txId   = data?.id || req.body.objectId || req.body.id;
+    const status = data?.status || req.body.status;
+    if (status === 'paid' && txId) {
+      // 1. Busque a transação no banco pelo txId
+      // 2. Se já estiver como 'paid', ignore (deduplicação)
+      // 3. Atualize o status para 'paid' no banco
+      // 4. Dispare eventos de conversão (pixel, UTMify, etc.)
+      console.log(`Pagamento confirmado via webhook: ${txId}`);
+    }
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(200).json({ success: true }); // sempre 200 para Bolt não retentar
+  }
+});
+---
+## 5. DEPENDÊNCIA NECESSÁRIA
+Instale o pacote para gerar QR Code:
+  npm install qrcode
+  npm install --save-dev @types/qrcode
+---
+## FLUXO RESUMIDO
+1. Frontend chama POST /api/generate-pix → recebe pix_code (copia-e-cola) e qr_code_image (base64)
+2. Frontend exibe o QR Code e inicia polling em GET /api/check-payment/:transactionId a cada 5 segundos
+3. Quando Bolt confirmar o pagamento, dispara POST /api/webhook/bolt com status: 'paid'
+4. Backend atualiza banco e dispara eventos → frontend recebe 'paid' no polling e redireciona para sucesso
+---
+## OBSERVAÇÕES IMPORTANTES
+- O postbackUrl DEVE ser uma URL pública acessível pela internet (não localhost)
+- Em desenvolvimento, use ngrok ou similar para expor o webhook
+- Sempre retorne HTTP 200 no webhook, mesmo em caso de erro interno
+- Implemente deduplicação no webhook: verifique se a transação já está 'paid' antes de disparar eventos de conversão
+- O valor é enviado em centavos para a API (multiplique por 100 e arredonde)
+- O campo phone deve conter apenas dígitos (remova máscaras com .replace(/\D/g, ''))
