@@ -2,7 +2,7 @@ import { getPaidNotNotified, markUtmifyNotified } from "./txStore";
 import { sendUtmifyOrder } from "./utmify";
 import { logger } from "./logger";
 
-const INTERVAL_MS = 30 * 1000; // 30 segundos
+const INTERVAL_MS = 10 * 1000; // 10 segundos
 
 async function runRetry() {
   try {
