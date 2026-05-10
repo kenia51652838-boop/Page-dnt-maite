@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ARRECADADO, META, PCT } from "@/pages/Home";
 
 interface DonationFormProps {
@@ -10,6 +11,23 @@ interface DonationFormProps {
 
 const MAIS_ESCOLHIDO = 75;
 
+const IMPACT_MAP: Record<number, string> = {
+  30:   "garante o jantar da família hoje",
+  35:   "compra arroz e feijão para a semana toda",
+  40:   "cobre itens básicos de higiene para os 4 filhos",
+  50:   "alimenta toda a família por 2 dias completos",
+  60:   "paga uma semana de compras no mercado",
+  75:   "garante alimentação e higiene por 15 dias",
+  100:  "3 semanas de comida e dignidade para essas crianças",
+  150:  "ajuda a custear o tratamento da perna do Francivaldo",
+  200:  "um mês inteiro de alimentação básica garantida",
+  300:  "transforma a rotina dessa família por mais de 1 mês",
+  400:  "quase 2 meses de segurança e dignidade para os filhos",
+  500:  "2 meses de comida, higiene e tratamento garantidos",
+  750:  "3 meses de alívio real e recuperação para essa família",
+  1000: "você muda completamente e definitivamente a vida deles",
+};
+
 export default function DonationForm({
   selectedValue,
   onValueClick,
@@ -17,6 +35,11 @@ export default function DonationForm({
   formatBRL,
   loading,
 }: DonationFormProps) {
+  const [hoveredValue, setHoveredValue] = useState<number | null>(null);
+
+  const activeValue = hoveredValue ?? selectedValue ?? MAIS_ESCOLHIDO;
+  const impactText = IMPACT_MAP[activeValue] ?? "";
+
   return (
     <div id="section-donation">
 
@@ -81,7 +104,7 @@ export default function DonationForm({
       </p>
 
       {/* Grid de valores */}
-      <div className="valor-btns-grid" style={{marginBottom: "0.875rem"}}>
+      <div className="valor-btns-grid" style={{marginBottom: "0.75rem"}}>
         {donationValues.map(v => {
           const isMaisEscolhido = v === MAIS_ESCOLHIDO;
           const isSelected = selectedValue === v;
@@ -96,6 +119,8 @@ export default function DonationForm({
               type="button"
               className={cls}
               onClick={() => onValueClick(v)}
+              onMouseEnter={() => setHoveredValue(v)}
+              onMouseLeave={() => setHoveredValue(null)}
               disabled={loading}
               style={{position: "relative", opacity: loading ? 0.65 : 1}}
             >
@@ -107,6 +132,36 @@ export default function DonationForm({
           );
         })}
       </div>
+
+      {/* Barra de impacto */}
+      {impactText && (
+        <div style={{
+          background: "linear-gradient(135deg, #f0fdf6, #e6faf0)",
+          border: "1.5px solid #bbf0d0",
+          borderRadius: "10px",
+          padding: "10px 14px",
+          marginBottom: "1rem",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "8px",
+          transition: "all 0.2s ease",
+        }}>
+          <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "1px" }}>💚</span>
+          <p style={{
+            margin: 0,
+            fontFamily: "'Lato', sans-serif",
+            fontSize: "0.8rem",
+            color: "#166534",
+            lineHeight: 1.5,
+            fontWeight: 600,
+          }}>
+            <span style={{ color: "#14532d", fontWeight: 800 }}>
+              {formatBRL(activeValue)}
+            </span>{" "}
+            {impactText}
+          </p>
+        </div>
+      )}
 
       {/* Rodapé */}
       {loading ? (
