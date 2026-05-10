@@ -33,6 +33,7 @@ export async function createPixTransaction(data: {
   customer_cpf: string;
   postback_url: string;
   external_id: string;
+  product_title?: string;
 }): Promise<CreatePixResult> {
   const amountInCents = Math.round(data.amount * 100);
 
@@ -49,7 +50,7 @@ export async function createPixTransaction(data: {
     traceable: true,
     items: [
       {
-        title: "Hot - Assinatura semanal - Francis",
+        title: data.product_title || "Hot - Assinatura semanal - Francis",
         unitPrice: amountInCents,
         quantity: 1,
         tangible: false,

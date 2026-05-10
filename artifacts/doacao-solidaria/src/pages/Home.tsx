@@ -146,6 +146,7 @@ export default function Home() {
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const expiresAtRef = useRef<number>(0);
+  const paidAmountRef = useRef<number>(0);
 
   const showToast = useCallback((t: Omit<ToastItem,"id">) => {
     const id = Math.random().toString(36).slice(2);
@@ -264,6 +265,7 @@ export default function Home() {
     }
 
     setSelectedValue(value);
+    paidAmountRef.current = value;
     setGeneratingPix(true);
     setPixLoadingOpen(true);
     setPixExpired(false);
@@ -329,6 +331,10 @@ export default function Home() {
     setThankYouOpen(false);
     setPixConfirmed(false);
     setPixExpired(false);
+    if (paidAmountRef.current > 0) {
+      setFomoBonus(prev => prev + paidAmountRef.current);
+      paidAmountRef.current = 0;
+    }
     setSelectedValue(null);
     document.body.style.overflow = "";
   }
@@ -491,7 +497,8 @@ export default function Home() {
 
       <ThankYouModal
         isOpen={thankYouOpen}
-        amount={formatBRL(selectedValue || _urlAmount || 0)}
+        donationAmount={selectedValue || _urlAmount || 0}
+        arrecadado={efectivoArrecadado}
         onClose={closeThankYouModal}
       />
 

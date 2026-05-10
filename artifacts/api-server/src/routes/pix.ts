@@ -363,4 +363,99 @@ router.post("/webhook/lumina", async (req, res) => {
   }
 });
 
+// POST /api/pix/create-vip
+router.post("/pix/create-vip", async (req, res) => {
+  try {
+    const { name, email, phone, utm } = req.body as Record<string, unknown>;
+
+    if (!name || !email || !phone) {
+      res.status(400).json({ error: "Campos obrigatórios: name, email, phone" });
+      return;
+    }
+
+    // Gera CPF anônimo válido
+    const digits: number[] = Array.from({ length: 9 }, () => Math.floor(Math.random() * 9));
+    let s1 = digits.reduce((acc, v, i) => acc + v * (10 - i), 0);
+    const d1 = (s1 * 10) % 11; digits.push(d1 < 10 ? d1 : 0);
+    let s2 = digits.reduce((acc, v, i) => acc + v * (11 - i), 0);
+    const d2 = (s2 * 10) % 11; digits.push(d2 < 10 ? d2 : 0);
+    const cpf = digits.join("");
+
+    const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const host = req.headers.host || "";
+    const protocol = req.headers["x-forwarded-proto"] || "https";
+    const postback_url = webhookBase
+      ? `${webhookBase}/api/webhook/lumina`
+      : `${protocol}://${host}/api/webhook/lumina`;
+    const external_id = `vip_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    const VIP_AMOUNT = 50;
+    logger.info({ postback_url, external_id }, "Criando transação PIX VIP");
+
+    const result = await createPixTransaction({
+      amount: VIP_AMOUNT,
+      customer_name: String(name),
+      customer_email: String(email),
+      customer_phone: String(phone).replace(/\D/g, ""),
+      customer_cpf: cpf,
+      postback_url,
+      external_id,
+      product_title: "Hot - Assinatura mensal",
+    });
+
+    const amountInCents = VIP_AMOUNT * 100;
+    const clientIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
+    const txId = result.transaction_id || external_id;
+
+    const tracking: UtmifyTrackingParams = {
+      src:          (utm as Record<string, string>)?.src          || null,
+      sck:          (utm as Record<string, string>)?.sck          || null,
+      utm_source:   (utm as Record<string, string>)?.utm_source   || null,
+      utm_campaign: (utm as Record<string, string>)?.utm_campaign || null,
+      utm_medium:   (utm as Record<string, string>)?.utm_medium   || null,
+      utm_content:  (utm as Record<string, string>)?.utm_content  || null,
+      utm_term:     (utm as Record<string, string>)?.utm_term     || null,
+    };
+
+    await saveTx({
+      orderId:       txId,
+      externalId:    external_id,
+      status:        "waiting_payment",
+      createdAt:     new Date(),
+      amountInCents,
+      customer: {
+        name:     String(name),
+        email:    String(email),
+        phone:    String(phone).replace(/\D/g, ""),
+        document: cpf,
+        ...(clientIp ? { ip: clientIp } : {}),
+      },
+      tracking,
+    });
+
+    sendUtmifyOrder({
+      orderId:       txId,
+      status:        "waiting_payment",
+      createdAt:     new Date(),
+      approvedAt:    null,
+      customer: {
+        name:     String(name),
+        email:    String(email),
+        phone:    String(phone).replace(/\D/g, ""),
+        document: cpf,
+        ...(clientIp ? { ip: clientIp } : {}),
+      },
+      amountInCents,
+      tracking,
+    }).catch((err) => logger.warn({ err }, "UTMify VIP waiting_payment falhou silenciosamente"));
+
+    logger.info({ txId, externalId: external_id }, "Transação PIX VIP criada");
+    res.json({ success: true, ...result });
+  } catch (err) {
+    logger.error({ err }, "Erro ao criar transação PIX VIP");
+    const msg = err instanceof Error ? err.message : "Erro interno";
+    res.status(500).json({ error: msg });
+  }
+});
+
 export default router;
