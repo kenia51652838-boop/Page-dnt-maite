@@ -15,6 +15,7 @@ import ToastContainer from "@/components/ToastContainer";
 import Footer from "@/components/Footer";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
 import ExitIntentModal from "@/components/ExitIntentModal";
+import FomoNotification from "@/components/FomoNotification";
 
 export type ToastItem = {
   id: string;
@@ -117,6 +118,7 @@ function readUtmParams() {
 export default function Home() {
   const utmParams = readUtmParams();
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
+  const [fomoBonus, setFomoBonus] = useState(0);
   const [donors] = useState(generateDonors);
   const [liveDonors, setLiveDonors] = useState(donors);
 
@@ -366,6 +368,8 @@ export default function Home() {
     });
   }
 
+  const efectivoArrecadado = ARRECADADO + fomoBonus;
+
   const donationForm = (
     <DonationForm
       selectedValue={selectedValue}
@@ -373,6 +377,7 @@ export default function Home() {
       donationValues={DONATION_VALUES}
       formatBRL={formatBRL}
       loading={generatingPix}
+      arrecadado={efectivoArrecadado}
     />
   );
 
@@ -382,7 +387,7 @@ export default function Home() {
 
       <main className="flex-grow">
         <div style={{background:"#f5f5f5",minHeight:"100vh",paddingBottom:"100px"}}>
-          <HeroSection onDonate={openDoacaoModal} formatBRL={formatBRL} />
+          <HeroSection onDonate={openDoacaoModal} formatBRL={formatBRL} arrecadado={efectivoArrecadado} />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 layout-campanha">
             <div className="col-left">
@@ -495,6 +500,8 @@ export default function Home() {
       <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} />
 
       <ExitIntentModal onDonate={openDoacaoModal} />
+
+      <FomoNotification onDonate={(amount) => setFomoBonus(amount)} />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>

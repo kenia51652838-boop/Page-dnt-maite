@@ -1,14 +1,46 @@
+import { useState, useEffect, useRef } from "react";
 import { ARRECADADO, META, PCT } from "@/pages/Home";
 
 interface HeroSectionProps {
   onDonate: () => void;
   formatBRL: (v: number) => string;
+  arrecadado?: number;
 }
 
 const CAMPAIGN_ID = "3812047";
 
-export default function HeroSection({ onDonate, formatBRL }: HeroSectionProps) {
-  const DOADORES_SIMULADOS = Math.round(ARRECADADO / 52);
+export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSectionProps) {
+  const target = arrecadado ?? ARRECADADO;
+
+  // Animação de contagem ao receber novo valor
+  const [displayed, setDisplayed] = useState(ARRECADADO);
+  const prevRef = useRef(ARRECADADO);
+  const animRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (target === prevRef.current) return;
+    const start = prevRef.current;
+    prevRef.current = target;
+    const duration = 1800;
+    const startTime = performance.now();
+
+    if (animRef.current !== null) cancelAnimationFrame(animRef.current);
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.round(start + (target - start) * eased));
+      if (progress < 1) {
+        animRef.current = requestAnimationFrame(animate);
+      }
+    };
+    animRef.current = requestAnimationFrame(animate);
+    return () => { if (animRef.current !== null) cancelAnimationFrame(animRef.current); };
+  }, [target]);
+
+  const effectivePCT = ((target / META) * 100).toFixed(2);
+  const DOADORES_SIMULADOS = Math.round(target / 52);
 
   const criacao = (() => {
     const d = new Date();
@@ -105,7 +137,7 @@ export default function HeroSection({ onDonate, formatBRL }: HeroSectionProps) {
           Esse pai guerreiro de 46 anos deixa de se alimentar para não ver os filhos passarem fome
         </h1>
 
-        {/* Valor */}
+        {/* Valor animado */}
         <div style={{ marginBottom: "12px" }}>
           <span style={{
             fontFamily: "'Montserrat', sans-serif",
@@ -113,8 +145,9 @@ export default function HeroSection({ onDonate, formatBRL }: HeroSectionProps) {
             fontSize: "1.65rem",
             color: "#24CA68",
             letterSpacing: "-0.02em",
+            transition: "color 0.3s",
           }}>
-            {formatBRL(ARRECADADO)}
+            {formatBRL(displayed)}
           </span>
           <span style={{
             fontFamily: "'Lato', sans-serif",
@@ -126,20 +159,21 @@ export default function HeroSection({ onDonate, formatBRL }: HeroSectionProps) {
           </span>
         </div>
 
-        {/* Barra */}
+        {/* Barra animada */}
         <div style={{ width: "100%", height: "7px", background: "#ebebeb", borderRadius: "999px", overflow: "hidden", marginBottom: "10px" }}>
           <div style={{
-            width: `${PCT}%`,
+            width: `${effectivePCT}%`,
             height: "100%",
             background: "linear-gradient(90deg, #1aad56, #24CA68)",
             borderRadius: "999px",
+            transition: "width 1.8s cubic-bezier(0.25, 1, 0.5, 1)",
           }} />
         </div>
 
         {/* Stats */}
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px", flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Lato', sans-serif", fontSize: "0.8rem", color: "#555", fontWeight: 700 }}>
-            {PCT}% atingido
+            {effectivePCT}% atingido
           </span>
           <span style={{ width: "1px", height: "13px", background: "#e0e0e0" }} />
           <span style={{ fontFamily: "'Lato', sans-serif", fontSize: "0.8rem", color: "#555" }}>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ARRECADADO, META, PCT } from "@/pages/Home";
+import { ARRECADADO, META } from "@/pages/Home";
 
 interface DonationFormProps {
   selectedValue: number | null;
@@ -7,6 +7,7 @@ interface DonationFormProps {
   donationValues: number[];
   formatBRL: (v: number) => string;
   loading: boolean;
+  arrecadado?: number;
 }
 
 const MAIS_ESCOLHIDO = 75;
@@ -34,8 +35,11 @@ export default function DonationForm({
   donationValues,
   formatBRL,
   loading,
+  arrecadado,
 }: DonationFormProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
+  const effectiveArrecadado = arrecadado ?? ARRECADADO;
+  const effectivePCT = ((effectiveArrecadado / META) * 100).toFixed(2);
 
   const activeValue = hoveredValue ?? selectedValue ?? MAIS_ESCOLHIDO;
   const impactText = IMPACT_MAP[activeValue] ?? "";
@@ -65,7 +69,7 @@ export default function DonationForm({
           lineHeight: 1.1,
           marginBottom: "2px",
         }}>
-          {formatBRL(ARRECADADO)}
+          {formatBRL(effectiveArrecadado)}
         </span>
         <span style={{fontSize: "0.78rem", color: "#6b7280"}}>
           arrecadados de {formatBRL(META)}
@@ -82,7 +86,7 @@ export default function DonationForm({
         marginBottom: "4px",
       }}>
         <div style={{
-          width: `${PCT}%`,
+          width: `${effectivePCT}%`,
           height: "100%",
           background: "linear-gradient(90deg, #1aad56, #24CA68)",
           borderRadius: "999px",
@@ -90,7 +94,7 @@ export default function DonationForm({
         }} />
       </div>
       <p style={{fontSize: "0.8rem", color: "#6b7280", marginBottom: "1rem", fontWeight: 500}}>
-        {PCT}% do objetivo alcançado
+        {effectivePCT}% do objetivo alcançado
       </p>
 
       {/* Label */}
