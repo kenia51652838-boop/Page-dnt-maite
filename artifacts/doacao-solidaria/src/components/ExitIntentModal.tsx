@@ -17,13 +17,22 @@ export default function ExitIntentModal({ onDonate }: Props) {
   }, []);
 
   useEffect(() => {
-    // Desktop: cursor saindo pelo topo da janela
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && e.relatedTarget === null) tryShow();
+    // Injeta um estado de guarda no histórico do navegador.
+    // Assim, quando o usuário pressionar "voltar", o popstate
+    // dispara aqui em vez de fechar/sair da página.
+    history.pushState({ exitGuard: true }, "");
+
+    const handlePopState = () => {
+      // Re-injeta o guarda para que o usuário permaneça na página
+      // mesmo após fechar o modal e tentar sair de novo.
+      history.pushState({ exitGuard: true }, "");
+      tryShow();
     };
 
-    // Mobile Android: botão voltar
-    const handlePopState = () => tryShow();
+    // Desktop: cursor saindo pelo topo (barra de endereços / fechar aba)
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (e.clientY <= 0) tryShow();
+    };
 
     document.addEventListener("mouseleave", handleMouseLeave);
     window.addEventListener("popstate", handlePopState);
