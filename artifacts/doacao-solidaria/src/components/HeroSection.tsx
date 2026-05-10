@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { ARRECADADO, META, PCT } from "@/pages/Home";
 
 interface HeroSectionProps {
@@ -8,30 +7,8 @@ interface HeroSectionProps {
 
 const CAMPAIGN_ID = "3812047";
 
-function useViewerCount() {
-  const [count, setCount] = useState(() => 18 + Math.floor(Math.random() * 22));
-
-  useEffect(() => {
-    const schedule = () => {
-      const delay = 8000 + Math.random() * 14000;
-      return setTimeout(() => {
-        setCount(prev => {
-          const delta = Math.random() < 0.55 ? 1 : -1;
-          return Math.min(47, Math.max(12, prev + delta));
-        });
-        timerRef = schedule();
-      }, delay);
-    };
-    let timerRef = schedule();
-    return () => clearTimeout(timerRef);
-  }, []);
-
-  return count;
-}
-
 export default function HeroSection({ onDonate, formatBRL }: HeroSectionProps) {
   const DOADORES_SIMULADOS = Math.round(ARRECADADO / 52);
-  const viewerCount = useViewerCount();
 
   const criacao = (() => {
     const d = new Date();
@@ -179,25 +156,6 @@ export default function HeroSection({ onDonate, formatBRL }: HeroSectionProps) {
               animation: "vkPulse 1.6s ease-in-out infinite",
             }} />
             Doações em tempo real
-          </span>
-          <span style={{ width: "1px", height: "13px", background: "#e0e0e0" }} />
-          {/* Contador de visualizadores */}
-          <span style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "5px",
-            fontFamily: "'Lato', sans-serif",
-            fontSize: "0.8rem",
-            color: "#f97316",
-            fontWeight: 600,
-          }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#f97316", flexShrink: 0 }}>
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            <span style={{ transition: "all 0.4s ease" }}>
-              {viewerCount} vendo agora
-            </span>
           </span>
         </div>
 
