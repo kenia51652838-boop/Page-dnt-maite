@@ -5,7 +5,8 @@ interface Props {
 }
 
 const FOMO_KEY = "fomo_shown_v1";
-const FOMO_AMOUNTS = [30, 35, 40, 50, 60, 75, 100];
+// Distribuição ponderada: 75 (25%), 100 (30%), 150 (25%), 200 (10%), 50 (10%)
+const FOMO_AMOUNTS = [75, 75, 75, 100, 100, 100, 100, 100, 100, 150, 150, 150, 150, 200, 200, 50, 50];
 
 const FIRST_NAMES = [
   "Ana","Beatriz","Camila","Fernanda","Gabriela","Helena","Isabel","Juliana","Larissa","Mariana",
