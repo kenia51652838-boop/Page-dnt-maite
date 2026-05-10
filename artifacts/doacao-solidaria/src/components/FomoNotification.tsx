@@ -119,20 +119,15 @@ export default function FomoNotification({ onDonate }: Props) {
     }}>
       <style>{`
         .fomo-toast-wrap {
-          bottom: 16px;
-        }
-        @media (max-width: 768px) {
-          .fomo-toast-wrap {
-            bottom: 138px;
-          }
+          top: 16px;
         }
         @keyframes fomoIn {
-          from { opacity: 0; transform: translateY(18px) scale(0.96); }
+          from { opacity: 0; transform: translateY(-18px) scale(0.96); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes fomoOut {
           from { opacity: 1; transform: translateY(0) scale(1); }
-          to   { opacity: 0; transform: translateY(14px) scale(0.96); }
+          to   { opacity: 0; transform: translateY(-14px) scale(0.96); }
         }
         @keyframes fomoTimer {
           from { width: 100%; }
