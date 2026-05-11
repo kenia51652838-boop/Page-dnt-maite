@@ -52,6 +52,8 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
   const [vipCountdown, setVipCountdown] = useState("5:00");
   const [vipCopied, setVipCopied] = useState(false);
   const [vipExpired, setVipExpired] = useState(false);
+  const [vipVerifying, setVipVerifying] = useState(false);
+  const [vipVerifyMsg, setVipVerifyMsg] = useState<string | null>(null);
 
   const animRef = useRef<number>(0);
   const vipPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -189,6 +191,27 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
     });
   }
 
+  async function handleVipVerify() {
+    if (!vipTxId || vipVerifying) return;
+    setVipVerifying(true);
+    setVipVerifyMsg(null);
+    try {
+      const res = await fetch(apiUrl(`/api/pix/status/${vipTxId}`));
+      const data = await res.json() as { status?: string };
+      if (data.status === "paid") {
+        stopVipPoll();
+        stopVipCountdown();
+        setStep("vip-paid");
+      } else {
+        setVipVerifyMsg("Ainda não identificamos seu pagamento. Aguarde alguns instantes e tente novamente.");
+      }
+    } catch {
+      setVipVerifyMsg("Erro ao verificar. Tente novamente.");
+    } finally {
+      setVipVerifying(false);
+    }
+  }
+
   if (!isOpen) return null;
 
   const finalArrecadado = arrecadado + donationAmount;
@@ -312,33 +335,45 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
             background: "linear-gradient(135deg, #fffbeb, #fef3c7)",
             border: "2px solid #f59e0b",
             borderRadius: "16px",
-            padding: "1.1rem",
-            marginBottom: "0.85rem",
+            padding: "1rem",
+            marginBottom: "0.75rem",
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "1.5rem" }}>👑</span>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#92400e", lineHeight: 1.2 }}>
-                  Quero te convidar para algo especial
-                </div>
-                <div style={{ fontSize: "0.74rem", color: "#b45309" }}>Clube de Doadores VIP — acesso exclusivo</div>
+            {/* Header emocional */}
+            <div style={{ textAlign: "center", marginBottom: "0.65rem" }}>
+              <span style={{ fontSize: "1.8rem" }}>👑</span>
+              <div style={{ fontWeight: 800, fontSize: "1rem", color: "#92400e", lineHeight: 1.25, marginTop: "4px" }}>
+                Você pode ir além...
+              </div>
+              <div style={{ fontSize: "0.74rem", color: "#b45309", marginTop: "2px" }}>
+                Torne-se um Doador VIP e entre para a história dessa família
               </div>
             </div>
 
-            <p style={{ fontSize: "0.82rem", color: "#78350f", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
-              Quem já ajudou o Francivaldo sabe o impacto que uma doação faz. Agora você pode ir além: doe mais <strong>R$50</strong> e faça parte do grupo mais próximo dessa família.
-            </p>
+            {/* Copy emocional */}
+            <div style={{
+              background: "rgba(255,255,255,0.6)",
+              borderRadius: "10px",
+              padding: "0.65rem 0.75rem",
+              marginBottom: "0.65rem",
+              borderLeft: "3px solid #f59e0b",
+            }}>
+              <p style={{ fontSize: "0.8rem", color: "#78350f", lineHeight: 1.65, margin: 0 }}>
+                O Francivaldo não sabe seu nome. Mas você escolheu ajudar mesmo assim. Isso diz muito sobre quem você é.<br /><br />
+                Agora imagine ele <strong>recebendo uma ligação sua</strong>, sabendo que você acompanha de perto a recuperação dele e dos seus 4 filhos. Uma doação de mais <strong>R$50</strong> faz isso possível.
+              </p>
+            </div>
 
-            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 0.9rem", display: "flex", flexDirection: "column", gap: "7px" }}>
+            {/* Benefícios */}
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 0.75rem", display: "flex", flexDirection: "column", gap: "6px" }}>
               {([
-                ["📲", "Atualizações exclusivas sobre o Francivaldo e a família"],
-                ["📞", "Contato direto com o beneficiário por ligação"],
-                ["🏠", "Acesso ao endereço para visita presencial"],
-                ["🪪", "Receba o seu Cartão VIP digital exclusivo"],
-                ["🎁", "Concorra a prêmios especiais do programa VIP"],
+                ["📲", "Receba atualizações exclusivas sobre o Francivaldo e os filhos"],
+                ["📞", "Fale diretamente com o Francivaldo por ligação"],
+                ["🏠", "Acesso ao endereço para uma visita presencial"],
+                ["🤍", "Ganhe o Cartão de Boa Alma — você fez parte dessa história"],
+                ["🎁", "Concorra a prêmios especiais dos Doadores VIP"],
               ] as [string, string][]).map(([icon, text]) => (
-                <li key={text} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "0.79rem", color: "#78350f" }}>
-                  <span style={{ flexShrink: 0 }}>{icon}</span>
+                <li key={text} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "0.78rem", color: "#78350f" }}>
+                  <span style={{ flexShrink: 0, marginTop: "1px" }}>{icon}</span>
                   <span>{text}</span>
                 </li>
               ))}
@@ -353,16 +388,16 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
                 color: "#fff",
                 border: "none",
                 borderRadius: "12px",
-                padding: "13px",
+                padding: "12px 16px",
                 fontFamily: "inherit",
                 fontWeight: 800,
-                fontSize: "0.93rem",
+                fontSize: "0.88rem",
                 cursor: "pointer",
                 boxShadow: "0 4px 14px rgba(245,158,11,0.4)",
                 letterSpacing: "0.01em",
               }}
             >
-              👑 Quero ser Doador VIP — doe mais R$50
+              👑 Sim, quero ser Doador VIP — R$50
             </button>
           </div>
 
@@ -394,13 +429,13 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
         <div className="pix-modal__panel" style={{ maxWidth: "420px" }}>
           <button className="pix-modal__close" onClick={() => setStep("thankyou")} aria-label="Voltar">←</button>
 
-          <div style={{ textAlign: "center", marginBottom: "1.1rem" }}>
+          <div style={{ textAlign: "center", marginBottom: "1rem" }}>
             <span style={{ fontSize: "2rem" }}>👑</span>
             <h2 style={{ fontWeight: 800, fontSize: "1.05rem", color: "#92400e", margin: "0.35rem 0 0.2rem" }}>
-              Garanta seu acesso VIP
+              Seja um Doador VIP
             </h2>
             <p style={{ fontSize: "0.82rem", color: "#78350f", margin: 0, lineHeight: 1.55 }}>
-              Preencha seus dados reais para gerar o PIX VIP e receber todos os benefícios exclusivos.
+              Preencha seus dados para que possamos te identificar como Doador VIP e garantir seus benefícios exclusivos.
             </p>
           </div>
 
@@ -485,7 +520,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
                   }} />
                   Gerando seu PIX VIP...
                 </>
-              ) : "👑 Gerar PIX VIP — R$50"}
+              ) : "💛 Doação VIP — R$50,00"}
             </button>
 
             <button
@@ -513,52 +548,134 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
       <div className="pix-modal is-open" role="dialog" aria-modal="true">
         <div className="pix-modal__backdrop" />
         <div className="pix-modal__panel" style={{ maxWidth: "420px" }}>
+
+          {/* Badge + título */}
           <div style={{ textAlign: "center", marginBottom: "1rem" }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
               background: "linear-gradient(135deg, #fffbeb, #fef3c7)",
               border: "1.5px solid #f59e0b",
-              borderRadius: "999px", padding: "5px 16px",
+              borderRadius: "999px", padding: "5px 18px",
               fontSize: "0.82rem", fontWeight: 700, color: "#92400e",
-              marginBottom: "0.6rem",
+              marginBottom: "0.65rem",
             }}>
-              👑 PIX VIP — R$50
+              👑 Doação VIP — R$50
             </div>
-            <h2 style={{ fontWeight: 800, fontSize: "1.05rem", color: "#111827", margin: "0 0 0.15rem" }}>
-              Copie o código e pague no seu banco
+            <h2 style={{ fontWeight: 800, fontSize: "1.05rem", color: "#111827", margin: "0 0 0.2rem" }}>
+              Quase lá! Conclua sua doação VIP
             </h2>
             <p style={{ fontSize: "0.78rem", color: vipExpired ? "#dc2626" : "#6b7280", margin: 0, fontWeight: vipExpired ? 600 : 400 }}>
-              {vipExpired ? "PIX expirado." : `Expira em ${vipCountdown}`}
+              {vipExpired ? "PIX expirado — gere um novo abaixo." : `Código válido por ${vipCountdown}`}
             </p>
           </div>
 
           {!vipExpired ? (
             <>
+              {/* Passo a passo */}
               <div style={{
-                background: "#f9fafb", border: "1.5px solid #e5e7eb",
-                borderRadius: "12px", padding: "0.9rem",
+                background: "#f9fafb", border: "1px solid #e5e7eb",
+                borderRadius: "12px", padding: "0.8rem 1rem",
                 marginBottom: "0.75rem",
-                wordBreak: "break-all", fontSize: "0.7rem",
-                color: "#374151", lineHeight: 1.5, fontFamily: "monospace",
-                maxHeight: "100px", overflowY: "auto",
+                display: "flex", flexDirection: "column", gap: "8px",
+              }}>
+                {([
+                  ["1", "Abra o app do seu banco"],
+                  ["2", 'Vá em Pix → "Pix Copia e Cola"'],
+                  ["3", "Cole o código abaixo e confirme"],
+                ] as [string, string][]).map(([num, text]) => (
+                  <div key={num} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: "50%",
+                      background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                      color: "#fff", fontWeight: 800, fontSize: "0.72rem",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0,
+                    }}>{num}</div>
+                    <span style={{ fontSize: "0.8rem", color: "#374151" }}>{text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Código PIX */}
+              <div style={{
+                background: "#fff", border: "1.5px solid #fde68a",
+                borderRadius: "10px", padding: "0.75rem 0.9rem",
+                marginBottom: "0.7rem",
+                wordBreak: "break-all", fontSize: "0.68rem",
+                color: "#374151", lineHeight: 1.55, fontFamily: "monospace",
+                maxHeight: "88px", overflowY: "auto",
               }}>
                 {vipPixCode}
               </div>
+
+              {/* Botão copiar */}
               <button
                 type="button"
                 onClick={handleVipCopy}
                 style={{
                   width: "100%", padding: "13px", border: "none",
                   borderRadius: "12px",
-                  background: vipCopied ? "#15803d" : "linear-gradient(135deg, #f59e0b, #d97706)",
+                  background: vipCopied
+                    ? "#15803d"
+                    : "linear-gradient(135deg, #f59e0b, #d97706)",
                   color: "#fff", fontWeight: 800, fontSize: "0.93rem",
                   cursor: "pointer", fontFamily: "inherit",
                   transition: "background 0.3s",
                   boxShadow: "0 4px 12px rgba(245,158,11,0.35)",
-                  marginBottom: "0.75rem",
+                  marginBottom: "0.55rem",
                 }}
               >
                 {vipCopied ? "✅ Código copiado!" : "📋 Copiar código PIX VIP"}
+              </button>
+
+              {/* Aguardando / verificar */}
+              <div style={{
+                background: "#f0fdf4", border: "1px solid #bbf7d0",
+                borderRadius: "10px", padding: "0.65rem 0.9rem",
+                marginBottom: "0.6rem",
+                display: "flex", alignItems: "center", gap: "8px",
+              }}>
+                <span style={{
+                  width: 14, height: 14, borderRadius: "50%",
+                  border: "2px solid #24CA68", borderTopColor: "transparent",
+                  display: "inline-block", animation: "pixSpin .9s linear infinite",
+                  flexShrink: 0,
+                }} />
+                <span style={{ fontSize: "0.77rem", color: "#15803d", fontWeight: 600 }}>
+                  Aguardando confirmação do pagamento...
+                </span>
+              </div>
+
+              {vipVerifyMsg && (
+                <p style={{ fontSize: "0.77rem", color: "#dc2626", fontWeight: 600, margin: "0 0 0.5rem", textAlign: "center" }}>
+                  {vipVerifyMsg}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleVipVerify}
+                disabled={vipVerifying}
+                style={{
+                  width: "100%", padding: "11px", border: "1.5px solid #24CA68",
+                  borderRadius: "12px", background: "#fff",
+                  color: "#15803d", fontWeight: 700, fontSize: "0.85rem",
+                  cursor: vipVerifying ? "default" : "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                  opacity: vipVerifying ? 0.7 : 1,
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {vipVerifying ? (
+                  <>
+                    <span style={{
+                      width: 14, height: 14, borderRadius: "50%",
+                      border: "2px solid #15803d", borderTopColor: "transparent",
+                      display: "inline-block", animation: "pixSpin .8s linear infinite",
+                    }} />
+                    Verificando...
+                  </>
+                ) : "✅ Já paguei — verificar agora"}
               </button>
             </>
           ) : (
@@ -581,22 +698,13 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
             </div>
           )}
 
-          <div style={{
-            background: "#fffbeb", border: "1px solid #fde68a",
-            borderRadius: "10px", padding: "0.65rem 0.9rem", marginBottom: "0.75rem",
-          }}>
-            <p style={{ fontSize: "0.77rem", color: "#92400e", margin: 0, lineHeight: 1.5 }}>
-              💡 Abra o app do banco → Pix → Copia e Cola → cole o código acima e confirme o pagamento de <strong>R$50</strong>.
-            </p>
-          </div>
-
           <button
             type="button"
             onClick={onClose}
             style={{
-              width: "100%", padding: "10px", border: "none",
+              width: "100%", padding: "8px", border: "none",
               background: "transparent", color: "#9ca3af",
-              fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit",
+              fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit",
             }}
           >
             Fechar
