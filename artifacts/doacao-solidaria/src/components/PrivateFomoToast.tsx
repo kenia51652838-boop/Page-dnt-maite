@@ -39,7 +39,7 @@ export default function PrivateFomoToast({ name, city, amount, onDismiss }: Prop
       top: "16px",
       left: "16px",
       right: "16px",
-      zIndex: 9999,
+      zIndex: 10200,
       maxWidth: "340px",
       animation: leaving
         ? "fomoOut 0.38s ease forwards"
