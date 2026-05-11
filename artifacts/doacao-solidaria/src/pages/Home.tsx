@@ -11,6 +11,7 @@ import PixLoadingModal from "@/components/PixLoadingModal";
 import PixBankNoticeModal from "@/components/PixBankNoticeModal";
 import PixLimitModal from "@/components/PixLimitModal";
 import ThankYouModal from "@/components/ThankYouModal";
+import PrivateFomoToast from "@/components/PrivateFomoToast";
 import ToastContainer from "@/components/ToastContainer";
 import Footer from "@/components/Footer";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
@@ -131,7 +132,14 @@ export default function Home() {
   const [thankYouOpen, setThankYouOpen] = useState(() =>
     new URLSearchParams(window.location.search).get("thanks") === "1"
   );
+  const [thankYouOpenOnUpsell, setThankYouOpenOnUpsell] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+
+  const [hasDonated, setHasDonated] = useState(false);
+  const [donorCity, setDonorCity] = useState("");
+  const [privateFomo, setPrivateFomo] = useState(false);
+  const [privateFomoData, setPrivateFomoData] = useState<{ name: string; city: string; amount: number } | null>(null);
+  const donorCityFetchedRef = useRef(false);
   const _urlAmount = Number(new URLSearchParams(window.location.search).get("amount")) || null;
   const [generatingPix, setGeneratingPix] = useState(false);
 
@@ -162,6 +170,50 @@ export default function Home() {
     setToasts(prev => prev.map(x => x.id === id ? {...x, leaving: true} : x));
     setTimeout(() => setToasts(prev => prev.filter(x => x.id !== id)), 400);
   };
+
+  // Fetch donor city when ThankYouModal opens (once per session)
+  useEffect(() => {
+    if (!thankYouOpen || donorCityFetchedRef.current) return;
+    donorCityFetchedRef.current = true;
+    (async () => {
+      try {
+        const controller = new AbortController();
+        const to = setTimeout(() => controller.abort(), 4500);
+        const res = await fetch("https://ipapi.co/json/", { signal: controller.signal });
+        clearTimeout(to);
+        const data = await res.json();
+        if (data.city && data.region_code) {
+          setDonorCity(`${data.city}, ${data.region_code}`);
+        } else if (data.city) {
+          setDonorCity(data.city);
+        }
+      } catch {
+        // sem cidade se falhar
+      }
+    })();
+  }, [thankYouOpen]);
+
+  // Callback quando o lead escolhe se identificar ou ficar anônimo
+  function handleIdentify(name: string | null) {
+    const displayName = name && name.trim() ? name.trim() : "Doador Anônimo";
+    const amount = selectedValue || _urlAmount || 0;
+
+    // Mostra o toast privado idêntico ao FOMO
+    setPrivateFomoData({ name: displayName, city: donorCity, amount });
+    setPrivateFomo(true);
+
+    // Se deu nome, adiciona aos doadores recentes no topo
+    if (name && name.trim()) {
+      const parts = name.trim().split(/\s+/);
+      const initials = ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
+      const colors = ["#24CA68", "#0ea5e9", "#a855f7", "#f59e0b"];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      setLiveDonors(prev => [{ nome: name.trim(), initials, color, valorNum: amount, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
+    } else {
+      // Anônimo também aparece na lista
+      setLiveDonors(prev => [{ nome: "Doador Anônimo", initials: "DA", color: "#6b7280", valorNum: amount, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
+    }
+  }
 
   // Live donors
   useEffect(() => {
@@ -329,14 +381,22 @@ export default function Home() {
 
   function closeThankYouModal() {
     setThankYouOpen(false);
+    setThankYouOpenOnUpsell(false);
     setPixConfirmed(false);
     setPixExpired(false);
     if (paidAmountRef.current > 0) {
       setFomoBonus(prev => prev + paidAmountRef.current);
       paidAmountRef.current = 0;
     }
+    setHasDonated(true);
     setSelectedValue(null);
     document.body.style.overflow = "";
+  }
+
+  function openVipUpsell() {
+    setThankYouOpenOnUpsell(true);
+    setThankYouOpen(true);
+    document.body.style.overflow = "hidden";
   }
 
   function openDoacaoModal() {
@@ -423,26 +483,49 @@ export default function Home() {
         padding:"12px 16px calc(16px + env(safe-area-inset-bottom))",
         boxShadow:"0 -4px 20px rgba(0,0,0,0.08)",
       }}>
-        <button
-          type="button"
-          onClick={openDoacaoModal}
-          style={{
-            width:"100%",
-            background:"#24CA68",
-            color:"#fff",
-            border:"none",
-            borderRadius:"999px",
-            padding:"15px",
-            fontFamily:"'Montserrat',sans-serif",
-            fontWeight:800,
-            fontSize:"1rem",
-            cursor:"pointer",
-            letterSpacing:"0.02em",
-            boxShadow:"0 4px 14px rgba(0,157,78,0.35)",
-          }}
-        >
-          Quero Ajudar 💚
-        </button>
+        {hasDonated ? (
+          <button
+            type="button"
+            onClick={openVipUpsell}
+            style={{
+              width:"100%",
+              background:"linear-gradient(135deg, #f59e0b, #d97706)",
+              color:"#fff",
+              border:"none",
+              borderRadius:"999px",
+              padding:"15px",
+              fontFamily:"'Montserrat',sans-serif",
+              fontWeight:800,
+              fontSize:"0.9rem",
+              cursor:"pointer",
+              letterSpacing:"0.01em",
+              boxShadow:"0 4px 14px rgba(245,158,11,0.4)",
+            }}
+          >
+            👑 Ser Doador VIP — Acesso Direto ao Beneficiário
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={openDoacaoModal}
+            style={{
+              width:"100%",
+              background:"#24CA68",
+              color:"#fff",
+              border:"none",
+              borderRadius:"999px",
+              padding:"15px",
+              fontFamily:"'Montserrat',sans-serif",
+              fontWeight:800,
+              fontSize:"1rem",
+              cursor:"pointer",
+              letterSpacing:"0.02em",
+              boxShadow:"0 4px 14px rgba(0,157,78,0.35)",
+            }}
+          >
+            Quero Ajudar 💚
+          </button>
+        )}
         <a
           href={`https://wa.me/?text=${encodeURIComponent("Olha só isso... Um pai de 46 anos, com a perna machucada, cria 4 filhos SOZINHO e ainda deixa de comer para que eles possam jantar. Você pode ajudar com qualquer valor, até R$30 já garante o jantar dessa família hoje 💚\n\n" + window.location.href)}`}
           target="_blank"
@@ -500,7 +583,19 @@ export default function Home() {
         donationAmount={selectedValue || _urlAmount || 0}
         arrecadado={efectivoArrecadado}
         onClose={closeThankYouModal}
+        onIdentify={handleIdentify}
+        donorCity={donorCity}
+        openOnUpsell={thankYouOpenOnUpsell}
       />
+
+      {privateFomo && privateFomoData && (
+        <PrivateFomoToast
+          name={privateFomoData.name}
+          city={privateFomoData.city}
+          amount={privateFomoData.amount}
+          onDismiss={() => setPrivateFomo(false)}
+        />
+      )}
 
       <PixBankNoticeModal isOpen={bankNoticeOpen} onClose={() => setBankNoticeOpen(false)} />
 

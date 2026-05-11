@@ -13,13 +13,16 @@ function formatPhone(v: string) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
-type Step = "animating" | "thankyou" | "vip-form" | "vip-pix" | "vip-paid";
+type Step = "animating" | "identify" | "thankyou" | "vip-form" | "vip-pix" | "vip-paid";
 
 interface Props {
   isOpen: boolean;
   donationAmount: number;
   arrecadado: number;
   onClose: () => void;
+  onIdentify?: (name: string | null) => void;
+  donorCity?: string;
+  openOnUpsell?: boolean;
 }
 
 const VIP_SEC = 5 * 60;
@@ -37,9 +40,10 @@ const inputStyle: React.CSSProperties = {
   color: "#111827",
 };
 
-export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onClose }: Props) {
+export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onClose, onIdentify, donorCity, openOnUpsell }: Props) {
   const [step, setStep] = useState<Step>("animating");
   const [displayValue, setDisplayValue] = useState(arrecadado);
+  const [identifyName, setIdentifyName] = useState("");
 
   const [vipName, setVipName] = useState("");
   const [vipEmail, setVipEmail] = useState("");
@@ -75,11 +79,18 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
       setTimeout(() => {
         setStep("animating");
         setDisplayValue(arrecadado);
+        setIdentifyName("");
         setVipName(""); setVipEmail(""); setVipPhone("");
         setVipError(""); setVipPixCode(""); setVipTxId("");
         setVipCountdown("5:00"); setVipCopied(false); setVipExpired(false);
         setVipLoading(false);
       }, 300);
+      return;
+    }
+
+    if (openOnUpsell) {
+      setDisplayValue(arrecadado + donationAmount);
+      setStep("thankyou");
       return;
     }
 
@@ -104,7 +115,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
       if (t < 1) {
         animRef.current = requestAnimationFrame(tick);
       } else {
-        setTimeout(() => setStep("thankyou"), 700);
+        setTimeout(() => setStep("identify"), 700);
       }
     }
     animRef.current = requestAnimationFrame(tick);
@@ -285,6 +296,125 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
           <p style={{ textAlign: "center", color: "#4b5563", fontSize: "0.875rem", lineHeight: 1.6, margin: 0 }}>
             Você fez a diferença hoje para o Sr. Francivaldo e seus 4 filhos 💚
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── IDENTIFY ───────────────────────────────────────────────────────────────
+  if (step === "identify") {
+    const previewName = identifyName.trim() || "Doador Anônimo";
+    const previewInitials = (() => {
+      const parts = previewName.split(" ").filter(p => p.length > 1);
+      if (parts.length < 2) return previewName.slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    })();
+
+    function handleChoose(anonymous: boolean) {
+      const name = anonymous ? null : (identifyName.trim() || null);
+      onIdentify?.(name);
+      setStep("thankyou");
+    }
+
+    return (
+      <div className="pix-modal is-open" role="dialog" aria-modal="true">
+        <div className="pix-modal__backdrop" />
+        <div className="pix-modal__panel" style={{ maxWidth: "420px" }}>
+
+          <div style={{ textAlign: "center", marginBottom: "1.1rem" }}>
+            <div style={{
+              width: 52, height: 52,
+              background: "linear-gradient(135deg,#dcfce7,#bbf7d0)",
+              borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 0.55rem",
+              fontSize: "1.5rem",
+            }}>✅</div>
+            <h2 style={{ color: "#24CA68", fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.2rem" }}>
+              Doação confirmada! 💚
+            </h2>
+            <p style={{ color: "#4b5563", fontSize: "0.82rem", margin: 0, lineHeight: 1.5 }}>
+              Quer aparecer na lista de doadores recentes?
+            </p>
+          </div>
+
+          {/* Preview de como vai aparecer */}
+          <div style={{
+            background: "#f9fafb", border: "1px solid #e5e7eb",
+            borderRadius: "12px", padding: "0.85rem 1rem",
+            marginBottom: "0.9rem",
+          }}>
+            <p style={{ fontSize: "0.71rem", color: "#6b7280", margin: "0 0 0.5rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              Prévia de como você vai aparecer
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: "50%",
+                background: "linear-gradient(135deg, #24CA68, #15944a)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <span style={{ color: "#fff", fontWeight: 800, fontSize: "0.8rem" }}>{previewInitials}</span>
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#111827" }}>{previewName}</div>
+                {donorCity && (
+                  <div style={{ fontSize: "0.73rem", color: "#6b7280" }}>📍 {donorCity}</div>
+                )}
+                <div style={{ fontSize: "0.78rem", color: "#374151", marginTop: "2px" }}>
+                  contribuiu <span style={{ fontWeight: 800, color: "#24CA68" }}>{formatBRL(donationAmount)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Campo de nome */}
+          <div style={{ marginBottom: "0.7rem" }}>
+            <label style={{ fontSize: "0.74rem", fontWeight: 600, color: "#374151", display: "block", marginBottom: "5px" }}>
+              Seu nome (opcional)
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: Maria Silva"
+              value={identifyName}
+              onChange={e => setIdentifyName(e.target.value)}
+              autoComplete="name"
+              style={inputStyle}
+              onFocus={e => (e.target.style.borderColor = "#24CA68")}
+              onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+            />
+            <p style={{ fontSize: "0.7rem", color: "#9ca3af", margin: "4px 0 0" }}>
+              Deixe em branco para aparecer como "Doador Anônimo"
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleChoose(false)}
+            style={{
+              width: "100%", padding: "13px", border: "none",
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #24CA68, #1aad56)",
+              color: "#fff", fontWeight: 800, fontSize: "0.9rem",
+              cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 4px 12px rgba(36,202,104,0.35)",
+              marginBottom: "0.5rem",
+            }}
+          >
+            ✅ Sim, quero aparecer na lista
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleChoose(true)}
+            style={{
+              width: "100%", padding: "11px", border: "none",
+              background: "transparent", color: "#9ca3af",
+              fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Prefiro ficar anônimo
+          </button>
         </div>
       </div>
     );
