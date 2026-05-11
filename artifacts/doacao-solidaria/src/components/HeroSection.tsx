@@ -134,7 +134,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           marginBottom: "20px",
           letterSpacing: "-0.02em",
         }}>
-          4 filhos, 1 pai de 46 anos com a perna machucada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
+          4 filhos, 1 pai com a perna machucada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
         </h1>
 
         {/* Valor animado */}
