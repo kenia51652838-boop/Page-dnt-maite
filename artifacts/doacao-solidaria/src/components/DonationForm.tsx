@@ -56,7 +56,7 @@ export default function DonationForm({
         marginBottom: "0.75rem",
         paddingRight: "2rem",
       }}>
-        Esse pai guerreiro de 46 anos deixa de se alimentar para não ver os filhos passarem fome
+        4 filhos, 1 pai de 46 anos com a perna machucada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
       </h2>
 
       {/* Valor + progresso */}
