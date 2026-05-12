@@ -40,7 +40,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
   }, [target]);
 
   const effectivePCT = ((target / META) * 100).toFixed(2);
-  const DOADORES_SIMULADOS = Math.round(target / 52);
+  const DOADORES_SIMULADOS = Math.round(target / 35);
 
   const criacao = (() => {
     const d = new Date();
