@@ -177,7 +177,6 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
               marginTop: "10px",
               padding: "0 4px",
             }}>
-              <span style={{ fontSize: "0.9rem", flexShrink: 0, marginTop: "1px" }}>🩻</span>
               <div>
                 <p style={{
                   margin: 0,
