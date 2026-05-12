@@ -157,6 +157,32 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
           <p className="paragrafo-historia">
             O Sr. Francivaldo tem um <b className="destacar-no-texto">deslocamento no osso do joelho</b>. O raio-x comprovou. O médico disse que ele precisa de tratamento urgente. Mas parar de trabalhar para ele não é uma opção — porque parar significa ver seus filhos passarem fome.
           </p>
+
+          <div style={{
+            margin: "1rem 0",
+            borderRadius: "12px",
+            overflow: "hidden",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+          }}>
+            <img
+              src={`${import.meta.env.BASE_URL}img/raio-x.png`}
+              alt="Raio-X do joelho do Sr. Francivaldo mostrando o deslocamento ósseo"
+              style={{ width: "100%", display: "block" }}
+            />
+            <div style={{
+              background: "#1a1a2e",
+              padding: "8px 14px",
+              fontSize: "0.75rem",
+              color: "#c0c0d0",
+              textAlign: "center",
+              fontFamily: "'Lato', sans-serif",
+              letterSpacing: "0.02em",
+            }}>
+              🩻 Raio-X oficial — Francivaldo Pereira Ricardo — UPA 24h — 27/02/2026
+            </div>
+          </div>
+
           <br />
           <p className="paragrafo-historia">
             Então ele vai. Dia após dia. Com a perna fora do lugar, <b className="destacar-no-texto">mancando, arrastando o pé</b>, saindo de casa cedo para trabalhar. E muitas vezes, ao final do dia, <b className="destacar-no-texto">ele mesmo fica sem comer para que as crianças possam se alimentar</b>.
