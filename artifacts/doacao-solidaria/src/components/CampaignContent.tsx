@@ -158,28 +158,46 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             O Sr. Francivaldo tem um <b className="destacar-no-texto">deslocamento no osso do joelho</b>. O raio-x comprovou. O médico disse que ele precisa de tratamento urgente. Mas parar de trabalhar para ele não é uma opção — porque parar significa ver seus filhos passarem fome.
           </p>
 
-          <div style={{
-            margin: "1rem 0",
-            borderRadius: "12px",
-            overflow: "hidden",
-            border: "1px solid #e5e7eb",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-          }}>
+          <div style={{ margin: "1.25rem 0" }}>
             <img
               src={`${import.meta.env.BASE_URL}img/raio-x.png`}
               alt="Raio-X do joelho do Sr. Francivaldo mostrando o deslocamento ósseo"
-              style={{ width: "100%", display: "block" }}
+              style={{
+                width: "100%",
+                display: "block",
+                borderRadius: "12px",
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+              }}
             />
             <div style={{
-              background: "#1a1a2e",
-              padding: "8px 14px",
-              fontSize: "0.75rem",
-              color: "#c0c0d0",
-              textAlign: "center",
-              fontFamily: "'Lato', sans-serif",
-              letterSpacing: "0.02em",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "8px",
+              marginTop: "10px",
+              padding: "0 4px",
             }}>
-              🩻 Raio-X oficial — Francivaldo Pereira Ricardo — UPA 24h — 27/02/2026
+              <span style={{ fontSize: "0.9rem", flexShrink: 0, marginTop: "1px" }}>🩻</span>
+              <div>
+                <p style={{
+                  margin: 0,
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  color: "#374151",
+                  fontFamily: "'Lato', sans-serif",
+                }}>
+                  Exame de imagem — Raio-X do joelho
+                </p>
+                <p style={{
+                  margin: "2px 0 0",
+                  fontSize: "0.72rem",
+                  color: "#6b7280",
+                  fontFamily: "'Lato', sans-serif",
+                  lineHeight: 1.5,
+                }}>
+                  Paciente: Francivaldo Pereira Ricardo &nbsp;·&nbsp; UPA 24h &nbsp;·&nbsp; 27/02/2026
+                </p>
+              </div>
             </div>
           </div>
 
