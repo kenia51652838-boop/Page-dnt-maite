@@ -17,6 +17,7 @@ import Footer from "@/components/Footer";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
 import ExitIntentModal from "@/components/ExitIntentModal";
 import FomoNotification from "@/components/FomoNotification";
+import ContentWarningModal from "@/components/ContentWarningModal";
 
 export type ToastItem = {
   id: string;
@@ -120,6 +121,9 @@ export default function Home() {
   const utmParams = readUtmParams();
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
   const [fomoBonus, setFomoBonus] = useState(0);
+  const [warningDismissed, setWarningDismissed] = useState(
+    () => !!sessionStorage.getItem("content_warning_v1")
+  );
   const [donors] = useState(generateDonors);
   const [liveDonors, setLiveDonors] = useState(donors);
 
@@ -603,7 +607,9 @@ export default function Home() {
 
       <ExitIntentModal onDonate={openDoacaoModal} />
 
-      <FomoNotification onDonate={(amount) => setFomoBonus(amount)} />
+      <ContentWarningModal onDismiss={() => setWarningDismissed(true)} />
+
+      <FomoNotification onDonate={(amount) => setFomoBonus(amount)} enabled={warningDismissed} />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
