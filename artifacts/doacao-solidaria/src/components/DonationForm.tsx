@@ -13,20 +13,20 @@ interface DonationFormProps {
 const MAIS_ESCOLHIDO = 75;
 
 const IMPACT_MAP: Record<number, string> = {
-  30:   "garante o jantar da família hoje",
-  35:   "compra arroz e feijão para a semana toda",
-  40:   "cobre itens básicos de higiene para os 4 filhos",
-  50:   "alimenta toda a família por 2 dias completos",
-  60:   "paga uma semana de compras no mercado",
-  75:   "garante alimentação e higiene por 15 dias",
-  100:  "3 semanas de comida e dignidade para essas crianças",
-  150:  "ajuda a custear o tratamento da perna do Francivaldo",
-  200:  "um mês inteiro de alimentação básica garantida",
-  300:  "transforma a rotina dessa família por mais de 1 mês",
-  400:  "quase 2 meses de segurança e dignidade para os filhos",
-  500:  "2 meses de comida, higiene e tratamento garantidos",
-  750:  "3 meses de alívio real e recuperação para essa família",
-  1000: "você muda completamente e definitivamente a vida deles",
+  30:   "garante o jantar de hoje para o Sr. Francivaldo e os 4 filhos",
+  35:   "compra arroz, feijão e ovos para 2 dias de refeição",
+  40:   "cobre 2 dias de alimentação básica para toda a família",
+  50:   "garante 3 dias de refeições para as crianças",
+  60:   "alimenta a família por 3 a 4 dias com o básico do mercado",
+  75:   "cobre 4 dias de comida no prato para os 4 filhos",
+  100:  "garante 5 a 6 dias de alimentação completa para a família",
+  150:  "uma semana inteira de comida garantida para essa família",
+  200:  "mais de 1 semana de alimentação e itens básicos de higiene",
+  300:  "quase 2 semanas de comida e dignidade para os 4 filhos",
+  400:  "2 semanas de alimentação completa e ajuda no tratamento da perna",
+  500:  "3 semanas de comida e cuidado garantidos para essa família",
+  750:  "mais de 1 mês de refeições no prato para os 4 filhos",
+  1000: "muda completamente a realidade dessa família por mais de 1 mês",
 };
 
 export default function DonationForm({
