@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { apiUrl, safeJson } from "@/lib/api";
+import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import CampaignContent from "@/components/CampaignContent";
@@ -327,7 +327,7 @@ export default function Home() {
     const customer = generateAnonymousCustomer();
 
     try {
-      const res = await fetch(apiUrl("/api/pix/create"), {
+      const res = await fetchWithRetry(apiUrl("/api/pix/create"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

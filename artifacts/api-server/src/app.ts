@@ -30,6 +30,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", ts: Date.now() });
+});
+
 app.use("/api", router);
 
 // Error handler global para rotas /api — garante que erros sempre retornam JSON

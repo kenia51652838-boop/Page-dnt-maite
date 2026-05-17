@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { apiUrl, safeJson } from "@/lib/api";
+import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
 import { META } from "@/pages/Home";
 
 function formatBRL(v: number) {
@@ -170,7 +170,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
     }
     setVipLoading(true);
     try {
-      const res = await fetch(apiUrl("/api/pix/create-vip"), {
+      const res = await fetchWithRetry(apiUrl("/api/pix/create-vip"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
