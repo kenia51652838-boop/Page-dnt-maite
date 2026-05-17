@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, safeJson } from "@/lib/api";
 import { META } from "@/pages/Home";
 
 function formatBRL(v: number) {
@@ -179,7 +179,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
           phone: vipPhone.replace(/\D/g, ""),
         }),
       });
-      const data = await res.json() as { pix_code?: string; transaction_id?: string; error?: string };
+      const data = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string }>(res);
       if (!res.ok || data.error) throw new Error(data.error || "Erro ao gerar PIX VIP");
       setVipPixCode(data.pix_code || "");
       setVipTxId(data.transaction_id || "");

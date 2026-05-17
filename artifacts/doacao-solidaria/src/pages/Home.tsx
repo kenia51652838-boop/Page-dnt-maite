@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, safeJson } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import CampaignContent from "@/components/CampaignContent";
@@ -339,12 +339,12 @@ export default function Home() {
           utm: utmParams,
         }),
       });
-      const data = await res.json() as {
+      const data = await safeJson<{
         pix_code?: string;
         transaction_id?: string;
         expires_at?: string;
         error?: string;
-      };
+      }>(res);
 
       if (!res.ok || data.error) {
         const errMsg = (data.error || "").toLowerCase();

@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "path";
@@ -31,6 +31,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+// Error handler global para rotas /api — garante que erros sempre retornam JSON
+app.use("/api", (err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  logger.error({ err }, "Unhandled API error");
+  if (!res.headersSent) {
+    res.status(500).json({ error: "Erro interno. Tente novamente em alguns segundos." });
+  }
+});
 
 // Em produção, serve o frontend estático e fallback para SPA
 // process.cwd() = artifacts/api-server (pnpm muda o cwd para o pacote)
