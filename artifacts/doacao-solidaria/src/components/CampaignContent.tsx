@@ -307,7 +307,7 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
               <Row label="Organizador" value="ONG Abelhinhas do Amor" />
               <Row label="CNPJ" value="62.669.301/0001-60" />
               <Row label="Contato" value="contato@abelhinhasdoamor.com.br" isEmail />
-              <Row label="Beneficiário" value="Francivaldo (pai solo, 46 anos, 4 filhos)" />
+              <Row label="Beneficiário" value="Francivaldo Pereira Ricardo (pai solo, 46 anos, 4 filhos)" />
             </div>
             <p style={{
               fontFamily: "'Lato', sans-serif",
