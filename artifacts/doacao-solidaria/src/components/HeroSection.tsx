@@ -59,14 +59,18 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           lineHeight: 0,
         }}>
           <picture>
+            <source
+              srcSet={`${import.meta.env.BASE_URL}img/francivaldo.webp`}
+              type="image/webp"
+            />
             <img
               src={`${import.meta.env.BASE_URL}img/francivaldo.jpg`}
               alt="Sr. Francivaldo e seus filhos"
               fetchPriority="high"
               loading="eager"
               decoding="async"
-              width="1398"
-              height="817"
+              width="1200"
+              height="701"
               style={{ width: "100%", display: "block", objectFit: "cover" }}
               onError={e => { (e.currentTarget as HTMLImageElement).style.opacity = "0"; }}
             />

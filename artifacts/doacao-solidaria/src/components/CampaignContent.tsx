@@ -159,17 +159,25 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
           </p>
 
           <div style={{ margin: "1.25rem 0" }}>
-            <img
-              src={`${import.meta.env.BASE_URL}img/raio-x.png`}
-              alt="Raio-X do joelho do Sr. Francivaldo mostrando o deslocamento ósseo"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "12px",
-                border: "1px solid #e5e7eb",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-              }}
-            />
+            <picture>
+              <source
+                srcSet={`${import.meta.env.BASE_URL}img/raio-x.webp`}
+                type="image/webp"
+              />
+              <img
+                src={`${import.meta.env.BASE_URL}img/raio-x.png`}
+                alt="Raio-X do joelho do Sr. Francivaldo mostrando o deslocamento ósseo"
+                loading="lazy"
+                decoding="async"
+                style={{
+                  width: "100%",
+                  display: "block",
+                  borderRadius: "12px",
+                  border: "1px solid #e5e7eb",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+                }}
+              />
+            </picture>
             <div style={{
               display: "flex",
               alignItems: "flex-start",
