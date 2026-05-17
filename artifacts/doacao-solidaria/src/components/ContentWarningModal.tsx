@@ -104,8 +104,8 @@ export default function ContentWarningModal({ onDismiss }: Props) {
           }}
         >
           Esta página contém imagens e relatos reais de uma família vivendo em situação de{" "}
-          <strong>vulnerabilidade extrema</strong>. A história do Sr. Francivaldo é difícil de ler
-          — mas é verdadeira.
+          <strong>vulnerabilidade extrema</strong>. A história do Sr. Francivaldo é difícil de ler,
+          mas é uma realidade infeliz e existente nos dias de hoje.
         </p>
 
         <p
@@ -135,7 +135,7 @@ export default function ContentWarningModal({ onDismiss }: Props) {
             boxShadow: "0 4px 14px rgba(26,173,86,0.35)",
           }}
         >
-          Entendi — quero ver a história
+          Quero ver a história e Ajudar
         </button>
       </div>
     </div>
