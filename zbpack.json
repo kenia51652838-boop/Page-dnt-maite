@@ -1,0 +1,4 @@
+{
+  "build_command": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server run build",
+  "start_command": "pnpm --filter @workspace/api-server run start"
+}
