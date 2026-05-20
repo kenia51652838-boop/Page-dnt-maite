@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "wouter";
 import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
 import { META } from "@/pages/Home";
 
@@ -41,6 +42,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onClose, onIdentify, donorCity, openOnUpsell }: Props) {
+  const [, navigate] = useLocation();
   const [step, setStep] = useState<Step>("animating");
   const [displayValue, setDisplayValue] = useState(arrecadado);
   const [identifyName, setIdentifyName] = useState("");
@@ -115,7 +117,10 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
       if (t < 1) {
         animRef.current = requestAnimationFrame(tick);
       } else {
-        setTimeout(() => setStep("identify"), 700);
+        setTimeout(() => {
+          onClose();
+          navigate("/conta-atrasada");
+        }, 700);
       }
     }
     animRef.current = requestAnimationFrame(tick);
