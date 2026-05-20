@@ -16,16 +16,9 @@ export interface StoredTx {
 const memStore   = new Map<string, StoredTx>();
 const memByExtId = new Map<string, string>();
 
-const dbUrl =
-  process.env.ZEABUR_DATABASE_URL ||
-  process.env.RAILWAY_DATABASE_URL ||
-  process.env.DATABASE_URL;
+const dbUrl = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
 const pool = dbUrl
-  ? new pg.Pool({
-      connectionString: dbUrl,
-      max: 5,
-      ssl: dbUrl.includes("railway") ? { rejectUnauthorized: false } : false,
-    })
+  ? new pg.Pool({ connectionString: dbUrl, max: 5 })
   : null;
 
 async function runMigrations() {
