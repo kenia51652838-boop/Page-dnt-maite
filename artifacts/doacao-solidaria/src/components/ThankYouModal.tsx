@@ -117,10 +117,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
       if (t < 1) {
         animRef.current = requestAnimationFrame(tick);
       } else {
-        setTimeout(() => {
-          onClose();
-          navigate("/conta-atrasada");
-        }, 700);
+        setTimeout(() => setStep("identify"), 700);
       }
     }
     animRef.current = requestAnimationFrame(tick);
@@ -318,7 +315,8 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
     function handleChoose(anonymous: boolean) {
       const name = anonymous ? null : (identifyName.trim() || null);
       onIdentify?.(name);
-      setStep("thankyou");
+      onClose();
+      navigate("/conta-atrasada");
     }
 
     return (
