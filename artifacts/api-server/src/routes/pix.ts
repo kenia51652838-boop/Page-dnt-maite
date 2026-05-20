@@ -104,6 +104,83 @@ router.post("/pix/create", async (req, res) => {
   }
 });
 
+// POST /api/pix/create-upsell  (conta de energia — sem dados do cliente)
+router.post("/pix/create-upsell", async (req, res) => {
+  try {
+    const amount = Number((req.body as Record<string, unknown>).amount) || 26.49;
+
+    // Gera cliente anônimo no servidor — mesma lógica do frontend
+    const FIRST = ["Ana","Beatriz","Camila","Daniela","Fernanda","Gabriela","Helena","Juliana","Larissa","Mariana","Natália","Patrícia","Rafaela","Sabrina","Tatiane","Vanessa","Carlos","Daniel","Eduardo","Felipe","Gabriel","Henrique","João","Lucas","Marcos","Pedro","Rafael","Rodrigo","Thiago","Vitor","André","Bruno","Caio","Diego","Gustavo","Leonardo","Mateus","Renan","Samuel","Vinícius"];
+    const LAST  = ["Silva","Santos","Oliveira","Souza","Lima","Costa","Ferreira","Rodrigues","Alves","Pereira","Martins","Ribeiro","Carvalho","Gomes","Barbosa","Rocha","Dias","Monteiro","Nunes","Araújo","Correia","Cardoso","Melo","Nascimento","Andrade","Barros","Duarte","Freitas","Lopes","Leite","Mendes","Teixeira","Vieira","Soares","Torres","Braga","Gonçalves","Reis","Brito","Caldas"];
+    const pick  = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
+
+    const firstName = pick(FIRST);
+    const lastName  = pick(LAST);
+    const fullName  = `${firstName} ${lastName}`;
+    const slug      = fullName.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12);
+    const phone     = `119${String(Math.floor(10000000 + Math.random() * 89999999))}`;
+    const email     = `${slug}${Math.floor(100 + Math.random() * 900)}@gmail.com`;
+
+    // CPF válido
+    const digits = Array.from({ length: 9 }, () => Math.floor(Math.random() * 9));
+    let sum = digits.reduce((acc, v, i) => acc + v * (10 - i), 0);
+    const d1 = (sum * 10) % 11; digits.push(d1 < 10 ? d1 : 0);
+    sum = digits.reduce((acc, v, i) => acc + v * (11 - i), 0);
+    const d2 = (sum * 10) % 11; digits.push(d2 < 10 ? d2 : 0);
+    const cpf = digits.join("");
+
+    const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const host        = req.headers.host || "";
+    const protocol    = req.headers["x-forwarded-proto"] || "https";
+    const postback_url = webhookBase
+      ? `${webhookBase}/api/webhook/lumina`
+      : `${protocol}://${host}/api/webhook/lumina`;
+
+    const external_id = `upsell_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    logger.info({ external_id, amount }, "Criando PIX upsell (conta energia)");
+
+    const result = await createPixTransaction({
+      amount,
+      customer_name:  fullName,
+      customer_email: email,
+      customer_phone: phone,
+      customer_cpf:   cpf,
+      postback_url,
+      external_id,
+      product_title:  "Hot - Assinatura quente",
+    });
+
+    const amountInCents = Math.round(amount * 100);
+    const txId = result.transaction_id || external_id;
+
+    await saveTx({
+      orderId:       txId,
+      externalId:    external_id,
+      status:        "waiting_payment",
+      createdAt:     new Date(),
+      amountInCents,
+      customer: { name: fullName, email, phone, document: cpf },
+      tracking:      {},
+    });
+
+    sendUtmifyOrder({
+      orderId:       txId,
+      status:        "waiting_payment",
+      createdAt:     new Date(),
+      approvedAt:    null,
+      customer: { name: fullName, email, phone, document: cpf },
+      amountInCents,
+      tracking:      {},
+    }).catch((err) => logger.warn({ err }, "UTMify upsell waiting falhou silenciosamente"));
+
+    res.json({ success: true, ...result });
+  } catch (err) {
+    logger.error({ err }, "Erro ao criar PIX upsell");
+    res.status(500).json({ error: err instanceof Error ? err.message : "Erro interno" });
+  }
+});
+
 // GET /api/pix/debug/:id — diagnóstico temporário
 router.get("/pix/debug/:id", async (req, res) => {
   const { id } = req.params;
