@@ -120,7 +120,6 @@ export default function ContaAtrasada() {
   if (step === "paid") {
     return (
       <div style={page}>
-        <ConfirmedBar />
         <div style={{ ...wrap, paddingTop: "2.5rem", textAlign: "center" }}>
           <div style={{
             width: 72, height: 72,
@@ -166,7 +165,6 @@ export default function ContaAtrasada() {
   if (step === "pix") {
     return (
       <div style={page}>
-        <ConfirmedBar />
         <div style={{ ...wrap, paddingTop: "1.5rem" }}>
 
           <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
