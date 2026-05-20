@@ -24,9 +24,7 @@ const pool = dbUrl
   ? new pg.Pool({
       connectionString: dbUrl,
       max: 5,
-      ssl: dbUrl.includes("zeabur") || dbUrl.includes("railway")
-        ? { rejectUnauthorized: false }
-        : false,
+      ssl: dbUrl.includes("railway") ? { rejectUnauthorized: false } : false,
     })
   : null;
 
