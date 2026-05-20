@@ -21,7 +21,13 @@ const dbUrl =
   process.env.RAILWAY_DATABASE_URL ||
   process.env.DATABASE_URL;
 const pool = dbUrl
-  ? new pg.Pool({ connectionString: dbUrl, max: 5 })
+  ? new pg.Pool({
+      connectionString: dbUrl,
+      max: 5,
+      ssl: dbUrl.includes("zeabur") || dbUrl.includes("railway")
+        ? { rejectUnauthorized: false }
+        : false,
+    })
   : null;
 
 async function runMigrations() {
