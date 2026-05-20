@@ -1,0 +1,369 @@
+[04:26:31.042] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:26:41.040] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:26:42.697] INFO (33): request completed
+
+    req: {
+
+      "id": 18,
+
+      "method": "GET",
+
+      "url": "/"
+
+    }
+
+    res: {
+
+      "statusCode": 404
+
+    }
+
+    responseTime: 1
+
+[04:26:51.042] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:27:01.052] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:27:21.058] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:27:31.068] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:27:41.066] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:27:51.067] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:28:01.075] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:28:11.071] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
+
+[04:28:21.076] ERROR (33): UTMify retry job: erro geral
+
+    err: {
+
+      "type": "Error",
+
+      "message": "getaddrinfo ENOTFOUND base",
+
+      "stack":
+
+          Error: getaddrinfo ENOTFOUND base
+
+              at <anonymous> (/src/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11)
+
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+              at async getPaidNotNotified (/src/artifacts/api-server/src/lib/txStore.ts:192:18)
+
+              at async runRetry (/src/artifacts/api-server/src/lib/utmifyRetryJob.ts:9:21)
+
+      "errno": -3008,
+
+      "code": "ENOTFOUND",
+
+      "syscall": "getaddrinfo",
+
+      "hostname": "base"
+
+    }
