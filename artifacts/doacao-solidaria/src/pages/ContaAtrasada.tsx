@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import FomoNotification from "@/components/FomoNotification";
-import { ARRECADADO, META } from "@/pages/Home";
 
 const BILL_AMOUNT = 26.49;
 const FOMO_UPSELL_KEY = "fomo_shown_upsell_v1";
@@ -102,7 +101,6 @@ export default function ContaAtrasada() {
   }
 
   const BASE = import.meta.env.BASE_URL as string;
-  const pct  = Math.min(100, (ARRECADADO / META) * 100);
 
   const page: React.CSSProperties = {
     minHeight: "100dvh",
@@ -330,24 +328,17 @@ export default function ContaAtrasada() {
             </div>
           </div>
 
-          {/* Progresso */}
-          <div style={{ padding: "1rem 1.125rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "6px" }}>
-              <span style={{ fontSize: "0.78rem", color: "#6b7280" }}>Arrecadado</span>
-              <span style={{ fontSize: "0.78rem", color: "#6b7280" }}>Meta: {fmtBRL(META)}</span>
-            </div>
-            <div style={{ background: "#f3f4f6", borderRadius: "999px", height: "8px", overflow: "hidden", marginBottom: "6px" }}>
-              <div style={{
-                height: "100%", borderRadius: "999px",
-                background: "linear-gradient(90deg,#24CA68,#1aad56)",
-                width: `${pct}%`,
-                transition: "width 0.6s ease",
-              }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <span style={{ fontWeight: 800, fontSize: "1rem", color: "#24CA68" }}>{fmtBRL(ARRECADADO)}</span>
-              <span style={{ fontSize: "0.72rem", color: "#6b7280" }}>{pct.toFixed(1)}% da meta</span>
-            </div>
+          {/* Rodapé do card */}
+          <div style={{ padding: "0.75rem 1.125rem", display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: "50%",
+              background: "#24CA68",
+              boxShadow: "0 0 0 3px rgba(36,202,104,0.2)",
+              flexShrink: 0,
+            }} />
+            <span style={{ fontSize: "0.75rem", color: "#4b5563", fontWeight: 600 }}>
+              Campanha ativa · beneficiário confirmado pela ONG
+            </span>
           </div>
         </div>
 
@@ -384,13 +375,19 @@ export default function ContaAtrasada() {
         </div>
 
         {/* ── Copy emocional ─────────────────────────────────────────────── */}
-        <p style={{ fontSize: "1rem", color: "#111827", lineHeight: 1.75, fontWeight: 500, marginBottom: "0.75rem" }}>
-          Neste exato momento, <strong>a energia elétrica da casa do Sr. Francivaldo está cortada.</strong>
+        <p style={{ fontSize: "1rem", color: "#111827", lineHeight: 1.75, fontWeight: 600, marginBottom: "0.75rem" }}>
+          Essa conta de luz estava aqui, esperando.<br />
+          <strong>Esperando por você.</strong>
         </p>
-        <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.75, marginBottom: "1.25rem" }}>
-          Sem luz, a geladeira parou. O ventilador parou. Seus <strong>4 filhos</strong> — a menor com
-          apenas 6 anos — estão em casa sem energia. Ele atrasou a conta de luz para não deixar
-          os filhos sem comida. Agora a luz foi cortada.
+        <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.8, marginBottom: "0.9rem" }}>
+          A energia do Sr. Francivaldo foi cortada. Sem luz, a geladeira parou,
+          o ventilador parou — e seus <strong>4 filhos</strong>, o menor com 6 anos,
+          estão agora no escuro. Ele deixou a conta atrasar para não tirar comida
+          da boca das crianças.
+        </p>
+        <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.8, marginBottom: "1.25rem" }}>
+          Poucas pessoas chegam até esta página. A ONG separou <strong>uma única conta</strong> —
+          e ela apareceu para você. Não foi por acaso.
         </p>
 
         <div style={{
@@ -399,9 +396,10 @@ export default function ContaAtrasada() {
           marginBottom: "1.75rem", display: "flex", alignItems: "flex-start", gap: "10px",
         }}>
           <span style={{ fontSize: "1.1rem", flexShrink: 0, marginTop: "1px" }}>⚡</span>
-          <p style={{ fontSize: "0.85rem", color: "#92400e", lineHeight: 1.65, margin: 0 }}>
-            <strong>{fmtBRL(BILL_AMOUNT)}</strong> é o valor exato para quitar essa pendência
-            e religar a energia hoje. Você acabou de ajudar com muito mais — este é o próximo passo.
+          <p style={{ fontSize: "0.85rem", color: "#92400e", lineHeight: 1.7, margin: 0 }}>
+            <strong>{fmtBRL(BILL_AMOUNT)}</strong> é o valor exato desta conta.
+            Se você pagar agora, a energia do Sr. Francivaldo volta <strong>ainda hoje</strong>.
+            Esse gesto é seu — de mais ninguém.
           </p>
         </div>
 
