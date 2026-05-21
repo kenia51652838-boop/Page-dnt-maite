@@ -288,23 +288,22 @@ export default function ContaAtrasada() {
 
       {/* ── Faixa de atenção ──────────────────────────────────────────────── */}
       <div style={{
-        background: "#dc2626",
-        padding: "12px 20px",
+        background: "#16a34a",
+        padding: "9px 20px",
         textAlign: "center",
-        borderBottom: "3px solid #991b1b",
       }}>
         <p style={{
           margin: 0,
           fontFamily: "'Montserrat', sans-serif",
-          fontWeight: 800,
-          fontSize: "0.88rem",
+          fontWeight: 700,
+          fontSize: "0.8rem",
           color: "#fff",
-          letterSpacing: "0.03em",
-          lineHeight: 1.5,
-          textTransform: "uppercase" as const,
+          letterSpacing: "0.02em",
+          whiteSpace: "nowrap" as const,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}>
-          ⚠️ Não feche esta página —{" "}
-          <span style={{ color: "#fef08a" }}>você foi selecionado(a) para algo importante.</span>
+          🔔 Você foi selecionado(a) para algo importante — não feche esta página.
         </p>
       </div>
 
@@ -359,7 +358,7 @@ export default function ContaAtrasada() {
               flexShrink: 0,
             }} />
             <span style={{ fontSize: "0.75rem", color: "#4b5563", fontWeight: 600 }}>
-              Campanha ativa · beneficiário confirmado pela ONG
+              Apoiado por dezenas de doadores em todo o Brasil
             </span>
           </div>
         </div>
