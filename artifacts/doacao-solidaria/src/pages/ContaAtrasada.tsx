@@ -356,7 +356,7 @@ export default function ContaAtrasada() {
               flexShrink: 0,
             }} />
             <span style={{ fontSize: "0.75rem", color: "#4b5563", fontWeight: 600 }}>
-              Apoiado por dezenas de doadores em todo o Brasil
+              Pendência identificada · aguardando o doador selecionado
             </span>
           </div>
         </div>
