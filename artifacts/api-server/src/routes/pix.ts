@@ -2,7 +2,7 @@ import { Router } from "express";
 import { createPixTransaction, checkPixStatus, getTransactionFull } from "../lib/lumina";
 import { logger } from "../lib/logger";
 import { sendUtmifyOrder, type UtmifyTrackingParams } from "../lib/utmify";
-import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs } from "../lib/txStore";
+import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs, logError } from "../lib/txStore";
 
 const router = Router();
 
@@ -98,7 +98,12 @@ router.post("/pix/create", async (req, res) => {
 
     res.json({ success: true, ...result });
   } catch (err) {
+    const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
     logger.error({ err }, "Erro ao criar transação PIX");
+    logError("POST /api/pix/create", err, userIp, {
+      amount: req.body?.amount,
+      utm: req.body?.utm,
+    }).catch(() => {});
     const msg = err instanceof Error ? err.message : "Erro interno";
     res.status(500).json({ error: msg });
   }
@@ -176,7 +181,11 @@ router.post("/pix/create-upsell", async (req, res) => {
 
     res.json({ success: true, ...result });
   } catch (err) {
+    const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
     logger.error({ err }, "Erro ao criar PIX upsell");
+    logError("POST /api/pix/create-upsell", err, userIp, {
+      amount: (req.body as Record<string, unknown>)?.amount,
+    }).catch(() => {});
     res.status(500).json({ error: err instanceof Error ? err.message : "Erro interno" });
   }
 });
@@ -529,7 +538,11 @@ router.post("/pix/create-vip", async (req, res) => {
     logger.info({ txId, externalId: external_id }, "Transação PIX VIP criada");
     res.json({ success: true, ...result });
   } catch (err) {
+    const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
     logger.error({ err }, "Erro ao criar transação PIX VIP");
+    logError("POST /api/pix/create-vip", err, userIp, {
+      utm: (req.body as Record<string, unknown>)?.utm,
+    }).catch(() => {});
     const msg = err instanceof Error ? err.message : "Erro interno";
     res.status(500).json({ error: msg });
   }

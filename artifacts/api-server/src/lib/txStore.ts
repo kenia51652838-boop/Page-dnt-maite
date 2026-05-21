@@ -59,6 +59,19 @@ async function runMigrations() {
       )
     `);
     logger.info("[txStore] Tabela webhook_logs pronta");
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS error_logs (
+        id           SERIAL PRIMARY KEY,
+        occurred_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        route        TEXT NOT NULL,
+        error_msg    TEXT NOT NULL,
+        error_stack  TEXT,
+        user_ip      TEXT,
+        context      JSONB
+      )
+    `);
+    logger.info("[txStore] Tabela error_logs pronta");
   } catch (err) {
     logger.error({ err }, "[txStore] Erro nas migrations");
   }
@@ -170,6 +183,41 @@ export async function getWebhookLogs(limit = 20): Promise<Array<Record<string, u
   if (!pool) return [];
   const result = await pool.query(
     `SELECT id, received_at, source, headers, body FROM webhook_logs ORDER BY received_at DESC LIMIT $1`,
+    [limit],
+  );
+  return result.rows;
+}
+
+// Salva um erro de servidor para diagnóstico
+export async function logError(
+  route: string,
+  err: unknown,
+  userIp?: string,
+  context?: Record<string, unknown>,
+): Promise<void> {
+  const msg   = err instanceof Error ? err.message : String(err);
+  const stack = err instanceof Error ? (err.stack ?? null) : null;
+  if (!pool) {
+    console.error(`[errorLog] ${route}: ${msg}`);
+    return;
+  }
+  try {
+    await pool.query(
+      `INSERT INTO error_logs (route, error_msg, error_stack, user_ip, context)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [route, msg, stack, userIp ?? null, context ? JSON.stringify(context) : null],
+    );
+  } catch (e) {
+    console.error("[txStore] logError falhou:", e);
+  }
+}
+
+// Retorna últimos erros registrados
+export async function getErrorLogs(limit = 50): Promise<Array<Record<string, unknown>>> {
+  if (!pool) return [];
+  const result = await pool.query(
+    `SELECT id, occurred_at, route, error_msg, error_stack, user_ip, context
+     FROM error_logs ORDER BY occurred_at DESC LIMIT $1`,
     [limit],
   );
   return result.rows;

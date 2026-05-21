@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getTransactionFull } from "../lib/lumina";
 import { logger } from "../lib/logger";
 import { sendUtmifyOrder } from "../lib/utmify";
-import { markPaid, getTx, getTxByExternalId, markUtmifyNotified } from "../lib/txStore";
+import { markPaid, getTx, getTxByExternalId, markUtmifyNotified, getErrorLogs } from "../lib/txStore";
 
 const router = Router();
 
@@ -176,6 +176,34 @@ router.get("/admin/check-sale", async (req, res) => {
         tracking:    dbTx.tracking,
         createdAt:   dbTx.createdAt,
       } : null,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+/**
+ * GET /api/admin/errors?token=YYY&limit=50
+ * Lista os últimos erros registrados no banco
+ */
+router.get("/admin/errors", async (req, res) => {
+  if (!checkAdminToken(req, res)) return;
+
+  const limit = Math.min(Number(req.query["limit"] || 50), 200);
+
+  try {
+    const logs = await getErrorLogs(limit);
+    res.json({
+      count: logs.length,
+      errors: logs.map(r => ({
+        id:          r.id,
+        occurred_at: r.occurred_at,
+        route:       r.route,
+        error_msg:   r.error_msg,
+        user_ip:     r.user_ip,
+        context:     r.context,
+        stack:       r.error_stack,
+      })),
     });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
