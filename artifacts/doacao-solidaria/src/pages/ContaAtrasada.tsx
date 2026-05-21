@@ -286,6 +286,26 @@ export default function ContaAtrasada() {
       <Navbar onCreateCampaign={() => {}} />
       <FomoNotification onDonate={() => {}} storageKey={FOMO_UPSELL_KEY} />
 
+      {/* ── Faixa de atenção ──────────────────────────────────────────────── */}
+      <div style={{
+        background: "linear-gradient(135deg, #1a1a2e, #16213e)",
+        padding: "14px 20px",
+        textAlign: "center",
+      }}>
+        <p style={{
+          margin: 0,
+          fontFamily: "'Montserrat', sans-serif",
+          fontWeight: 800,
+          fontSize: "0.92rem",
+          color: "#fff",
+          letterSpacing: "0.02em",
+          lineHeight: 1.5,
+        }}>
+          📢 Atualização da família Ricardo para você.{" "}
+          <span style={{ color: "#facc15" }}>Leia até o fim.</span>
+        </p>
+      </div>
+
       <div style={{ ...wrap, paddingTop: "1.5rem" }}>
 
         {/* ── Campanha card (foto + progresso) ─────────────────────────── */}
