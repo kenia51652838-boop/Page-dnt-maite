@@ -288,21 +288,23 @@ export default function ContaAtrasada() {
 
       {/* ── Faixa de atenção ──────────────────────────────────────────────── */}
       <div style={{
-        background: "linear-gradient(135deg, #1a1a2e, #16213e)",
-        padding: "14px 20px",
+        background: "#dc2626",
+        padding: "12px 20px",
         textAlign: "center",
+        borderBottom: "3px solid #991b1b",
       }}>
         <p style={{
           margin: 0,
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 800,
-          fontSize: "0.92rem",
+          fontSize: "0.88rem",
           color: "#fff",
-          letterSpacing: "0.02em",
+          letterSpacing: "0.03em",
           lineHeight: 1.5,
+          textTransform: "uppercase" as const,
         }}>
-          📢 Atualização da família Ricardo para você.{" "}
-          <span style={{ color: "#facc15" }}>Leia até o fim.</span>
+          ⚠️ Não feche esta página —{" "}
+          <span style={{ color: "#fef08a" }}>você foi selecionado(a) para algo importante.</span>
         </p>
       </div>
 
