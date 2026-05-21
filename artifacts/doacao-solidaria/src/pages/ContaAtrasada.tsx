@@ -301,7 +301,7 @@ export default function ContaAtrasada() {
           letterSpacing: "0.02em",
           lineHeight: 1.5,
         }}>
-          🔔 Você foi selecionado(a) para algo importante — não feche esta página.
+          🔔 Você foi selecionado(a) para algo importante. Não feche esta página.
         </p>
       </div>
 
