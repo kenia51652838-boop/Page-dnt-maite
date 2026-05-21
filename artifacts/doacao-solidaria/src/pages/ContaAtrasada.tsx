@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
+import Navbar from "@/components/Navbar";
+import FomoNotification from "@/components/FomoNotification";
+import { ARRECADADO, META } from "@/pages/Home";
 
 const BILL_AMOUNT = 26.49;
+const FOMO_UPSELL_KEY = "fomo_shown_upsell_v1";
 
 function fmtBRL(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
@@ -10,14 +14,14 @@ function fmtBRL(v: number) {
 type Step = "story" | "pix" | "paid";
 
 export default function ContaAtrasada() {
-  const [step, setStep]         = useState<Step>("story");
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [pixCode, setPixCode]   = useState("");
-  const [txId, setTxId]         = useState("");
-  const [copied, setCopied]     = useState(false);
+  const [step, setStep]           = useState<Step>("story");
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState("");
+  const [pixCode, setPixCode]     = useState("");
+  const [txId, setTxId]           = useState("");
+  const [copied, setCopied]       = useState(false);
   const [countdown, setCountdown] = useState("5:00");
-  const [expired, setExpired]   = useState(false);
+  const [expired, setExpired]     = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
 
@@ -97,6 +101,9 @@ export default function ContaAtrasada() {
     });
   }
 
+  const BASE = import.meta.env.BASE_URL as string;
+  const pct  = Math.min(100, (ARRECADADO / META) * 100);
+
   const page: React.CSSProperties = {
     minHeight: "100dvh",
     background: "#f4f6f8",
@@ -117,9 +124,11 @@ export default function ContaAtrasada() {
     boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
   };
 
+  /* ── SUCESSO ──────────────────────────────────────────────────────────── */
   if (step === "paid") {
     return (
       <div style={page}>
+        <Navbar onCreateCampaign={() => {}} />
         <div style={{ ...wrap, paddingTop: "2.5rem", textAlign: "center" }}>
           <div style={{
             width: 72, height: 72,
@@ -133,11 +142,16 @@ export default function ContaAtrasada() {
             A luz vai voltar hoje!
           </h1>
           <p style={{ color: "#4b5563", lineHeight: 1.75, fontSize: "0.925rem", margin: "0 0 1.5rem" }}>
-            Seu pagamento de <strong>{fmtBRL(BILL_AMOUNT)}</strong> foi confirmado. O Sr.
+            Seu pagamento de <strong>{fmtBRL(BILL_AMOUNT)}</strong> foi confirmado. O Sr.&nbsp;
             Francivaldo e seus 4 filhos vão dormir com a energia funcionando esta noite.
           </p>
 
-          <div style={{ ...card, display: "flex", alignItems: "center", gap: "12px", textAlign: "left", marginBottom: "1.75rem", border: "1.5px solid #d1fae5" }}>
+          <div style={{
+            ...card,
+            display: "flex", alignItems: "center", gap: "12px",
+            textAlign: "left", marginBottom: "1.75rem",
+            border: "1.5px solid #d1fae5",
+          }}>
             <div style={{
               width: 38, height: 38, flexShrink: 0,
               background: "#24CA68", borderRadius: "50%",
@@ -162,11 +176,14 @@ export default function ContaAtrasada() {
     );
   }
 
+  /* ── PIX GERADO ───────────────────────────────────────────────────────── */
   if (step === "pix") {
     return (
       <div style={page}>
-        <div style={{ ...wrap, paddingTop: "1.5rem" }}>
+        <Navbar onCreateCampaign={() => {}} />
+        <FomoNotification onDonate={() => {}} storageKey={FOMO_UPSELL_KEY} />
 
+        <div style={{ ...wrap, paddingTop: "1.5rem" }}>
           <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
@@ -195,17 +212,11 @@ export default function ContaAtrasada() {
                 Código PIX — copia e cola
               </div>
               <div style={{
-                background: "#f9fafb",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                padding: "10px 12px",
-                fontSize: "0.7rem",
-                color: "#374151",
-                wordBreak: "break-all",
-                lineHeight: 1.6,
-                marginBottom: "10px",
-                fontFamily: "monospace",
-                userSelect: "text" as const,
+                background: "#f9fafb", border: "1px solid #e5e7eb",
+                borderRadius: "8px", padding: "10px 12px",
+                fontSize: "0.7rem", color: "#374151",
+                wordBreak: "break-all", lineHeight: 1.6, marginBottom: "10px",
+                fontFamily: "monospace", userSelect: "text" as const,
               }}>
                 {pixCode}
               </div>
@@ -271,14 +282,76 @@ export default function ContaAtrasada() {
     );
   }
 
-  // ── STORY ────────────────────────────────────────────────────────────────────
+  /* ── HISTÓRIA / CTA ───────────────────────────────────────────────────── */
   return (
     <div style={page}>
-      <ConfirmedBar />
+      <Navbar onCreateCampaign={() => {}} />
+      <FomoNotification onDonate={() => {}} storageKey={FOMO_UPSELL_KEY} />
 
       <div style={{ ...wrap, paddingTop: "1.5rem" }}>
 
-        {/* Pendências card */}
+        {/* ── Campanha card (foto + progresso) ─────────────────────────── */}
+        <div style={{ ...card, padding: 0, overflow: "hidden", marginBottom: "1.25rem" }}>
+
+          {/* Foto hero */}
+          <div style={{ position: "relative", height: "160px", overflow: "hidden" }}>
+            <picture>
+              <source srcSet={`${BASE}img/francivaldo.webp`} type="image/webp" />
+              <img
+                src={`${BASE}img/francivaldo.jpg`}
+                alt="Sr. Francivaldo Pereira Ricardo"
+                style={{
+                  width: "100%", height: "100%", objectFit: "cover",
+                  objectPosition: "center 20%",
+                }}
+              />
+            </picture>
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.65) 100%)",
+            }} />
+            <div style={{
+              position: "absolute", bottom: "12px", left: "14px", right: "14px",
+            }}>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: "5px",
+                background: "rgba(36,202,104,0.9)", borderRadius: "999px",
+                padding: "3px 10px", fontSize: "0.68rem", fontWeight: 800,
+                color: "#fff", letterSpacing: "0.05em", marginBottom: "5px",
+              }}>
+                🟢 CAMPANHA ATIVA
+              </div>
+              <div style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", lineHeight: 1.25, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
+                Sr. Francivaldo Pereira Ricardo
+              </div>
+              <div style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.72rem", marginTop: "2px" }}>
+                ONG Abelhinhas do Amor
+              </div>
+            </div>
+          </div>
+
+          {/* Progresso */}
+          <div style={{ padding: "1rem 1.125rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "6px" }}>
+              <span style={{ fontSize: "0.78rem", color: "#6b7280" }}>Arrecadado</span>
+              <span style={{ fontSize: "0.78rem", color: "#6b7280" }}>Meta: {fmtBRL(META)}</span>
+            </div>
+            <div style={{ background: "#f3f4f6", borderRadius: "999px", height: "8px", overflow: "hidden", marginBottom: "6px" }}>
+              <div style={{
+                height: "100%", borderRadius: "999px",
+                background: "linear-gradient(90deg,#24CA68,#1aad56)",
+                width: `${pct}%`,
+                transition: "width 0.6s ease",
+              }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={{ fontWeight: 800, fontSize: "1rem", color: "#24CA68" }}>{fmtBRL(ARRECADADO)}</span>
+              <span style={{ fontSize: "0.72rem", color: "#6b7280" }}>{pct.toFixed(1)}% da meta</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Pendências card ────────────────────────────────────────────── */}
         <div style={{ ...card, marginBottom: "1.25rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
             <div>
@@ -310,12 +383,12 @@ export default function ContaAtrasada() {
           </div>
         </div>
 
-        {/* Copy */}
+        {/* ── Copy emocional ─────────────────────────────────────────────── */}
         <p style={{ fontSize: "1rem", color: "#111827", lineHeight: 1.75, fontWeight: 500, marginBottom: "0.75rem" }}>
           Neste exato momento, <strong>a energia elétrica da casa do Sr. Francivaldo está cortada.</strong>
         </p>
         <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.75, marginBottom: "1.25rem" }}>
-          Sem luz, a geladeira parou. O ventilador parou. Seus <strong>4 filhos</strong> — a menor tem
+          Sem luz, a geladeira parou. O ventilador parou. Seus <strong>4 filhos</strong> — a menor com
           apenas 6 anos — estão em casa sem energia. Ele atrasou a conta de luz para não deixar
           os filhos sem comida. Agora a luz foi cortada.
         </p>
@@ -332,8 +405,8 @@ export default function ContaAtrasada() {
           </p>
         </div>
 
-        {/* CTA */}
-        <div style={{ ...card }}>
+        {/* ── CTA card ───────────────────────────────────────────────────── */}
+        <div style={card}>
           <div style={{ marginBottom: "1rem" }}>
             <div style={{ fontSize: "1rem", fontWeight: 800, color: "#111827", marginBottom: "4px" }}>
               Quitar pendência via PIX
@@ -385,19 +458,6 @@ export default function ContaAtrasada() {
           </a>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ConfirmedBar() {
-  return (
-    <div style={{
-      background: "linear-gradient(90deg,#16a34a,#15803d)",
-      color: "#fff", textAlign: "center",
-      padding: "11px 16px", fontSize: "0.83rem",
-      fontWeight: 700, letterSpacing: "0.01em",
-    }}>
-      ✅ Doação confirmada — obrigado por apoiar o Sr. Francivaldo 💚
     </div>
   );
 }

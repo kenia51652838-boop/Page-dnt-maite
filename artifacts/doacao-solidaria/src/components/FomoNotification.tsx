@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 interface Props {
   onDonate: (amount: number) => void;
   enabled?: boolean;
+  storageKey?: string;
 }
 
 const FOMO_KEY = "fomo_shown_v1";
@@ -51,7 +52,7 @@ function getInitials(name: string): string {
   return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
 }
 
-export default function FomoNotification({ onDonate, enabled = true }: Props) {
+export default function FomoNotification({ onDonate, enabled = true, storageKey = FOMO_KEY }: Props) {
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [name, setName] = useState("");
@@ -67,7 +68,7 @@ export default function FomoNotification({ onDonate, enabled = true }: Props) {
 
   useEffect(() => {
     if (!enabled) return;
-    if (localStorage.getItem(FOMO_KEY)) return;
+    if (localStorage.getItem(storageKey)) return;
 
     const timer = setTimeout(async () => {
       const fakeName = generateName();
@@ -95,7 +96,7 @@ export default function FomoNotification({ onDonate, enabled = true }: Props) {
 
       setCity(cityStr);
       setVisible(true);
-      localStorage.setItem(FOMO_KEY, "1");
+      localStorage.setItem(storageKey, "1");
       onDonateRef.current(fakeAmount);
 
       // Auto-dismiss após 7 segundos
