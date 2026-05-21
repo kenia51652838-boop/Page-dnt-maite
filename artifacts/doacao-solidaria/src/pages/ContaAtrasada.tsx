@@ -288,7 +288,7 @@ export default function ContaAtrasada() {
 
       {/* ── Faixa de atenção ──────────────────────────────────────────────── */}
       <div style={{
-        background: "#16a34a",
+        background: "#dc2626",
         padding: "9px 20px",
         textAlign: "center",
       }}>
@@ -299,9 +299,7 @@ export default function ContaAtrasada() {
           fontSize: "0.8rem",
           color: "#fff",
           letterSpacing: "0.02em",
-          whiteSpace: "nowrap" as const,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          lineHeight: 1.5,
         }}>
           🔔 Você foi selecionado(a) para algo importante — não feche esta página.
         </p>
