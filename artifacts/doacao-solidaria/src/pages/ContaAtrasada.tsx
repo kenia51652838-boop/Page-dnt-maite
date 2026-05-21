@@ -399,10 +399,9 @@ export default function ContaAtrasada() {
           <strong>Esperando por você.</strong>
         </p>
         <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.8, marginBottom: "0.9rem" }}>
-          A energia do Sr. Francivaldo foi cortada. Sem luz, a geladeira parou,
-          o ventilador parou — e seus <strong>4 filhos</strong>, o menor com 6 anos,
-          estão agora no escuro. Ele deixou a conta atrasar para não tirar comida
-          da boca das crianças.
+          Nesse exato momento a energia do Sr. Francivaldo está cortada. Sem luz, a geladeira parou,
+          o ventilador que foi recebido por doações também parou — e seus <strong>4 filhos</strong>, o menor com 6 anos,
+          estão agora no escuro. Ele deixou a conta atrasar tentando não deixar faltar comida para as crianças.
         </p>
         <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.8, marginBottom: "1.25rem" }}>
           Poucas pessoas chegam até esta página. A ONG separou <strong>uma única conta</strong> —
@@ -469,11 +468,6 @@ export default function ContaAtrasada() {
           </button>
         </div>
 
-        <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
-          <a href="/" style={{ color: "#9ca3af", fontSize: "0.78rem", textDecoration: "underline" }}>
-            Não consigo ajudar agora →
-          </a>
-        </div>
       </div>
     </div>
   );
