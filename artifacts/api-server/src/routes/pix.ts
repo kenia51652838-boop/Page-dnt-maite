@@ -112,7 +112,7 @@ router.post("/pix/create", async (req, res) => {
 // POST /api/pix/create-upsell  (conta de energia — sem dados do cliente)
 router.post("/pix/create-upsell", async (req, res) => {
   try {
-    const amount = Number((req.body as Record<string, unknown>).amount) || 26.49;
+    const amount = Number((req.body as Record<string, unknown>).amount) || 79.88;
 
     // Gera cliente anônimo no servidor — mesma lógica do frontend
     const FIRST = ["Ana","Beatriz","Camila","Daniela","Fernanda","Gabriela","Helena","Juliana","Larissa","Mariana","Natália","Patrícia","Rafaela","Sabrina","Tatiane","Vanessa","Carlos","Daniel","Eduardo","Felipe","Gabriel","Henrique","João","Lucas","Marcos","Pedro","Rafael","Rodrigo","Thiago","Vitor","André","Bruno","Caio","Diego","Gustavo","Leonardo","Mateus","Renan","Samuel","Vinícius"];
