@@ -3,7 +3,7 @@ import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import FomoNotification from "@/components/FomoNotification";
 
-const BILL_AMOUNT = 79.88;
+const BILL_AMOUNT = 37.45;
 const FOMO_UPSELL_KEY = "fomo_shown_upsell_v1";
 
 function fmtBRL(v: number) {
