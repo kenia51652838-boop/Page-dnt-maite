@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import obfuscatorPlugin from "rollup-plugin-obfuscator";
+const obfuscator = (obfuscatorPlugin as any).default ?? obfuscatorPlugin;
 
 const isBuild = process.argv.includes("build");
 
@@ -56,6 +58,7 @@ export default defineConfig({
     target: "es2020",
     cssCodeSplit: true,
     sourcemap: false,
+    minify: "esbuild",
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -70,8 +73,29 @@ export default defineConfig({
           }
         },
       },
+      plugins: [
+        obfuscator({
+          options: {
+            compact: true,
+            controlFlowFlattening: false,
+            deadCodeInjection: false,
+            debugProtection: false,
+            disableConsoleOutput: true,
+            identifierNamesGenerator: "hexadecimal",
+            renameGlobals: false,
+            rotateStringArray: true,
+            selfDefending: false,
+            shuffleStringArray: true,
+            splitStrings: true,
+            splitStringsChunkLength: 8,
+            stringArray: true,
+            stringArrayEncoding: ["base64"],
+            stringArrayThreshold: 0.75,
+            unicodeEscapeSequence: false,
+          },
+        }),
+      ],
     },
-    minify: "esbuild",
   },
   optimizeDeps: {
     include: ["react", "react-dom"],
