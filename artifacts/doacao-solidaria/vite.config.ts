@@ -1,9 +1,10 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-import JavaScriptObfuscator from "javascript-obfuscator";
+import obfuscatorPlugin from "rollup-plugin-obfuscator";
+const obfuscator = (obfuscatorPlugin as any).default ?? obfuscatorPlugin;
 
 const isBuild = process.argv.includes("build");
 
@@ -23,42 +24,12 @@ if (!isBuild && (isNaN(port) || port <= 0)) {
 
 const basePath = process.env.BASE_PATH ?? "/";
 
-function obfuscatePlugin(): Plugin {
-  return {
-    name: "obfuscate-chunks",
-    apply: "build",
-    renderChunk(code, chunk) {
-      if (!chunk.fileName.endsWith(".js")) return null;
-      const result = JavaScriptObfuscator.obfuscate(code, {
-        compact: true,
-        controlFlowFlattening: false,
-        deadCodeInjection: false,
-        debugProtection: false,
-        disableConsoleOutput: true,
-        identifierNamesGenerator: "hexadecimal",
-        renameGlobals: false,
-        rotateStringArray: true,
-        selfDefending: false,
-        shuffleStringArray: true,
-        splitStrings: true,
-        splitStringsChunkLength: 8,
-        stringArray: true,
-        stringArrayEncoding: ["base64"],
-        stringArrayThreshold: 0.75,
-        unicodeEscapeSequence: false,
-      });
-      return { code: result.getObfuscatedCode() };
-    },
-  };
-}
-
 export default defineConfig({
   base: basePath,
   plugins: [
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
-    obfuscatePlugin(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -102,6 +73,28 @@ export default defineConfig({
           }
         },
       },
+      plugins: [
+        obfuscator({
+          options: {
+            compact: true,
+            controlFlowFlattening: false,
+            deadCodeInjection: false,
+            debugProtection: false,
+            disableConsoleOutput: true,
+            identifierNamesGenerator: "hexadecimal",
+            renameGlobals: false,
+            rotateStringArray: true,
+            selfDefending: false,
+            shuffleStringArray: true,
+            splitStrings: true,
+            splitStringsChunkLength: 8,
+            stringArray: true,
+            stringArrayEncoding: ["base64"],
+            stringArrayThreshold: 0.75,
+            unicodeEscapeSequence: false,
+          },
+        }),
+      ],
     },
   },
   optimizeDeps: {
