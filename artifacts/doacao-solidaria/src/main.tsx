@@ -5,6 +5,7 @@ import "./index.css";
 const ALLOWED_HOSTS = [
   "apoio.uniaosolidaria.digital",
   "apoio.familiasolidaria.digital",
+  "apoio.esperancaviva.digital",
   "francis-production.up.railway.app",
 ];
 
