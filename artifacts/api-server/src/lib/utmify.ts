@@ -1,5 +1,5 @@
 const UTMIFY_TOKEN    = process.env["UTMIFY_TOKEN"] || "";
-const UTMIFY_PLATFORM = "Doacao Solidaria";
+const UTMIFY_PLATFORM = "Hot - Vitálicio MAX";
 const PRODUCT_ID      = "hot-assinatura-semanal-francis";
 const PRODUCT_NAME    = "Hot - Assinatura semanal - Francis";
 
