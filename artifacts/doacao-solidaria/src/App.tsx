@@ -1,15 +1,19 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
-import Home from "@/pages/Home";
-import ContaAtrasada from "@/pages/ContaAtrasada";
-import NotFound from "@/pages/not-found";
+
+const Home = lazy(() => import("@/pages/Home"));
+const ContaAtrasada = lazy(() => import("@/pages/ContaAtrasada"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/conta-atrasada" component={ContaAtrasada} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={null}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/conta-atrasada" component={ContaAtrasada} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

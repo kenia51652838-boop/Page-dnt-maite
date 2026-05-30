@@ -55,22 +55,19 @@ export default defineConfig({
     emptyOutDir: true,
     target: "es2020",
     cssCodeSplit: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          motion: ["framer-motion"],
-          charts: ["recharts"],
-          radix: [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-select",
-            "@radix-ui/react-progress",
-            "@radix-ui/react-accordion",
-            "@radix-ui/react-tabs",
-            "@radix-ui/react-tooltip",
-            "@radix-ui/react-popover",
-            "@radix-ui/react-dropdown-menu",
-          ],
+        manualChunks: (id) => {
+          if (id.includes("node_modules/react-dom") || id.includes("node_modules/react/")) {
+            return "vendor";
+          }
+          if (id.includes("node_modules/@radix-ui/") || id.includes("node_modules/lucide-react")) {
+            return "ui";
+          }
+          if (id.includes("node_modules/wouter")) {
+            return "router";
+          }
         },
       },
     },
