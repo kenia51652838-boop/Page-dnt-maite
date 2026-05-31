@@ -439,7 +439,8 @@ export default function Home() {
   const donationForm = (
     <DonationForm
       selectedValue={selectedValue}
-      onValueClick={generatePix}
+      onValueClick={setSelectedValue}
+      onGeneratePix={generatePix}
       donationValues={DONATION_VALUES}
       formatBRL={formatBRL}
       loading={generatingPix}

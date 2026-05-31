@@ -1,9 +1,27 @@
 import { useState } from "react";
 import { ARRECADADO, META } from "@/pages/Home";
 
+const CTA_MAP: Record<number, string> = {
+  30:   "Garantir o jantar de hoje",
+  35:   "Colocar comida na mesa",
+  40:   "Garantir 2 dias de refeição",
+  50:   "Garantir 3 dias de refeição",
+  60:   "Alimentar a família por 4 dias",
+  75:   "Garantir 4 dias de comida",
+  100:  "Garantir 6 dias de alimentação",
+  150:  "Garantir 1 semana de comida",
+  200:  "Mais de 1 semana garantida",
+  300:  "Garantir quase 2 semanas",
+  400:  "Garantir 2 semanas completas",
+  500:  "Garantir 3 semanas de cuidado",
+  750:  "Garantir mais de 1 mês",
+  1000: "Transformar a realidade deles",
+};
+
 interface DonationFormProps {
   selectedValue: number | null;
   onValueClick: (v: number) => void;
+  onGeneratePix?: (v: number) => void;
   donationValues: number[];
   formatBRL: (v: number) => string;
   loading: boolean;
@@ -33,6 +51,7 @@ const IMPACT_MAP: Record<number, string> = {
 export default function DonationForm({
   selectedValue,
   onValueClick,
+  onGeneratePix,
   donationValues,
   formatBRL,
   loading,
@@ -263,36 +282,66 @@ export default function DonationForm({
         </div>
       )}
 
-      {/* Rodapé */}
-      {loading ? (
-        <div style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", padding:"4px 0"}}>
-          <span style={{
-            width: 15, height: 15,
-            border: "2.5px solid rgba(36,202,104,0.25)",
-            borderTopColor: "#24CA68",
-            borderRadius: "50%",
-            display: "inline-block",
-            animation: "pixSpin 0.8s linear infinite",
-            flexShrink: 0,
-          }} />
-          <span style={{color:"#24CA68", fontWeight:700, fontSize:"0.85rem"}}>
-            Gerando seu PIX...
-          </span>
-        </div>
-      ) : (
-        <p style={{
-          fontSize: "0.72rem",
-          color: "#9ca3af",
-          textAlign: "center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "4px",
-        }}>
-          <span>🔒</span>
-          Pagamento processado de forma segura via PIX
-        </p>
+      {/* Botão Gerar PIX */}
+      {onGeneratePix && (
+        <button
+          type="button"
+          onClick={() => selectedValue && onGeneratePix(selectedValue)}
+          disabled={loading || !selectedValue}
+          className="btn-donation"
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "2px",
+            marginBottom: "0.5rem",
+            opacity: !selectedValue ? 0.55 : 1,
+            transition: "opacity 0.2s, transform 0.15s",
+          }}
+        >
+          {loading ? (
+            <span style={{display:"flex", alignItems:"center", gap:"8px"}}>
+              <span style={{
+                width: 15, height: 15,
+                border: "2px solid rgba(255,255,255,0.4)",
+                borderTopColor: "#fff",
+                borderRadius: "50%",
+                display: "inline-block",
+                animation: "pixSpin 0.8s linear infinite",
+                flexShrink: 0,
+              }} />
+              Gerando PIX...
+            </span>
+          ) : selectedValue ? (
+            <>
+              <span style={{fontWeight: 800, fontSize: "0.95rem"}}>
+                {CTA_MAP[selectedValue] ?? "Fazer minha doação"}
+              </span>
+              <span style={{opacity: 0.8, fontWeight: 600, fontSize: "0.78rem"}}>
+                → PIX de {formatBRL(selectedValue)}
+              </span>
+            </>
+          ) : (
+            <span>Selecione um valor acima</span>
+          )}
+        </button>
       )}
+
+      {/* Rodapé */}
+      <p style={{
+        fontSize: "0.72rem",
+        color: "#9ca3af",
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "4px",
+      }}>
+        <span>🔒</span>
+        Pagamento processado de forma segura via PIX
+      </p>
     </div>
   );
 }
