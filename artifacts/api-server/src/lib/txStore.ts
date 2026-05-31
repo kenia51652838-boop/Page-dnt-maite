@@ -18,8 +18,20 @@ const memByExtId = new Map<string, string>();
 
 const dbUrl = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
 const pool = dbUrl
-  ? new pg.Pool({ connectionString: dbUrl, max: 5 })
+  ? new pg.Pool({
+      connectionString: dbUrl,
+      max: 5,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
+      idleTimeoutMillis: 0,
+    })
   : null;
+
+if (pool) {
+  setInterval(async () => {
+    try { await pool.query("SELECT 1"); } catch { /* ignora */ }
+  }, 4 * 60 * 1000);
+}
 
 async function runMigrations() {
   if (!pool) {

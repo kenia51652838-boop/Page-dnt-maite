@@ -173,6 +173,13 @@ export default function Home() {
 
   // Fetch donor city when ThankYouModal opens (once per session)
   useEffect(() => {
+    const ping = () => fetch(apiUrl("/api/healthz"), { method: "GET" }).catch(() => {});
+    ping();
+    const id = setInterval(ping, 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
     if (!thankYouOpen || donorCityFetchedRef.current) return;
     donorCityFetchedRef.current = true;
     (async () => {
