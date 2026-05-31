@@ -136,7 +136,7 @@ export default function DonationForm({
         color: "#374151",
         marginBottom: "0.5rem",
       }}>
-        Escolha o valor da sua contribuição:
+        Escolha o valor que seu coração desejar:
       </p>
 
       {/* Grid de valores */}
