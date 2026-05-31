@@ -859,6 +859,12 @@ input, textarea, select {
   border-color: #fecaca;
 }
 
+/* ---- PIX POP-IN ANIMATION ---- */
+@keyframes pix-pop-in {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
 /* ---- DOAÇÃO PROTEGIDA BADGE ---- */
 .pix-doacao-protegida {
   margin-top: 1rem;

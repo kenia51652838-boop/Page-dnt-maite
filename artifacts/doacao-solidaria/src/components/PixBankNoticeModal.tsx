@@ -9,75 +9,62 @@ export default function PixBankNoticeModal({ isOpen, onClose }: PixBankNoticeMod
     <div className={`pix-bank-notice-modal ${isOpen ? "is-open" : ""}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
       <div className="pix-modal__backdrop" onClick={onClose} />
       <div className="pix-bank-notice-modal__panel" style={{
-        maxWidth:"340px",
-        padding:"2rem 1.75rem 1.5rem",
-        borderRadius:"1.25rem",
-        position:"relative",
+        maxWidth: "320px",
+        padding: "2.25rem 1.75rem 1.75rem",
+        borderRadius: "1.5rem",
+        position: "relative",
+        textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08)",
       }}>
-        <button
-          style={{
-            position:"absolute",top:"1rem",right:"1rem",
-            background:"#f1f5f9",border:"none",borderRadius:"999px",
-            width:"28px",height:"28px",fontSize:"0.8rem",
-            cursor:"pointer",color:"#94a3b8",
-            display:"flex",alignItems:"center",justifyContent:"center",
-          }}
-          onClick={onClose}
-          aria-label="Fechar"
-        >✕</button>
 
-        {/* Ícone */}
         <div style={{
-          width:"52px",height:"52px",borderRadius:"999px",
-          background:"#dcfce7",
-          display:"flex",alignItems:"center",justifyContent:"center",
-          margin:"0 auto 1.25rem",
+          width: "72px",
+          height: "72px",
+          borderRadius: "999px",
+          background: "linear-gradient(135deg, #bbf7d0 0%, #dcfce7 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 1.25rem",
+          boxShadow: "0 0 0 10px rgba(34,197,94,0.08)",
+          animation: "pix-pop-in 0.35s cubic-bezier(0.22,1.28,0.36,1) both",
         }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <path d="M9 12l2 2 4-4" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="12" cy="12" r="10" stroke="#16a34a" strokeWidth="2"/>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" fill="#16a34a" />
+            <path d="M7.5 12.5l3 3 6-6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
 
-        {/* Texto */}
         <h3 style={{
-          textAlign:"center",fontWeight:700,fontSize:"1.05rem",
-          color:"#111827",margin:"0 0 0.4rem",
+          fontWeight: 800,
+          fontSize: "1.15rem",
+          color: "#0f172a",
+          margin: "0 0 0.4rem",
+          letterSpacing: "-0.01em",
         }}>
-          Código PIX copiado
+          PIX copiado!
         </h3>
         <p style={{
-          textAlign:"center",fontSize:"0.82rem",color:"#6b7280",
-          margin:"0 0 1.5rem",lineHeight:1.6,
+          fontSize: "0.875rem",
+          color: "#6b7280",
+          margin: "0 0 1.75rem",
+          lineHeight: 1.6,
         }}>
-          Cole no seu banco e finalize o pagamento
+          Agora cole o código no seu banco e finalize o pagamento.
         </p>
 
-        {/* Divider */}
-        <div style={{borderTop:"1px solid #f1f5f9",margin:"0 0 1.25rem"}} />
-
-        {/* Provedor */}
-        <div style={{
-          display:"flex",alignItems:"center",justifyContent:"space-between",
-          marginBottom:"1.5rem",
-        }}>
-          <span style={{fontSize:"0.75rem",color:"#9ca3af",fontWeight:500}}>
-            Processado por
-          </span>
-          <span style={{
-            fontSize:"0.82rem",fontWeight:700,color:"#15803d",
-            display:"flex",alignItems:"center",gap:"0.35rem",
-          }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <path d="M9 12l2 2 4-4" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="12" r="10" stroke="#16a34a" strokeWidth="2"/>
-            </svg>
-            Instituto Doação do Bem
-          </span>
-        </div>
-
-        <button type="button" className="pix-bank-notice-modal__btn" onClick={onClose}
-          style={{width:"100%",borderRadius:"0.75rem",padding:"0.8rem",fontWeight:600,fontSize:"0.9rem"}}>
+        <button
+          type="button"
+          className="pix-bank-notice-modal__btn"
+          onClick={onClose}
+          style={{
+            width: "100%",
+            borderRadius: "0.875rem",
+            padding: "0.85rem",
+            fontWeight: 700,
+            fontSize: "0.95rem",
+          }}
+        >
           Entendido
         </button>
       </div>
