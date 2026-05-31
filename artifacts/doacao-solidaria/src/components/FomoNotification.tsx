@@ -68,7 +68,7 @@ export default function FomoNotification({ onDonate, enabled = true, storageKey 
 
   useEffect(() => {
     if (!enabled) return;
-    if (localStorage.getItem(storageKey)) return;
+    if (sessionStorage.getItem(storageKey)) return;
 
     const timer = setTimeout(async () => {
       const fakeName = generateName();
@@ -96,7 +96,7 @@ export default function FomoNotification({ onDonate, enabled = true, storageKey 
 
       setCity(cityStr);
       setVisible(true);
-      localStorage.setItem(storageKey, "1");
+      sessionStorage.setItem(storageKey, "1");
       onDonateRef.current(fakeAmount);
 
       // Auto-dismiss após 7 segundos
