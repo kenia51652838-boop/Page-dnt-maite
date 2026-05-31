@@ -63,7 +63,7 @@ export default function DonationForm({
 
   const effectiveArrecadado = arrecadado ?? ARRECADADO;
   const effectivePCT = ((effectiveArrecadado / META) * 100).toFixed(2);
-  const donorCount = Math.max(120, Math.round(effectiveArrecadado / 48));
+  const donorCount = Math.round(effectiveArrecadado / 35);
 
   const activeValue = hoveredValue ?? selectedValue ?? MAIS_ESCOLHIDO;
   const impactText = IMPACT_MAP[activeValue] ?? "";
