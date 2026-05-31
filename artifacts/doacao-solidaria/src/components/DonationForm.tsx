@@ -158,14 +158,7 @@ export default function DonationForm({
               onMouseEnter={() => setHoveredValue(v)}
               onMouseLeave={() => setHoveredValue(null)}
               disabled={loading}
-              style={{
-                position: "relative",
-                opacity: loading ? 0.65 : 1,
-                flexDirection: "column",
-                gap: "2px",
-                paddingTop: isMaisEscolhido && !isSelected ? "0.5rem" : undefined,
-                paddingBottom: isMaisEscolhido && !isSelected ? "0.5rem" : undefined,
-              }}
+              style={{position: "relative", opacity: loading ? 0.65 : 1}}
             >
               {isMaisEscolhido && !isSelected && (
                 <span className="valor-btn__selo">⭐ Mais Escolhido</span>
@@ -178,6 +171,7 @@ export default function DonationForm({
                   fontWeight: 600,
                   color: "#16a34a",
                   opacity: 0.85,
+                  marginTop: "2px",
                   lineHeight: 1,
                 }}>
                   68% dos doadores
