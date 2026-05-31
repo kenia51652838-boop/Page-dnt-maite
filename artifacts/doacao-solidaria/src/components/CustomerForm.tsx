@@ -1,5 +1,22 @@
 import { useState } from "react";
 
+const CTA_MAP: Record<number, string> = {
+  30:   "Garantir o jantar de hoje",
+  35:   "Colocar comida na mesa",
+  40:   "Garantir 2 dias de refeição",
+  50:   "Garantir 3 dias de refeição",
+  60:   "Alimentar a família por 4 dias",
+  75:   "Garantir 4 dias de comida",
+  100:  "Garantir 6 dias de alimentação",
+  150:  "Garantir 1 semana de comida",
+  200:  "Mais de 1 semana garantida",
+  300:  "Garantir quase 2 semanas",
+  400:  "Garantir 2 semanas completas",
+  500:  "Garantir 3 semanas de cuidado",
+  750:  "Garantir mais de 1 mês",
+  1000: "Transformar a realidade deles",
+};
+
 interface CustomerFormProps {
   amount: number;
   formatBRL: (v: number) => string;
@@ -146,7 +163,12 @@ export default function CustomerForm({ amount, formatBRL, onSubmit, onBack, load
             Gerando PIX...
           </>
         ) : (
-          `Gerar PIX de ${formatBRL(amount)}`
+          <>
+            <span>{CTA_MAP[amount] ?? "Fazer minha doação"}</span>
+            <span style={{opacity: 0.75, fontWeight: 600, fontSize: "0.85em"}}>
+              → PIX de {formatBRL(amount)}
+            </span>
+          </>
         )}
       </button>
 
