@@ -11,6 +11,7 @@ interface DonationFormProps {
 }
 
 const MAIS_ESCOLHIDO = 75;
+const INITIAL_SHOW = 8;
 
 const IMPACT_MAP: Record<number, string> = {
   30:   "garante o jantar de hoje para o Sr. Francivaldo e os 4 filhos",
@@ -38,11 +39,17 @@ export default function DonationForm({
   arrecadado,
 }: DonationFormProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
   const effectiveArrecadado = arrecadado ?? ARRECADADO;
   const effectivePCT = ((effectiveArrecadado / META) * 100).toFixed(2);
+  const donorCount = Math.max(120, Math.round(effectiveArrecadado / 48));
 
   const activeValue = hoveredValue ?? selectedValue ?? MAIS_ESCOLHIDO;
   const impactText = IMPACT_MAP[activeValue] ?? "";
+
+  const visibleValues = showAll ? donationValues : donationValues.slice(0, INITIAL_SHOW);
+  const hiddenCount = donationValues.length - INITIAL_SHOW;
 
   return (
     <div id="section-donation">
@@ -60,7 +67,7 @@ export default function DonationForm({
       </h2>
 
       {/* Valor + progresso */}
-      <div style={{marginBottom: "0.5rem"}}>
+      <div style={{marginBottom: "0.4rem"}}>
         <span style={{
           display: "block",
           fontSize: "1.45rem",
@@ -83,7 +90,7 @@ export default function DonationForm({
         background: "#e5e7eb",
         borderRadius: "999px",
         overflow: "hidden",
-        marginBottom: "4px",
+        marginBottom: "5px",
       }}>
         <div style={{
           width: `${effectivePCT}%`,
@@ -93,9 +100,34 @@ export default function DonationForm({
           transition: "width 900ms ease",
         }} />
       </div>
-      <p style={{fontSize: "0.8rem", color: "#6b7280", marginBottom: "1rem", fontWeight: 500}}>
-        {effectivePCT}% do objetivo alcançado
-      </p>
+
+      {/* Progresso + doadores */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "1rem",
+      }}>
+        <p style={{fontSize: "0.78rem", color: "#6b7280", margin: 0, fontWeight: 500}}>
+          {effectivePCT}% do objetivo alcançado
+        </p>
+        <p style={{
+          fontSize: "0.78rem",
+          color: "#6b7280",
+          margin: 0,
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+        }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="9" cy="7" r="4" stroke="#9ca3af" strokeWidth="2"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          {donorCount.toLocaleString("pt-BR")} doadores
+        </p>
+      </div>
 
       {/* Label */}
       <p style={{
@@ -109,7 +141,7 @@ export default function DonationForm({
 
       {/* Grid de valores */}
       <div className="valor-btns-grid" style={{marginBottom: "0.75rem"}}>
-        {donationValues.map(v => {
+        {visibleValues.map(v => {
           const isMaisEscolhido = v === MAIS_ESCOLHIDO;
           const isSelected = selectedValue === v;
           let cls = "valor-btn ";
@@ -129,13 +161,90 @@ export default function DonationForm({
               style={{position: "relative", opacity: loading ? 0.65 : 1}}
             >
               {isMaisEscolhido && !isSelected && (
-                <span className="valor-btn__selo">Mais Escolhido</span>
+                <span className="valor-btn__selo">⭐ Mais Escolhido</span>
               )}
-              <span>{formatBRL(v)}</span>
+              <span style={{display:"block", lineHeight: 1.2}}>{formatBRL(v)}</span>
+              {isMaisEscolhido && !isSelected && (
+                <span style={{
+                  display: "block",
+                  fontSize: "0.6rem",
+                  fontWeight: 600,
+                  color: "#16a34a",
+                  opacity: 0.85,
+                  marginTop: "2px",
+                  lineHeight: 1,
+                }}>
+                  68% dos doadores
+                </span>
+              )}
             </button>
           );
         })}
       </div>
+
+      {/* Ver mais / menos */}
+      {!showAll && hiddenCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          style={{
+            width: "100%",
+            background: "transparent",
+            border: "1.5px dashed #d1d5db",
+            borderRadius: "0.75rem",
+            padding: "0.6rem",
+            fontSize: "0.78rem",
+            fontWeight: 600,
+            color: "#6b7280",
+            cursor: "pointer",
+            marginBottom: "0.75rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "5px",
+            transition: "all 0.18s ease",
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "#9ca3af";
+            (e.currentTarget as HTMLButtonElement).style.color = "#374151";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "#d1d5db";
+            (e.currentTarget as HTMLButtonElement).style.color = "#6b7280";
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Ver outros {hiddenCount} valores
+        </button>
+      )}
+      {showAll && (
+        <button
+          type="button"
+          onClick={() => setShowAll(false)}
+          style={{
+            width: "100%",
+            background: "transparent",
+            border: "none",
+            padding: "0.3rem",
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: "#9ca3af",
+            cursor: "pointer",
+            marginBottom: "0.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "4px",
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 15l-6-6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Mostrar menos
+        </button>
+      )}
 
       {/* Barra de impacto */}
       {impactText && (

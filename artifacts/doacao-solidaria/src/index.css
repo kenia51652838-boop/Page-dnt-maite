@@ -174,16 +174,23 @@ input, textarea, select {
 .valor-btn--mais-escolhido {
   position: relative;
   overflow: visible;
-  border-color: #24CA68 !important;
-  background-color: #f0fdf4 !important;
-  color: #15803d !important;
+  border-color: #16a34a !important;
+  border-width: 2.5px !important;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
+  color: #14532d !important;
+  box-shadow: 0 0 0 3px rgba(36,202,104,0.12), 0 3px 10px rgba(36,202,104,0.15) !important;
 }
 .valor-btn--mais-escolhido:hover:not(.valor-btn--selected) {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
+  border-color: #15803d !important;
   color: #14532d !important;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(36,202,104,0.2) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 4px rgba(36,202,104,0.15), 0 6px 16px rgba(36,202,104,0.25) !important;
+}
+
+@keyframes valor-badge-pulse {
+  0%, 100% { box-shadow: 0 2px 6px rgba(36,202,104,0.4); transform: translate(-50%, -50%) scale(1); }
+  50%       { box-shadow: 0 2px 12px rgba(36,202,104,0.65); transform: translate(-50%, -50%) scale(1.06); }
 }
 
 .valor-btn__selo {
@@ -192,18 +199,19 @@ input, textarea, select {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
-  padding: 0.22rem 0.6rem;
+  padding: 0.25rem 0.7rem;
   border-radius: 9999px;
-  font-size: 0.62rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 800;
   line-height: 1.1;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #fff !important;
-  background: linear-gradient(90deg, #1aad56, #24CA68);
-  box-shadow: 0 2px 6px rgba(36,202,104,0.35);
+  background: linear-gradient(90deg, #16a34a, #24CA68);
+  box-shadow: 0 2px 6px rgba(36,202,104,0.4);
   white-space: nowrap;
   pointer-events: none;
+  animation: valor-badge-pulse 2s ease-in-out infinite;
 }
 
 /* ---- RESPONSIVIDADE TELAS PEQUENAS (< 380px) ---- */
