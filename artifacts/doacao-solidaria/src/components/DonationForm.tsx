@@ -164,19 +164,6 @@ export default function DonationForm({
                 <span className="valor-btn__selo">⭐ Mais Escolhido</span>
               )}
               <span style={{display:"block", lineHeight: 1.2}}>{formatBRL(v)}</span>
-              {isMaisEscolhido && !isSelected && (
-                <span style={{
-                  display: "block",
-                  fontSize: "0.6rem",
-                  fontWeight: 600,
-                  color: "#16a34a",
-                  opacity: 0.85,
-                  marginTop: "2px",
-                  lineHeight: 1,
-                }}>
-                  68% dos doadores
-                </span>
-              )}
             </button>
           );
         })}
