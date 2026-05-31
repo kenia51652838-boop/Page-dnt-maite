@@ -29,7 +29,6 @@ interface DonationFormProps {
 }
 
 const MAIS_ESCOLHIDO = 75;
-const INITIAL_SHOW = 8;
 
 const IMPACT_MAP: Record<number, string> = {
   30:   "garante o jantar de hoje para o Sr. Francivaldo e os 4 filhos",
@@ -58,7 +57,6 @@ export default function DonationForm({
   arrecadado,
 }: DonationFormProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
-  const [showAll, setShowAll] = useState(false);
   const [selectError, setSelectError] = useState(false);
 
   const effectiveArrecadado = arrecadado ?? ARRECADADO;
@@ -67,9 +65,6 @@ export default function DonationForm({
 
   const activeValue = hoveredValue ?? selectedValue ?? MAIS_ESCOLHIDO;
   const impactText = IMPACT_MAP[activeValue] ?? "";
-
-  const visibleValues = showAll ? donationValues : donationValues.slice(0, INITIAL_SHOW);
-  const hiddenCount = donationValues.length - INITIAL_SHOW;
 
   return (
     <div id="section-donation">
@@ -161,7 +156,7 @@ export default function DonationForm({
 
       {/* Grid de valores */}
       <div className="valor-btns-grid" style={{marginBottom: "0.75rem"}}>
-        {visibleValues.map(v => {
+        {donationValues.map(v => {
           const isMaisEscolhido = v === MAIS_ESCOLHIDO;
           const isSelected = selectedValue === v;
           let cls = "valor-btn ";
@@ -189,69 +184,6 @@ export default function DonationForm({
         })}
       </div>
 
-      {/* Ver mais / menos */}
-      {!showAll && hiddenCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowAll(true)}
-          style={{
-            width: "100%",
-            background: "transparent",
-            border: "1.5px dashed #d1d5db",
-            borderRadius: "0.75rem",
-            padding: "0.6rem",
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            color: "#6b7280",
-            cursor: "pointer",
-            marginBottom: "0.75rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "5px",
-            transition: "all 0.18s ease",
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = "#9ca3af";
-            (e.currentTarget as HTMLButtonElement).style.color = "#374151";
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = "#d1d5db";
-            (e.currentTarget as HTMLButtonElement).style.color = "#6b7280";
-          }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Ver outros {hiddenCount} valores
-        </button>
-      )}
-      {showAll && (
-        <button
-          type="button"
-          onClick={() => setShowAll(false)}
-          style={{
-            width: "100%",
-            background: "transparent",
-            border: "none",
-            padding: "0.3rem",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            color: "#9ca3af",
-            cursor: "pointer",
-            marginBottom: "0.5rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "4px",
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M18 15l-6-6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Mostrar menos
-        </button>
-      )}
 
       {/* Botão Gerar PIX */}
       {onGeneratePix && (

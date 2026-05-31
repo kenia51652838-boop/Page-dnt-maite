@@ -119,18 +119,18 @@ input, textarea, select {
 .valor-btns-grid {
   overflow: visible;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.55rem;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
 }
 
 .valor-btn {
   width: 100%;
-  padding: 0.875rem 0.5rem;
+  padding: 0.72rem 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 0.975rem;
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.2;
   border-radius: 0.75rem;
@@ -231,15 +231,15 @@ input, textarea, select {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Grid de valores: gap menor */
+  /* Grid de valores: gap menor, 3 colunas mantidas */
   .valor-btns-grid {
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
 
   /* Botões de valor: padding menor, fonte menor */
   .valor-btn {
-    padding: 0.7rem 0.25rem;
-    font-size: 0.875rem;
+    padding: 0.6rem 0.15rem;
+    font-size: 0.8rem;
     border-radius: 0.6rem;
   }
 
