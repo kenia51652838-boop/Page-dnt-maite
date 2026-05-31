@@ -59,6 +59,7 @@ export default function DonationForm({
 }: DonationFormProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [selectError, setSelectError] = useState(false);
 
   const effectiveArrecadado = arrecadado ?? ARRECADADO;
   const effectivePCT = ((effectiveArrecadado / META) * 100).toFixed(2);
@@ -254,35 +255,51 @@ export default function DonationForm({
 
       {/* Botão Gerar PIX */}
       {onGeneratePix && (
-        <button
-          type="button"
-          onClick={() => selectedValue && onGeneratePix(selectedValue)}
-          disabled={loading || !selectedValue}
-          className="btn-donation"
-          style={{
-            width: "100%",
-            marginBottom: "0.75rem",
-            opacity: !selectedValue ? 0.5 : 1,
-            transition: "opacity 0.2s",
-          }}
-        >
-          {loading ? (
-            <span style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"8px"}}>
-              <span style={{
-                width: 15, height: 15,
-                border: "2px solid rgba(255,255,255,0.4)",
-                borderTopColor: "#fff",
-                borderRadius: "50%",
-                display: "inline-block",
-                animation: "pixSpin 0.8s linear infinite",
-                flexShrink: 0,
-              }} />
-              Gerando PIX...
-            </span>
-          ) : (
-            <span>Gerar PIX{selectedValue ? ` — ${formatBRL(selectedValue)}` : ""}</span>
+        <div style={{marginBottom: "0.75rem"}}>
+          <button
+            type="button"
+            onClick={() => {
+              if (!selectedValue) {
+                setSelectError(true);
+                return;
+              }
+              setSelectError(false);
+              onGeneratePix(selectedValue);
+            }}
+            disabled={loading}
+            className="btn-donation"
+            style={{ width: "100%" }}
+          >
+            {loading ? (
+              <span style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"8px"}}>
+                <span style={{
+                  width: 15, height: 15,
+                  border: "2px solid rgba(255,255,255,0.4)",
+                  borderTopColor: "#fff",
+                  borderRadius: "50%",
+                  display: "inline-block",
+                  animation: "pixSpin 0.8s linear infinite",
+                  flexShrink: 0,
+                }} />
+                Gerando PIX...
+              </span>
+            ) : (
+              <span>Gerar PIX{selectedValue ? ` — ${formatBRL(selectedValue)}` : ""}</span>
+            )}
+          </button>
+          {selectError && (
+            <p style={{
+              margin: "6px 0 0",
+              fontSize: "0.78rem",
+              color: "#dc2626",
+              fontWeight: 600,
+              textAlign: "center",
+              fontFamily: "'Lato', sans-serif",
+            }}>
+              ⚠️ Selecione o valor que deseja contribuir antes de continuar.
+            </p>
           )}
-        </button>
+        </div>
       )}
 
       {/* Barra de impacto */}
