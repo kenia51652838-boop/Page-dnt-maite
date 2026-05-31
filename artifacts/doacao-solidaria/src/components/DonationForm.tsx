@@ -177,7 +177,10 @@ export default function DonationForm({
               disabled={loading}
               style={{position: "relative", opacity: loading ? 0.65 : 1}}
             >
-                  <span style={{display:"block", lineHeight: 1.2}}>{formatBRL(v)}</span>
+              {isMaisEscolhido && !isSelected && (
+                <span className="valor-btn__selo">Mais Escolhido</span>
+              )}
+              <span style={{display:"block", lineHeight: 1.2}}>{formatBRL(v)}</span>
             </button>
           );
         })}
