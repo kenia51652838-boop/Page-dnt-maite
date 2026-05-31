@@ -16,6 +16,7 @@ const CTA_MAP: Record<number, string> = {
   500:  "Garantir 3 semanas de cuidado",
   750:  "Garantir mais de 1 mês",
   1000: "Transformar a realidade deles",
+  2000: "Mudar completamente o futuro deles",
 };
 
 interface DonationFormProps {
@@ -45,6 +46,7 @@ const IMPACT_MAP: Record<number, string> = {
   500:  "3 semanas de comida e cuidado garantidos para essa família",
   750:  "mais de 1 mês de refeições no prato para os 4 filhos",
   1000: "muda completamente a realidade dessa família por mais de 1 mês",
+  2000: "garante mais de 2 meses de alimentação e dignidade para toda a família",
 };
 
 export default function DonationForm({
@@ -175,10 +177,7 @@ export default function DonationForm({
               disabled={loading}
               style={{position: "relative", opacity: loading ? 0.65 : 1}}
             >
-              {isMaisEscolhido && !isSelected && (
-                <span className="valor-btn__selo">⭐ Mais Escolhido</span>
-              )}
-              <span style={{display:"block", lineHeight: 1.2}}>{formatBRL(v)}</span>
+                  <span style={{display:"block", lineHeight: 1.2}}>{formatBRL(v)}</span>
             </button>
           );
         })}

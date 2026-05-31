@@ -26,7 +26,7 @@ export type ToastItem = {
   leaving?: boolean;
 };
 
-const DONATION_VALUES = [30, 35, 40, 50, 60, 75, 100, 150, 200, 300, 400, 500, 750, 1000];
+const DONATION_VALUES = [30, 35, 40, 50, 60, 75, 100, 150, 200, 300, 400, 500, 750, 1000, 2000];
 const TOTAL_SEC = 5 * 60;
 
 export const META = 12500;
