@@ -252,6 +252,39 @@ export default function DonationForm({
         </button>
       )}
 
+      {/* Botão Gerar PIX */}
+      {onGeneratePix && (
+        <button
+          type="button"
+          onClick={() => selectedValue && onGeneratePix(selectedValue)}
+          disabled={loading || !selectedValue}
+          className="btn-donation"
+          style={{
+            width: "100%",
+            marginBottom: "0.75rem",
+            opacity: !selectedValue ? 0.5 : 1,
+            transition: "opacity 0.2s",
+          }}
+        >
+          {loading ? (
+            <span style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"8px"}}>
+              <span style={{
+                width: 15, height: 15,
+                border: "2px solid rgba(255,255,255,0.4)",
+                borderTopColor: "#fff",
+                borderRadius: "50%",
+                display: "inline-block",
+                animation: "pixSpin 0.8s linear infinite",
+                flexShrink: 0,
+              }} />
+              Gerando PIX...
+            </span>
+          ) : (
+            <span>Gerar PIX{selectedValue ? ` — ${formatBRL(selectedValue)}` : ""}</span>
+          )}
+        </button>
+      )}
+
       {/* Barra de impacto */}
       {impactText && (
         <div style={{
@@ -280,53 +313,6 @@ export default function DonationForm({
             {impactText}
           </p>
         </div>
-      )}
-
-      {/* Botão Gerar PIX */}
-      {onGeneratePix && (
-        <button
-          type="button"
-          onClick={() => selectedValue && onGeneratePix(selectedValue)}
-          disabled={loading || !selectedValue}
-          className="btn-donation"
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "2px",
-            marginBottom: "0.5rem",
-            opacity: !selectedValue ? 0.55 : 1,
-            transition: "opacity 0.2s, transform 0.15s",
-          }}
-        >
-          {loading ? (
-            <span style={{display:"flex", alignItems:"center", gap:"8px"}}>
-              <span style={{
-                width: 15, height: 15,
-                border: "2px solid rgba(255,255,255,0.4)",
-                borderTopColor: "#fff",
-                borderRadius: "50%",
-                display: "inline-block",
-                animation: "pixSpin 0.8s linear infinite",
-                flexShrink: 0,
-              }} />
-              Gerando PIX...
-            </span>
-          ) : selectedValue ? (
-            <>
-              <span style={{fontWeight: 800, fontSize: "0.95rem"}}>
-                {CTA_MAP[selectedValue] ?? "Fazer minha doação"}
-              </span>
-              <span style={{opacity: 0.8, fontWeight: 600, fontSize: "0.78rem"}}>
-                → PIX de {formatBRL(selectedValue)}
-              </span>
-            </>
-          ) : (
-            <span>Selecione um valor acima</span>
-          )}
-        </button>
       )}
 
       {/* Rodapé */}
