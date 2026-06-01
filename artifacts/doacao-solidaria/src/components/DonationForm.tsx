@@ -60,11 +60,6 @@ export default function DonationForm({
 }: DonationFormProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
   const [selectError, setSelectError] = useState(false);
-  const [clicking, setClicking] = useState(false);
-
-  useEffect(() => {
-    if (!loading) setClicking(false);
-  }, [loading]);
 
   const effectiveArrecadado = arrecadado ?? ARRECADADO;
   const effectivePCT = ((effectiveArrecadado / META) * 100).toFixed(2);
@@ -203,14 +198,13 @@ export default function DonationForm({
                 return;
               }
               setSelectError(false);
-              setClicking(true);
               onGeneratePix(selectedValue);
             }}
-            disabled={loading || clicking}
+            disabled={loading}
             className="btn-donation"
-            style={{ width: "100%", opacity: (loading || clicking) ? 0.85 : 1 }}
+            style={{ width: "100%" }}
           >
-            {(loading || clicking) ? (
+            {loading ? (
               <span style={{display:"flex", alignItems:"center", justifyContent:"center", gap:"8px"}}>
                 <span style={{
                   width: 15, height: 15,

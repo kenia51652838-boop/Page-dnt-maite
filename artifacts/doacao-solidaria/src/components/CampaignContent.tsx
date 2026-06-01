@@ -396,7 +396,7 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             color: "#aaa",
             marginBottom: "1.25rem",
           }}>
-            {Math.round(ARRECADADO / 35).toLocaleString("pt-BR")} apoiadores
+            {Math.round(ARRECADADO / 35).toLocaleString("pt-BR")} apoiadores · ordenado por mais recente
           </p>
 
           <div style={{ display: "flex", flexDirection: "column" }}>
