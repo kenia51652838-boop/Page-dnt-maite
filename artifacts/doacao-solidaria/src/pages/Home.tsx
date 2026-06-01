@@ -140,8 +140,13 @@ export default function Home() {
   const [privateFomo, setPrivateFomo] = useState(false);
   const [privateFomoData, setPrivateFomoData] = useState<{ name: string; city: string; amount: number } | null>(null);
   const donorCityFetchedRef = useRef(false);
+  const pixGeneratingRef = useRef(false);
   const _urlAmount = Number(new URLSearchParams(window.location.search).get("amount")) || null;
   const [generatingPix, setGeneratingPix] = useState(false);
+
+  const setBodyOverflow = (v: string) => {
+    if (document.body) document.body.style.overflow = v;
+  };
 
   const [pixCode, setPixCode] = useState("");
   const [pixTxId, setPixTxId] = useState("");
@@ -273,7 +278,7 @@ export default function Home() {
           setHasActivePix(false);
           setPixModalOpen(false);
           setThankYouOpen(true);
-          document.body.style.overflow = "hidden";
+          setBodyOverflow("hidden");
         } else if (data.status === "expired") {
           stopPolling();
           setPixExpired(true);
@@ -297,7 +302,7 @@ export default function Home() {
         setHasActivePix(false);
         setPixModalOpen(false);
         setThankYouOpen(true);
-        document.body.style.overflow = "hidden";
+        setBodyOverflow("hidden");
       } else {
         return "pending";
       }
@@ -312,13 +317,14 @@ export default function Home() {
   }
 
   async function generatePix(value: number) {
-    if (generatingPix) return;
+    if (pixGeneratingRef.current || generatingPix) return;
+    pixGeneratingRef.current = true;
 
     // Se já tem um PIX ativo (não pago, não expirado), bloqueia e mostra aviso
     if (hasActivePix && !pixConfirmed && !pixExpired) {
       setPixModalOpen(true);         // reabre o modal do PIX caso esteja fechado
       closeDoacaoModal();
-      document.body.style.overflow = "hidden";
+      setBodyOverflow("hidden");
       setTimeout(() => setPixLimitOpen(true), 150);
       return;
     }
@@ -359,7 +365,7 @@ export default function Home() {
           setPixLoadingOpen(false);
           setPixModalOpen(true);
           closeDoacaoModal();
-          document.body.style.overflow = "hidden";
+          setBodyOverflow("hidden");
           setTimeout(() => setPixLimitOpen(true), 300);
           return;
         }
@@ -374,7 +380,7 @@ export default function Home() {
       setPixLoadingOpen(false);
       closeDoacaoModal();
       setPixModalOpen(true);
-      document.body.style.overflow = "hidden";
+      setBodyOverflow("hidden");
       startCountdown(expAt);
       startPolling(data.transaction_id || "");
     } catch (err) {
@@ -382,6 +388,7 @@ export default function Home() {
       const msg = err instanceof Error ? err.message : "Erro ao gerar PIX";
       showToast({ title: "Erro", message: msg, type: "error" });
     } finally {
+      pixGeneratingRef.current = false;
       setGeneratingPix(false);
     }
   }
@@ -397,26 +404,26 @@ export default function Home() {
     }
     setHasDonated(true);
     setSelectedValue(null);
-    document.body.style.overflow = "";
+    setBodyOverflow("");
   }
 
   function openVipUpsell() {
     setThankYouOpenOnUpsell(true);
     setThankYouOpen(true);
-    document.body.style.overflow = "hidden";
+    setBodyOverflow("hidden");
   }
 
   function openDoacaoModal() {
     setDoacaoModalOpen(true);
-    document.body.style.overflow = "hidden";
+    setBodyOverflow("hidden");
   }
   function closeDoacaoModal() {
     setDoacaoModalOpen(false);
-    document.body.style.overflow = "";
+    setBodyOverflow("");
   }
   function closePixModal() {
     setPixModalOpen(false);
-    document.body.style.overflow = "";
+    setBodyOverflow("");
     // Se o PIX já foi pago ou expirou, reseta tudo
     // Se ainda está ativo, mantém polling/countdown rodando em background
     if (pixConfirmed || pixExpired) {
