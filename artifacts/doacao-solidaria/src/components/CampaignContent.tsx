@@ -129,7 +129,7 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
           }}>
             <iframe
-              src="https://www.youtube.com/embed/7MLE5FqNe10"
+              src="https://www.youtube.com/embed/zx8M-DV7GXk"
               title="A história do Sr. Francivaldo e seus filhos"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
