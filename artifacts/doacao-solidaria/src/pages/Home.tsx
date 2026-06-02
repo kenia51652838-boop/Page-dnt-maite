@@ -95,11 +95,14 @@ function generateDonors() {
   const values = [30,35,40,50,60,75,100,150,200,300];
   const colors = ["#0ea5e9","#22c55e","#f97316","#a855f7","#ef4444","#14b8a6","#f59e0b","#6366f1"];
   const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
-  return Array.from({ length: 8 }, () => {
+  // Tempos escalonados em minutos: cada doador aparece mais cedo que o anterior
+  const minsAgoList = [2, 5, 9, 14, 20, 27, 35, 44];
+  const now = Date.now();
+  return Array.from({ length: 8 }, (_, i) => {
     const name = pick(firstNames) + " " + pick(lastNames);
     const parts = name.trim().split(/\s+/);
     const initials = ((parts[0]?.[0] || "") + (parts[parts.length-1]?.[0] || "")).toUpperCase();
-    return { nome: name, initials, color: pick(colors), valorNum: pick(values), minsAgo: 1 + Math.floor(Math.random() * 5) };
+    return { nome: name, initials, color: pick(colors), valorNum: pick(values), addedAt: now - minsAgoList[i] * 60 * 1000 };
   });
 }
 
@@ -216,11 +219,11 @@ export default function Home() {
       initials = ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
       const colors = ["#24CA68", "#0ea5e9", "#a855f7", "#f59e0b"];
       color = colors[Math.floor(Math.random() * colors.length)];
-      setLiveDonors(prev => [{ nome: name.trim(), initials, color, valorNum: amount, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
+      setLiveDonors(prev => [{ nome: name.trim(), initials, color, valorNum: amount, addedAt: Date.now(), isNew: true }, ...prev.slice(0, 9)]);
     } else {
       initials = "DA";
       color = "#6b7280";
-      setLiveDonors(prev => [{ nome: "Doador Anônimo", initials, color, valorNum: amount, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
+      setLiveDonors(prev => [{ nome: "Doador Anônimo", initials, color, valorNum: amount, addedAt: Date.now(), isNew: true }, ...prev.slice(0, 9)]);
     }
 
     // Persiste o doador no localStorage para reaparecer na lista ao voltar para o início
@@ -239,7 +242,7 @@ export default function Home() {
       if (!raw) return;
       const donor = JSON.parse(raw) as { nome: string; initials: string; color: string; valorNum: number; city?: string; timestamp: number };
       if (Date.now() - donor.timestamp < 30 * 60 * 1000) {
-        setLiveDonors(prev => [{ nome: donor.nome, initials: donor.initials, color: donor.color, valorNum: donor.valorNum, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
+        setLiveDonors(prev => [{ nome: donor.nome, initials: donor.initials, color: donor.color, valorNum: donor.valorNum, addedAt: donor.timestamp, isNew: true }, ...prev.slice(0, 9)]);
       } else {
         localStorage.removeItem("ds_recent_donor");
       }
@@ -257,7 +260,7 @@ export default function Home() {
       const name = pick(firstNames) + " " + pick(lastNames);
       const parts = name.trim().split(/\s+/);
       const initials = ((parts[0]?.[0] || "") + (parts[parts.length-1]?.[0] || "")).toUpperCase();
-      setLiveDonors(prev => [{ nome: name, initials, color: pick(colors), valorNum: pick(values), minsAgo: 0 }, ...prev.slice(0,9)]);
+      setLiveDonors(prev => [{ nome: name, initials, color: pick(colors), valorNum: pick(values), addedAt: Date.now() }, ...prev.slice(0,9)]);
     }, 18000 + Math.random() * 12000);
     return () => clearInterval(interval);
   }, [donors]);
