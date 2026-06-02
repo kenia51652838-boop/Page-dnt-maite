@@ -209,18 +209,42 @@ export default function Home() {
     setPrivateFomoData({ name: displayName, city: donorCity, amount });
     setPrivateFomo(true);
 
-    // Se deu nome, adiciona aos doadores recentes no topo
+    let initials: string;
+    let color: string;
     if (name && name.trim()) {
       const parts = name.trim().split(/\s+/);
-      const initials = ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
+      initials = ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
       const colors = ["#24CA68", "#0ea5e9", "#a855f7", "#f59e0b"];
-      const color = colors[Math.floor(Math.random() * colors.length)];
+      color = colors[Math.floor(Math.random() * colors.length)];
       setLiveDonors(prev => [{ nome: name.trim(), initials, color, valorNum: amount, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
     } else {
-      // Anônimo também aparece na lista
-      setLiveDonors(prev => [{ nome: "Doador Anônimo", initials: "DA", color: "#6b7280", valorNum: amount, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
+      initials = "DA";
+      color = "#6b7280";
+      setLiveDonors(prev => [{ nome: "Doador Anônimo", initials, color, valorNum: amount, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
     }
+
+    // Persiste o doador no localStorage para reaparecer na lista ao voltar para o início
+    try {
+      localStorage.setItem("ds_recent_donor", JSON.stringify({
+        nome: displayName, initials, color, valorNum: amount,
+        city: donorCity, timestamp: Date.now(),
+      }));
+    } catch {}
   }
+
+  // Ao montar o Home, verifica se há um doador recente salvo e coloca no topo da lista
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ds_recent_donor");
+      if (!raw) return;
+      const donor = JSON.parse(raw) as { nome: string; initials: string; color: string; valorNum: number; city?: string; timestamp: number };
+      if (Date.now() - donor.timestamp < 30 * 60 * 1000) {
+        setLiveDonors(prev => [{ nome: donor.nome, initials: donor.initials, color: donor.color, valorNum: donor.valorNum, minsAgo: 0, isNew: true }, ...prev.slice(0, 9)]);
+      } else {
+        localStorage.removeItem("ds_recent_donor");
+      }
+    } catch {}
+  }, []);
 
   // Live donors
   useEffect(() => {

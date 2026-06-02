@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import FomoNotification from "@/components/FomoNotification";
+import PrivateFomoToast from "@/components/PrivateFomoToast";
 
 const BILL_AMOUNT = 37.45;
 const FOMO_UPSELL_KEY = "fomo_shown_upsell_v1";
@@ -23,6 +24,8 @@ export default function ContaAtrasada() {
   const [expired, setExpired]     = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
+  const [fomoData, setFomoData]   = useState<{ name: string; city: string; amount: number } | null>(null);
+  const [fomoVisible, setFomoVisible] = useState(false);
 
   const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const cdRef      = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -33,6 +36,19 @@ export default function ContaAtrasada() {
     if (cdRef.current)   { clearInterval(cdRef.current);   cdRef.current   = null; }
   }
   useEffect(() => () => stopAll(), []);
+
+  // Lê doador recente do localStorage e exibe o toast de confirmação
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ds_recent_donor");
+      if (!raw) return;
+      const donor = JSON.parse(raw) as { nome: string; city?: string; valorNum: number; timestamp: number };
+      if (Date.now() - donor.timestamp < 10 * 60 * 1000) {
+        setFomoData({ name: donor.nome, city: donor.city || "", amount: donor.valorNum });
+        setFomoVisible(true);
+      }
+    } catch {}
+  }, []);
 
   function startCountdown() {
     expiresRef.current = Date.now() + 5 * 60 * 1000;
@@ -282,6 +298,7 @@ export default function ContaAtrasada() {
 
   /* ── HISTÓRIA / CTA ───────────────────────────────────────────────────── */
   return (
+    <>
     <div style={page}>
       <Navbar onCreateCampaign={() => {}} />
       <FomoNotification onDonate={() => {}} storageKey={FOMO_UPSELL_KEY} />
@@ -468,8 +485,31 @@ export default function ContaAtrasada() {
           </button>
         </div>
 
+        <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
+          <a
+            href="/"
+            style={{
+              color: "#9ca3af", fontSize: "0.8rem",
+              textDecoration: "none", display: "inline-flex",
+              alignItems: "center", gap: "4px",
+            }}
+          >
+            ← Não dessa vez — voltar para o início
+          </a>
+        </div>
+
       </div>
     </div>
+
+    {fomoVisible && fomoData && (
+      <PrivateFomoToast
+        name={fomoData.name}
+        city={fomoData.city}
+        amount={fomoData.amount}
+        onDismiss={() => setFomoVisible(false)}
+      />
+    )}
+    </>
   );
 }
 
