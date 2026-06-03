@@ -316,7 +316,7 @@ export default function Home() {
     if (!pixTxId) return;
     try {
       const res = await fetch(apiUrl(`/api/pix/status/${pixTxId}`));
-      const data = await res.json() as { status?: string };
+      const data = await safeJson<{ status?: string }>(res);
       if (data.status === "paid") {
         stopPolling();
         if (countdownRef.current) clearInterval(countdownRef.current);

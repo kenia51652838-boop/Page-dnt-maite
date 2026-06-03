@@ -35,5 +35,9 @@ export async function safeJson<T>(res: Response): Promise<T> {
     }
     throw new Error("Resposta inesperada do servidor. Tente novamente.");
   }
-  return res.json() as Promise<T>;
+  try {
+    return await res.json() as T;
+  } catch {
+    throw new Error("Instabilidade temporária. Aguarde alguns segundos e tente novamente.");
+  }
 }
