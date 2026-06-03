@@ -1,52 +1,52 @@
 import { logger } from "./logger";
 
-const MAX_CONCURRENT    = 5;               // chamadas simultâneas máximas à Lumina
-const QUEUE_TIMEOUT_MS  = 30_000;          // tempo máximo na fila (30s)
-const IDEMPOTENCY_TTL   = 5 * 60_000;      // cache de resultado: 5 minutos
+const MAX_CONCURRENT  = 5;
+const IDEMPOTENCY_TTL = 5 * 60_000;   // 5 min — cache de resultado final
+const JOB_TTL         = 15 * 60_000;  // 15 min — job fica na memória
 
-interface Waiter {
-  resolve: () => void;
-  reject:  (err: Error) => void;
-  timer:   ReturnType<typeof setTimeout>;
+// ── Tipos ─────────────────────────────────────────────────────────────────
+
+interface Waiter { resolve: () => void; }
+
+interface CacheEntry { result: unknown; expiresAt: number; }
+
+export interface JobEntry<T = unknown> {
+  status:    "pending" | "done" | "error";
+  result?:   T;
+  error?:    string;
+  createdAt: number;
 }
 
-interface CacheEntry {
-  result:    unknown;
-  expiresAt: number;
-}
+// ── Classe principal ───────────────────────────────────────────────────────
 
 class PixQueue {
   private running = 0;
-  private readonly waiters: Waiter[] = [];
+  private readonly waiters: Waiter[]                  = [];
   private readonly cache   = new Map<string, CacheEntry>();
+  private readonly jobs    = new Map<string, JobEntry>();
+  private readonly pending = new Map<string, string>(); // idempotencyKey → jobId
 
-  // ── Limiter de concorrência ──────────────────────────────────────────────
+  // ── Concorrência ──────────────────────────────────────────────────────────
 
   private acquire(): Promise<void> {
     if (this.running < MAX_CONCURRENT) {
       this.running++;
       return Promise.resolve();
     }
-    return new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        const idx = this.waiters.findIndex(w => w.resolve === resolve);
-        if (idx !== -1) this.waiters.splice(idx, 1);
-        reject(new Error(
-          "Servidor ocupado com muitas solicitações simultâneas. " +
-          "Aguarde alguns segundos e tente novamente."
-        ));
-      }, QUEUE_TIMEOUT_MS);
-      this.waiters.push({ resolve, reject, timer });
-      logger.info({ running: this.running, queued: this.waiters.length }, "PIX enfileirado");
+    // Sem timeout — background jobs esperam indefinidamente por um slot
+    return new Promise<void>((resolve) => {
+      this.waiters.push({ resolve });
+      logger.info(
+        { running: this.running, queued: this.waiters.length },
+        "PIX enfileirado — aguardando slot"
+      );
     });
   }
 
   private release(): void {
     const next = this.waiters.shift();
     if (next) {
-      clearTimeout(next.timer);
-      next.resolve();
-      // running não muda — passou direto pro próximo
+      next.resolve(); // running não muda — slot passou direto pro próximo
     } else {
       this.running--;
     }
@@ -62,15 +62,12 @@ class PixQueue {
     }
   }
 
-  // ── Cache de idempotência ────────────────────────────────────────────────
+  // ── Idempotência — resultado final ─────────────────────────────────────────
 
   getCache<T>(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    if (Date.now() > entry.expiresAt) {
-      this.cache.delete(key);
-      return null;
-    }
+    if (Date.now() > entry.expiresAt) { this.cache.delete(key); return null; }
     return entry.result as T;
   }
 
@@ -79,8 +76,46 @@ class PixQueue {
     setTimeout(() => this.cache.delete(key), IDEMPOTENCY_TTL + 1_000);
   }
 
+  // ── Idempotência — job pendente (evita criar 2 PIX no retry) ──────────────
+
+  setPending(key: string, jobId: string): void { this.pending.set(key, jobId); }
+  getPending(key: string): string | null        { return this.pending.get(key) ?? null; }
+  clearPending(key: string): void               { this.pending.delete(key); }
+
+  // ── Background jobs ────────────────────────────────────────────────────────
+
+  submitJob<T>(fn: () => Promise<T>, onDone?: (result: T) => void): string {
+    const jobId = `pjob_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    this.jobs.set(jobId, { status: "pending", createdAt: Date.now() });
+    setTimeout(() => this.jobs.delete(jobId), JOB_TTL);
+
+    // Executa em background — HTTP response já foi enviado com o job_id
+    this.run(fn)
+      .then((result) => {
+        const e = this.jobs.get(jobId);
+        if (e) { e.status = "done"; e.result = result; }
+        onDone?.(result);
+        logger.info({ jobId }, "PIX background job concluído");
+      })
+      .catch((err) => {
+        const e = this.jobs.get(jobId);
+        if (e) {
+          e.status = "error";
+          e.error  = err instanceof Error ? err.message : "Erro ao gerar PIX";
+        }
+        logger.error({ jobId, err }, "PIX background job falhou");
+      });
+
+    logger.info({ jobId, running: this.running, queued: this.waiters.length }, "PIX job submetido em background");
+    return jobId;
+  }
+
+  getJob<T>(jobId: string): JobEntry<T> | null {
+    return (this.jobs.get(jobId) as JobEntry<T>) ?? null;
+  }
+
   get stats() {
-    return { running: this.running, queued: this.waiters.length, cached: this.cache.size };
+    return { running: this.running, queued: this.waiters.length, cached: this.cache.size, jobs: this.jobs.size };
   }
 }
 

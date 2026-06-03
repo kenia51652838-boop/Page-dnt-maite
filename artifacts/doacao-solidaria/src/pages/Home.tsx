@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
+import { apiUrl, safeJson, fetchWithRetry, pollPixJob } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import CampaignContent from "@/components/CampaignContent";
@@ -376,15 +376,17 @@ export default function Home() {
           utm: utmParams,
         }),
       });
-      const data = await safeJson<{
+      const rawData = await safeJson<{
         pix_code?: string;
         transaction_id?: string;
         expires_at?: string;
         error?: string;
+        job_id?: string;
+        status?: string;
       }>(res);
 
-      if (!res.ok || data.error) {
-        const errMsg = (data.error || "").toLowerCase();
+      if (!res.ok || rawData.error) {
+        const errMsg = (rawData.error || "").toLowerCase();
         if (errMsg.includes("limit") || errMsg.includes("limite") || errMsg.includes("ativo") || res.status === 422) {
           setPixLoadingOpen(false);
           setPixModalOpen(true);
@@ -393,8 +395,13 @@ export default function Home() {
           setTimeout(() => setPixLimitOpen(true), 300);
           return;
         }
-        throw new Error(data.error || "Erro ao gerar PIX");
+        throw new Error(rawData.error || "Erro ao gerar PIX");
       }
+
+      // Job em background — frontend aguarda via polling (PixLoadingModal continua aberto)
+      const data = (rawData.job_id && rawData.status === "processing")
+        ? { ...rawData, ...(await pollPixJob(rawData.job_id)) }
+        : rawData;
 
       const expAt = Date.now() + TOTAL_SEC * 1000;
 

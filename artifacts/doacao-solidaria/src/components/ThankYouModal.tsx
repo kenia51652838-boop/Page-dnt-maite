@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
+import { apiUrl, safeJson, fetchWithRetry, pollPixJob } from "@/lib/api";
 import { META } from "@/pages/Home";
 
 function formatBRL(v: number) {
@@ -184,8 +184,11 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
           phone: vipPhone.replace(/\D/g, ""),
         }),
       });
-      const data = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string }>(res);
-      if (!res.ok || data.error) throw new Error(data.error || "Erro ao gerar PIX VIP");
+      const rawData = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string; job_id?: string; status?: string }>(res);
+      if (!res.ok || rawData.error) throw new Error(rawData.error || "Erro ao gerar PIX VIP");
+      const data = (rawData.job_id && rawData.status === "processing")
+        ? { ...rawData, ...(await pollPixJob(rawData.job_id)) }
+        : rawData;
       setVipPixCode(data.pix_code || "");
       setVipTxId(data.transaction_id || "");
       setVipExpired(false);

@@ -41,21 +41,13 @@ router.post("/pix/create", async (req, res) => {
         res.json({ success: true, ...cached });
         return;
       }
+      const existingJobId = pixQueue.getPending(idempKey);
+      if (existingJobId) {
+        logger.info({ idempKey, existingJobId }, "PIX /create: job já pendente, devolvendo mesmo job_id");
+        res.json({ job_id: existingJobId, status: "processing" });
+        return;
+      }
     }
-
-    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Criando transação PIX — postback URL enviado à Lumina");
-
-    const result = await pixQueue.run(() => createPixTransaction({
-      amount: Number(amount),
-      customer_name: String(customer_name),
-      customer_email: String(customer_email),
-      customer_phone: String(customer_phone),
-      customer_cpf: String(customer_cpf),
-      postback_url,
-      external_id,
-    }));
-
-    if (idempKey) pixQueue.setCache(idempKey, result);
 
     const amountInCents = Math.round(Number(amount) * 100);
     const tracking: UtmifyTrackingParams = {
@@ -67,50 +59,63 @@ router.post("/pix/create", async (req, res) => {
       utm_content:  (utm as Record<string, string>)?.utm_content  || null,
       utm_term:     (utm as Record<string, string>)?.utm_term     || null,
     };
-
     const clientIp = ((req.headers["x-forwarded-for"] as string) || "")
       .split(",")[0].trim() || undefined;
 
-    // Usa o ID da Lumina se disponível, senão usa nosso external_id como fallback
-    const txId = result.transaction_id || external_id;
+    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Submetendo PIX em background");
 
-    await saveTx({
-      orderId:       txId,
-      externalId:    external_id,
-      status:        "waiting_payment",
-      createdAt:     new Date(),
-      amountInCents,
-      customer: {
-        name:     String(customer_name),
-        email:    String(customer_email),
-        phone:    String(customer_phone),
-        document: String(customer_cpf).replace(/\D/g, ""),
-        ...(clientIp ? { ip: clientIp } : {}),
+    const jobId = pixQueue.submitJob(
+      async () => {
+        const result = await createPixTransaction({
+          amount: Number(amount),
+          customer_name: String(customer_name),
+          customer_email: String(customer_email),
+          customer_phone: String(customer_phone),
+          customer_cpf: String(customer_cpf),
+          postback_url,
+          external_id,
+        });
+        const txId = result.transaction_id || external_id;
+        await saveTx({
+          orderId:       txId,
+          externalId:    external_id,
+          status:        "waiting_payment",
+          createdAt:     new Date(),
+          amountInCents,
+          customer: {
+            name:     String(customer_name),
+            email:    String(customer_email),
+            phone:    String(customer_phone),
+            document: String(customer_cpf).replace(/\D/g, ""),
+            ...(clientIp ? { ip: clientIp } : {}),
+          },
+          tracking,
+        });
+        logger.info({ txId, externalId: external_id }, "Transação PIX criada e salva");
+        sendUtmifyOrder({
+          orderId:       txId,
+          status:        "waiting_payment",
+          createdAt:     new Date(),
+          approvedAt:    null,
+          customer: {
+            name:     String(customer_name),
+            email:    String(customer_email),
+            phone:    String(customer_phone),
+            document: String(customer_cpf).replace(/\D/g, ""),
+            ...(clientIp ? { ip: clientIp } : {}),
+          },
+          amountInCents,
+          tracking,
+        }).catch((err) => logger.warn({ err }, "UTMify waiting_payment falhou silenciosamente"));
+        return { success: true, ...result };
       },
-      tracking,
-    });
+      (jobResult) => {
+        if (idempKey) { pixQueue.setCache(idempKey, jobResult); pixQueue.clearPending(idempKey); }
+      }
+    );
 
-    logger.info({ txId, externalId: external_id }, "Transação PIX criada e salva");
-
-    sendUtmifyOrder({
-      orderId:       txId,
-      status:        "waiting_payment",
-      createdAt:     new Date(),
-      approvedAt:    null,
-      customer: {
-        name:     String(customer_name),
-        email:    String(customer_email),
-        phone:    String(customer_phone),
-        document: String(customer_cpf).replace(/\D/g, ""),
-        ...(clientIp ? { ip: clientIp } : {}),
-      },
-      amountInCents,
-      tracking,
-    }).catch((err) => {
-      logger.warn({ err }, "UTMify waiting_payment falhou silenciosamente");
-    });
-
-    res.json({ success: true, ...result });
+    if (idempKey) pixQueue.setPending(idempKey, jobId);
+    res.json({ job_id: jobId, status: "processing" });
   } catch (err) {
     const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
     logger.error({ err }, "Erro ao criar transação PIX");
@@ -165,52 +170,62 @@ router.post("/pix/create-upsell", async (req, res) => {
         res.json({ success: true, ...cached });
         return;
       }
+      const existingJobId = pixQueue.getPending(idempKey);
+      if (existingJobId) {
+        logger.info({ idempKey, existingJobId }, "PIX /create-upsell: job já pendente, devolvendo mesmo job_id");
+        res.json({ job_id: existingJobId, status: "processing" });
+        return;
+      }
     }
 
-    logger.info({ external_id, amount, queued: pixQueue.stats.queued }, "Criando PIX upsell (conta energia)");
-
-    const result = await pixQueue.run(() => createPixTransaction({
-      amount,
-      customer_name:  fullName,
-      customer_email: email,
-      customer_phone: phone,
-      customer_cpf:   cpf,
-      postback_url,
-      external_id,
-      product_title:  "Hot - Assinatura quente",
-    }));
-
-    if (idempKey) pixQueue.setCache(idempKey, result);
-
     const amountInCents = Math.round(amount * 100);
-    const txId = result.transaction_id || external_id;
-
     const emptyTracking: UtmifyTrackingParams = {
       src: null, sck: null, utm_source: null,
       utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null,
     };
 
-    await saveTx({
-      orderId:       txId,
-      externalId:    external_id,
-      status:        "waiting_payment",
-      createdAt:     new Date(),
-      amountInCents,
-      customer: { name: fullName, email, phone, document: cpf },
-      tracking:      emptyTracking,
-    });
+    logger.info({ external_id, amount, queued: pixQueue.stats.queued }, "Submetendo PIX upsell em background");
 
-    sendUtmifyOrder({
-      orderId:       txId,
-      status:        "waiting_payment",
-      createdAt:     new Date(),
-      approvedAt:    null,
-      customer: { name: fullName, email, phone, document: cpf },
-      amountInCents,
-      tracking:      emptyTracking,
-    }).catch((err) => logger.warn({ err }, "UTMify upsell waiting falhou silenciosamente"));
+    const jobId = pixQueue.submitJob(
+      async () => {
+        const result = await createPixTransaction({
+          amount,
+          customer_name:  fullName,
+          customer_email: email,
+          customer_phone: phone,
+          customer_cpf:   cpf,
+          postback_url,
+          external_id,
+          product_title:  "Hot - Assinatura quente",
+        });
+        const txId = result.transaction_id || external_id;
+        await saveTx({
+          orderId:       txId,
+          externalId:    external_id,
+          status:        "waiting_payment",
+          createdAt:     new Date(),
+          amountInCents,
+          customer: { name: fullName, email, phone, document: cpf },
+          tracking:      emptyTracking,
+        });
+        sendUtmifyOrder({
+          orderId:       txId,
+          status:        "waiting_payment",
+          createdAt:     new Date(),
+          approvedAt:    null,
+          customer: { name: fullName, email, phone, document: cpf },
+          amountInCents,
+          tracking:      emptyTracking,
+        }).catch((err) => logger.warn({ err }, "UTMify upsell waiting falhou silenciosamente"));
+        return { success: true, ...result };
+      },
+      (jobResult) => {
+        if (idempKey) { pixQueue.setCache(idempKey, jobResult); pixQueue.clearPending(idempKey); }
+      }
+    );
 
-    res.json({ success: true, ...result });
+    if (idempKey) pixQueue.setPending(idempKey, jobId);
+    res.json({ job_id: jobId, status: "processing" });
   } catch (err) {
     const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
     logger.error({ err }, "Erro ao criar PIX upsell");
@@ -243,6 +258,19 @@ router.get("/pix/debug/:id", async (req, res) => {
     }
   }
   res.json(results);
+});
+
+// GET /api/pix/job/:jobId — consulta status de job em background
+router.get("/pix/job/:jobId", (req, res) => {
+  const { jobId } = req.params;
+  const job = pixQueue.getJob(jobId);
+  if (!job) {
+    res.status(404).json({ status: "not_found", error: "Job não encontrado ou expirado" });
+    return;
+  }
+  if (job.status === "done")  { res.json({ status: "done",    result: job.result }); return; }
+  if (job.status === "error") { res.json({ status: "error",   error:  job.error  }); return; }
+  res.json({ status: "pending" });
 });
 
 // GET /api/pix/status/:id
@@ -515,27 +543,16 @@ router.post("/pix/create-vip", async (req, res) => {
         res.json({ success: true, ...cached });
         return;
       }
+      const existingJobId = pixQueue.getPending(idempKey);
+      if (existingJobId) {
+        logger.info({ idempKey, existingJobId }, "PIX /create-vip: job já pendente, devolvendo mesmo job_id");
+        res.json({ job_id: existingJobId, status: "processing" });
+        return;
+      }
     }
-
-    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Criando transação PIX VIP");
-
-    const result = await pixQueue.run(() => createPixTransaction({
-      amount: VIP_AMOUNT,
-      customer_name: String(name),
-      customer_email: String(email),
-      customer_phone: String(phone).replace(/\D/g, ""),
-      customer_cpf: cpf,
-      postback_url,
-      external_id,
-      product_title: "Hot - Assinatura mensal",
-    }));
-
-    if (idempKey) pixQueue.setCache(idempKey, result);
 
     const amountInCents = VIP_AMOUNT * 100;
     const clientIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
-    const txId = result.transaction_id || external_id;
-
     const tracking: UtmifyTrackingParams = {
       src:          (utm as Record<string, string>)?.src          || null,
       sck:          (utm as Record<string, string>)?.sck          || null,
@@ -546,40 +563,61 @@ router.post("/pix/create-vip", async (req, res) => {
       utm_term:     (utm as Record<string, string>)?.utm_term     || null,
     };
 
-    await saveTx({
-      orderId:       txId,
-      externalId:    external_id,
-      status:        "waiting_payment",
-      createdAt:     new Date(),
-      amountInCents,
-      customer: {
-        name:     String(name),
-        email:    String(email),
-        phone:    String(phone).replace(/\D/g, ""),
-        document: cpf,
-        ...(clientIp ? { ip: clientIp } : {}),
-      },
-      tracking,
-    });
+    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Submetendo PIX VIP em background");
 
-    sendUtmifyOrder({
-      orderId:       txId,
-      status:        "waiting_payment",
-      createdAt:     new Date(),
-      approvedAt:    null,
-      customer: {
-        name:     String(name),
-        email:    String(email),
-        phone:    String(phone).replace(/\D/g, ""),
-        document: cpf,
-        ...(clientIp ? { ip: clientIp } : {}),
+    const jobId = pixQueue.submitJob(
+      async () => {
+        const result = await createPixTransaction({
+          amount: VIP_AMOUNT,
+          customer_name: String(name),
+          customer_email: String(email),
+          customer_phone: String(phone).replace(/\D/g, ""),
+          customer_cpf: cpf,
+          postback_url,
+          external_id,
+          product_title: "Hot - Assinatura mensal",
+        });
+        const txId = result.transaction_id || external_id;
+        await saveTx({
+          orderId:       txId,
+          externalId:    external_id,
+          status:        "waiting_payment",
+          createdAt:     new Date(),
+          amountInCents,
+          customer: {
+            name:     String(name),
+            email:    String(email),
+            phone:    String(phone).replace(/\D/g, ""),
+            document: cpf,
+            ...(clientIp ? { ip: clientIp } : {}),
+          },
+          tracking,
+        });
+        sendUtmifyOrder({
+          orderId:       txId,
+          status:        "waiting_payment",
+          createdAt:     new Date(),
+          approvedAt:    null,
+          customer: {
+            name:     String(name),
+            email:    String(email),
+            phone:    String(phone).replace(/\D/g, ""),
+            document: cpf,
+            ...(clientIp ? { ip: clientIp } : {}),
+          },
+          amountInCents,
+          tracking,
+        }).catch((err) => logger.warn({ err }, "UTMify VIP waiting_payment falhou silenciosamente"));
+        logger.info({ txId, externalId: external_id }, "Transação PIX VIP criada");
+        return { success: true, ...result };
       },
-      amountInCents,
-      tracking,
-    }).catch((err) => logger.warn({ err }, "UTMify VIP waiting_payment falhou silenciosamente"));
+      (jobResult) => {
+        if (idempKey) { pixQueue.setCache(idempKey, jobResult); pixQueue.clearPending(idempKey); }
+      }
+    );
 
-    logger.info({ txId, externalId: external_id }, "Transação PIX VIP criada");
-    res.json({ success: true, ...result });
+    if (idempKey) pixQueue.setPending(idempKey, jobId);
+    res.json({ job_id: jobId, status: "processing" });
   } catch (err) {
     const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
     logger.error({ err }, "Erro ao criar transação PIX VIP");

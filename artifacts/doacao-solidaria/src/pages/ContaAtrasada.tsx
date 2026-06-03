@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { apiUrl, safeJson, fetchWithRetry } from "@/lib/api";
+import { apiUrl, safeJson, fetchWithRetry, pollPixJob } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import FomoNotification from "@/components/FomoNotification";
 import PrivateFomoToast from "@/components/PrivateFomoToast";
@@ -83,8 +83,11 @@ export default function ContaAtrasada() {
         },
         body: JSON.stringify({ amount: BILL_AMOUNT }),
       });
-      const data = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string }>(res);
-      if (!res.ok || data.error) throw new Error(data.error || "Erro ao gerar PIX");
+      const rawData = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string; job_id?: string; status?: string }>(res);
+      if (!res.ok || rawData.error) throw new Error(rawData.error || "Erro ao gerar PIX");
+      const data = (rawData.job_id && rawData.status === "processing")
+        ? { ...rawData, ...(await pollPixJob(rawData.job_id)) }
+        : rawData;
       setPixCode(data.pix_code || "");
       setTxId(data.transaction_id || "");
       setExpired(false);
