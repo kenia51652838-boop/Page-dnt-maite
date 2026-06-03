@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { createPixTransaction, checkPixStatus, getTransactionFull } from "../lib/lumina";
+import { createPixTransaction, checkPixStatus, getTransactionFull, type CreatePixResult } from "../lib/lumina";
 import { logger } from "../lib/logger";
 import { sendUtmifyOrder, type UtmifyTrackingParams } from "../lib/utmify";
 import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs, logError } from "../lib/txStore";
+import { pixQueue } from "../lib/pixQueue";
 
 const router = Router();
 
@@ -31,9 +32,20 @@ router.post("/pix/create", async (req, res) => {
       : `${protocol}://${host}/api/webhook/lumina`;
     const external_id = `hot_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-    logger.info({ postback_url, external_id }, "Criando transação PIX — postback URL enviado à Lumina");
+    // Idempotência: se o mesmo key já tem resultado em cache, devolve sem bater na Lumina
+    const idempKey = req.headers["x-idempotency-key"] as string | undefined;
+    if (idempKey) {
+      const cached = pixQueue.getCache<CreatePixResult>(idempKey);
+      if (cached) {
+        logger.info({ idempKey }, "PIX /create: retornado do cache de idempotência");
+        res.json({ success: true, ...cached });
+        return;
+      }
+    }
 
-    const result = await createPixTransaction({
+    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Criando transação PIX — postback URL enviado à Lumina");
+
+    const result = await pixQueue.run(() => createPixTransaction({
       amount: Number(amount),
       customer_name: String(customer_name),
       customer_email: String(customer_email),
@@ -41,7 +53,9 @@ router.post("/pix/create", async (req, res) => {
       customer_cpf: String(customer_cpf),
       postback_url,
       external_id,
-    });
+    }));
+
+    if (idempKey) pixQueue.setCache(idempKey, result);
 
     const amountInCents = Math.round(Number(amount) * 100);
     const tracking: UtmifyTrackingParams = {
@@ -143,9 +157,19 @@ router.post("/pix/create-upsell", async (req, res) => {
 
     const external_id = `upsell_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-    logger.info({ external_id, amount }, "Criando PIX upsell (conta energia)");
+    const idempKey = req.headers["x-idempotency-key"] as string | undefined;
+    if (idempKey) {
+      const cached = pixQueue.getCache<CreatePixResult>(idempKey);
+      if (cached) {
+        logger.info({ idempKey }, "PIX /create-upsell: retornado do cache de idempotência");
+        res.json({ success: true, ...cached });
+        return;
+      }
+    }
 
-    const result = await createPixTransaction({
+    logger.info({ external_id, amount, queued: pixQueue.stats.queued }, "Criando PIX upsell (conta energia)");
+
+    const result = await pixQueue.run(() => createPixTransaction({
       amount,
       customer_name:  fullName,
       customer_email: email,
@@ -154,10 +178,17 @@ router.post("/pix/create-upsell", async (req, res) => {
       postback_url,
       external_id,
       product_title:  "Hot - Assinatura quente",
-    });
+    }));
+
+    if (idempKey) pixQueue.setCache(idempKey, result);
 
     const amountInCents = Math.round(amount * 100);
     const txId = result.transaction_id || external_id;
+
+    const emptyTracking: UtmifyTrackingParams = {
+      src: null, sck: null, utm_source: null,
+      utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null,
+    };
 
     await saveTx({
       orderId:       txId,
@@ -166,7 +197,7 @@ router.post("/pix/create-upsell", async (req, res) => {
       createdAt:     new Date(),
       amountInCents,
       customer: { name: fullName, email, phone, document: cpf },
-      tracking:      {},
+      tracking:      emptyTracking,
     });
 
     sendUtmifyOrder({
@@ -176,7 +207,7 @@ router.post("/pix/create-upsell", async (req, res) => {
       approvedAt:    null,
       customer: { name: fullName, email, phone, document: cpf },
       amountInCents,
-      tracking:      {},
+      tracking:      emptyTracking,
     }).catch((err) => logger.warn({ err }, "UTMify upsell waiting falhou silenciosamente"));
 
     res.json({ success: true, ...result });
@@ -476,9 +507,19 @@ router.post("/pix/create-vip", async (req, res) => {
     const external_id = `vip_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     const VIP_AMOUNT = 50;
-    logger.info({ postback_url, external_id }, "Criando transação PIX VIP");
+    const idempKey = req.headers["x-idempotency-key"] as string | undefined;
+    if (idempKey) {
+      const cached = pixQueue.getCache<CreatePixResult>(idempKey);
+      if (cached) {
+        logger.info({ idempKey }, "PIX /create-vip: retornado do cache de idempotência");
+        res.json({ success: true, ...cached });
+        return;
+      }
+    }
 
-    const result = await createPixTransaction({
+    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Criando transação PIX VIP");
+
+    const result = await pixQueue.run(() => createPixTransaction({
       amount: VIP_AMOUNT,
       customer_name: String(name),
       customer_email: String(email),
@@ -487,7 +528,9 @@ router.post("/pix/create-vip", async (req, res) => {
       postback_url,
       external_id,
       product_title: "Hot - Assinatura mensal",
-    });
+    }));
+
+    if (idempKey) pixQueue.setCache(idempKey, result);
 
     const amountInCents = VIP_AMOUNT * 100;
     const clientIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;

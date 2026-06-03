@@ -363,7 +363,10 @@ export default function Home() {
     try {
       const res = await fetchWithRetry(apiUrl("/api/pix/create"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-idempotency-key": crypto.randomUUID(),
+        },
         body: JSON.stringify({
           amount: value,
           customer_name: customer.name,

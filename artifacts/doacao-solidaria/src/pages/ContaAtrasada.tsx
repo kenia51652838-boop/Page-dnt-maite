@@ -77,7 +77,10 @@ export default function ContaAtrasada() {
     try {
       const res = await fetchWithRetry(apiUrl("/api/pix/create-upsell"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-idempotency-key": crypto.randomUUID(),
+        },
         body: JSON.stringify({ amount: BILL_AMOUNT }),
       });
       const data = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string }>(res);

@@ -174,7 +174,10 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
     try {
       const res = await fetchWithRetry(apiUrl("/api/pix/create-vip"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-idempotency-key": crypto.randomUUID(),
+        },
         body: JSON.stringify({
           name: vipName.trim(),
           email: vipEmail.trim(),
