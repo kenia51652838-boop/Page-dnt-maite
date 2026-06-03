@@ -144,10 +144,10 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             />
           </div>
 
-          <SectionHeading>💔 Um pai de 46 anos, 4 filhos pequenos e nenhuma ajuda</SectionHeading>
+          <SectionHeading>💔 Um pai de 47 anos, 4 filhos pequenos e nenhuma ajuda</SectionHeading>
 
           <p className="paragrafo-historia">
-            O <b className="destacar-no-texto">Sr. Francivaldo tem 46 anos</b> e do dia para a noite se viu completamente sozinho — sua esposa foi embora e o deixou com <b className="destacar-no-texto">quatro filhos pequenos</b> para criar: Eduardo (14 anos), Maria Gabriele (11 anos), Maurício (8 anos) e Maria Julia, a caçulinha de apenas <b className="destacar-no-texto">6 anos</b>.
+            O <b className="destacar-no-texto">Sr. Francivaldo tem 47 anos</b> e do dia para a noite se viu completamente sozinho — sua esposa foi embora e o deixou com <b className="destacar-no-texto">quatro filhos pequenos</b> para criar: Eduardo (14 anos), Maria Gabriele (11 anos), Maurício (8 anos) e Maria Julia, a caçulinha de apenas <b className="destacar-no-texto">6 anos</b>.
           </p>
           <br />
           <p className="paragrafo-historia">
@@ -307,7 +307,7 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
               <Row label="Organizador" value="ONG Abelhinhas do Amor" />
               <Row label="CNPJ" value="62.669.301/0001-60" />
               <Row label="Contato" value="contato@abelhinhasdoamor.com.br" isEmail />
-              <Row label="Beneficiário" value="Francivaldo Pereira Ricardo (pai solo, 46 anos, 4 filhos)" />
+              <Row label="Beneficiário" value="Francivaldo Pereira Ricardo (pai solo, 47 anos, 4 filhos)" />
             </div>
             <p style={{
               fontFamily: "'Lato', sans-serif",
