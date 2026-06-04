@@ -166,39 +166,8 @@ export async function createPixTransaction(data: {
       console.log(`[Lumina createPix] txId="${txId}" externalId="${data.external_id}" pixCode=${pixCode ? "OK("+pixCode.slice(0,20)+"...)" : "MISSING"}`);
 
       if (!pixCode) {
-        // QR Code ausente — loga o body completo para diagnóstico no Railway
+        // QR Code ausente — a Lumina não oferece endpoint de consulta, então lança erro direto
         console.error(`[Lumina createPix] QR CODE AUSENTE — BODY COMPLETO: ${JSON.stringify(raw)}`);
-        // Se temos txId, tenta buscar o QR code diretamente via getPayment
-        if (txId) {
-          console.log(`[Lumina createPix] Tentando buscar QR code via getPayment txId="${txId}"`);
-          try {
-            await new Promise(r => setTimeout(r, 1500));
-            const fallbackUrl = `${BASE_URL}/transaction.getPayment?id=${encodeURIComponent(txId)}`;
-            const fallbackRes = await fetchWithTimeout(fallbackUrl, { method: "GET", headers: getHeaders() });
-            const fallbackRaw = await safeParseJson(fallbackRes, "createPix-fallback");
-            const fallbackData = extractBody(fallbackRaw);
-            console.log(`[Lumina createPix] fallback getPayment FULL_BODY=${JSON.stringify(fallbackRaw)}`);
-            const fbPixObj = fallbackData.pix as Record<string, unknown> | undefined;
-            const fallbackCode = (
-              fbPixObj?.qrCode || fbPixObj?.qrcode || fbPixObj?.emv ||
-              fbPixObj?.payload || fbPixObj?.brcode || fbPixObj?.code ||
-              fallbackData.qrCode || fallbackData.qrcode || fallbackData.emv || fallbackData.payload || ""
-            ) as string;
-            if (fallbackCode) {
-              console.log(`[Lumina createPix] QR code obtido via fallback getPayment OK`);
-              return {
-                transaction_id: txId,
-                external_id:    data.external_id,
-                pix_code:       fallbackCode,
-                expires_at:     stamps?.expiresAt || new Date(Date.now() + 30 * 60_000).toISOString(),
-                created_at:     stamps?.createdAt || new Date().toISOString(),
-                status:         (txData.status as string) || "PENDING",
-              };
-            }
-          } catch (fbErr) {
-            console.error(`[Lumina createPix] fallback getPayment falhou: ${String(fbErr)}`);
-          }
-        }
         throw new Error(`QR Code PIX ausente na resposta da Lumina. Body: ${JSON.stringify(raw)}`);
       }
 
@@ -226,85 +195,5 @@ export async function createPixTransaction(data: {
   );
 }
 
-// ── checkPixStatus ─────────────────────────────────────────────────────────
-
-export async function checkPixStatus(transactionId: string, externalId?: string) {
-  const PAID    = ["APPROVED"];
-  const EXPIRED = ["DECLINED", "REFUNDED", "CANCELLED", "CANCELED"];
-
-  async function queryLumina(url: string, label: string) {
-    const response = await fetchWithTimeout(url, { method: "GET", headers: getHeaders() });
-    const raw      = await safeParseJson(response, label);
-    const txData   = extractBody(raw);
-    const rawStatus = ((txData.status as string) || "PENDING").toUpperCase();
-    console.log(`[Lumina checkPixStatus] ${label} HTTP=${response.status} rawStatus=${rawStatus} body=${JSON.stringify(raw).slice(0, 400)}`);
-    if (response.status === 404 || (txData as Record<string, unknown>).error) return null;
-    return { rawStatus, txData };
-  }
-
-  let result = await queryLumina(
-    `${BASE_URL}/transaction.getPayment?id=${encodeURIComponent(transactionId)}`,
-    `byId(${transactionId})`
-  );
-
-  if (!result && externalId) {
-    result = await queryLumina(
-      `${BASE_URL}/transaction.getByExternalId?id=${encodeURIComponent(externalId)}`,
-      `byExternalId(${externalId})`
-    );
-  }
-
-  if (!result) {
-    throw new Error(`Transação não encontrada na Lumina: txId=${transactionId} externalId=${externalId}`);
-  }
-
-  const { rawStatus } = result;
-  const mapped = PAID.includes(rawStatus) ? "paid" : EXPIRED.includes(rawStatus) ? "expired" : "pending";
-
-  return { status: mapped, raw_status: rawStatus, transaction_id: transactionId };
-}
-
-// ── getTransactionFull ─────────────────────────────────────────────────────
-
-export interface LuminaTransactionFull {
-  id:            string;
-  externalId:    string;
-  status:        string;
-  isPaid:        boolean;
-  amountInCents: number;
-  createdAt:     Date;
-  customer: { name: string; email: string; phone: string; document: string; };
-  rawBody:       Record<string, unknown>;
-}
-
-export async function getTransactionFull(transactionId: string): Promise<LuminaTransactionFull> {
-  const url      = `${BASE_URL}/transaction.getPayment?id=${encodeURIComponent(transactionId)}`;
-  const response = await fetchWithTimeout(url, { method: "GET", headers: getHeaders() });
-  const raw      = await safeParseJson(response, "getTransactionFull");
-  const txData   = extractBody(raw);
-
-  const rawStatus    = ((txData.status as string) || "").toUpperCase();
-  const PAID         = ["APPROVED"];
-  const amount       = txData.amount as number | undefined;
-  const amountInCents = amount ? (amount > 1000 ? amount : Math.round(amount * 100)) : 0;
-  const stamps       = txData.timestamps as Record<string, string> | undefined;
-  const createdAtStr = stamps?.createdAt || stamps?.created_at || txData.created_at as string || txData.createdAt as string || "";
-  const custObj      = (txData.customer || txData.buyer || txData) as Record<string, unknown>;
-  const docObj       = (custObj.document || custObj.cpf || {}) as Record<string, unknown>;
-
-  return {
-    id:            (txData.id || txData.transactionId || transactionId) as string,
-    externalId:    (txData.externalId || txData.external_id || "") as string,
-    status:        rawStatus,
-    isPaid:        PAID.includes(rawStatus),
-    amountInCents,
-    createdAt:     createdAtStr ? new Date(createdAtStr) : new Date(),
-    customer: {
-      name:     (custObj.name  || txData.name  || "Desconhecido") as string,
-      email:    (custObj.email || txData.email || "") as string,
-      phone:    (custObj.phone || txData.phone || "") as string,
-      document: (typeof docObj === "string" ? docObj : (docObj.number || custObj.cpf || txData.document || "")) as string,
-    },
-    rawBody: txData,
-  };
-}
+// Nota: a Lumina não oferece endpoints de consulta de status.
+// O status dos pagamentos chega exclusivamente via webhook (POST /api/webhook/lumina).

@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { getTransactionFull } from "../lib/lumina";
 import { logger } from "../lib/logger";
 import { sendUtmifyOrder } from "../lib/utmify";
 import { markPaid, getTx, getTxByExternalId, markUtmifyNotified, getErrorLogs } from "../lib/txStore";
@@ -88,39 +87,10 @@ router.post("/admin/recover-sales", async (req, res) => {
         entry.customer    = dbTx.customer.name;
 
       } else {
-        // 2. Não está no banco — tenta buscar na Lumina como fallback
-        const lumina = await getTransactionFull(txId);
-        entry.luminaStatus = lumina.status;
-
-        if (!lumina.isPaid) {
-          entry.skipped = "não encontrada no banco nem confirmada como paga na Lumina";
-          results.push(entry);
-          continue;
-        }
-
-        const utmOk = await sendUtmifyOrder({
-          orderId:       txId,
-          status:        "paid",
-          createdAt:     lumina.createdAt,
-          approvedAt:    new Date(),
-          customer:      {
-            name:     lumina.customer.name,
-            email:    lumina.customer.email,
-            phone:    lumina.customer.phone,
-            document: lumina.customer.document.replace(/\D/g, ""),
-          },
-          amountInCents: lumina.amountInCents,
-          tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
-        });
-
-        entry.utmifyFired = utmOk;
-        entry.amount      = `R$ ${(lumina.amountInCents / 100).toFixed(2)}`;
-        if (utmOk) {
-          logger.info({ txId }, "Admin: UTMify paid confirmado via Lumina API");
-        } else {
-          entry.note = "UTMify rejeitou o evento via Lumina — verifique os logs";
-          logger.warn({ txId }, "Admin: UTMify recusou o evento paid via Lumina");
-        }
+        // 2. Não está no banco — Lumina não oferece endpoint de consulta, não é possível recuperar
+        entry.skipped = "não encontrada no banco local (Lumina não possui endpoint de consulta)";
+        results.push(entry);
+        continue;
       }
 
     } catch (err) {
@@ -154,27 +124,18 @@ router.get("/admin/check-sale", async (req, res) => {
   }
 
   try {
-    const [lumina, dbTx] = await Promise.all([
-      getTransactionFull(txId),
-      getTx(txId),
-    ]);
+    const dbTx = await getTx(txId);
 
     res.json({
       txId,
-      lumina: {
-        status:      lumina.status,
-        isPaid:      lumina.isPaid,
-        amount:      `R$ ${(lumina.amountInCents / 100).toFixed(2)}`,
-        customer:    lumina.customer,
-        createdAt:   lumina.createdAt,
-        rawBody:     lumina.rawBody,
-      },
+      note: "A Lumina não oferece endpoint de consulta — status disponível apenas via banco local (atualizado pelo webhook).",
       database: dbTx ? {
         status:      dbTx.status,
         amount:      `R$ ${(dbTx.amountInCents / 100).toFixed(2)}`,
         customer:    dbTx.customer,
         tracking:    dbTx.tracking,
         createdAt:   dbTx.createdAt,
+        paidAt:      dbTx.paidAt ?? null,
       } : null,
     });
   } catch (err) {

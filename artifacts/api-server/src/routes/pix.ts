@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPixTransaction, checkPixStatus, getTransactionFull, type CreatePixResult } from "../lib/lumina";
+import { createPixTransaction, type CreatePixResult } from "../lib/lumina";
 import { logger } from "../lib/logger";
 import { sendUtmifyOrder, type UtmifyTrackingParams } from "../lib/utmify";
 import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs, logError } from "../lib/txStore";
@@ -307,40 +307,9 @@ router.get("/pix/status/:id", async (req, res) => {
       return;
     }
 
-    // 2. Fallback: tenta consultar a Lumina (pode falhar silenciosamente)
-    try {
-      const externalId = localTx?.externalId || undefined;
-      const result = await checkPixStatus(id, externalId);
-      logger.info({ txId: id, externalId, luminaStatus: result.raw_status, mappedStatus: result.status }, "Polling status PIX via Lumina");
-
-      if (result.status === "paid") {
-        const tx = await markPaid(id);
-        if (tx) {
-          logger.info({ txId: id }, "Transação marcada como paga via polling Lumina — disparando UTMify");
-          const utmOk = await sendUtmifyOrder({
-            orderId:       id,
-            status:        "paid",
-            createdAt:     tx.createdAt,
-            approvedAt:    new Date(),
-            customer:      tx.customer,
-            amountInCents: tx.amountInCents,
-            tracking:      tx.tracking,
-          });
-          if (utmOk) {
-            await markUtmifyNotified(id);
-            logger.info({ txId: id }, "UTMify paid confirmado e marcado via polling Lumina");
-          } else {
-            logger.warn({ txId: id }, "UTMify paid FALHOU via polling Lumina — retry job tentará novamente");
-          }
-        }
-      }
-
-      res.json({ success: true, ...result });
-    } catch (luminaErr) {
-      // Lumina inacessível — retorna pending sem erro para o cliente continuar polando
-      logger.warn({ txId: id, err: luminaErr }, "Lumina inacessível no polling — aguardando webhook");
-      res.json({ success: true, status: "pending", raw_status: "LUMINA_UNREACHABLE", transaction_id: id });
-    }
+    // Lumina não oferece endpoint de consulta — status vem apenas via webhook.
+    // Retorna pending para o cliente continuar polando até o webhook atualizar o banco.
+    res.json({ success: true, status: "pending", raw_status: "AWAITING_WEBHOOK", transaction_id: id });
   } catch (err) {
     logger.error({ err }, "Erro ao consultar status PIX");
     const msg = err instanceof Error ? err.message : "Erro interno";
@@ -458,53 +427,56 @@ router.post("/webhook/lumina", (req, res) => {
             logger.warn({ orderId: tx.orderId }, "UTMify paid FALHOU via webhook — transação ficará pendente para retry");
           }
         } else {
-          // Transação não encontrada no banco local — tenta recuperar direto da Lumina
-          logger.warn({ txId }, "Webhook paid: transação não encontrada no banco — tentando recuperar da Lumina");
-          try {
-            const lumina = await getTransactionFull(txId);
-            if (lumina.isPaid) {
-              // Salva no banco para referência futura
-              await saveTx({
-                orderId:       txId,
-                externalId:    lumina.externalId || undefined,
-                status:        "waiting_payment",
-                createdAt:     lumina.createdAt,
-                amountInCents: lumina.amountInCents,
-                customer: {
-                  name:     lumina.customer.name,
-                  email:    lumina.customer.email,
-                  phone:    lumina.customer.phone,
-                  document: lumina.customer.document.replace(/\D/g, ""),
-                },
-                tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
-              }).catch(() => {});
+          // Transação não encontrada no banco local.
+          // A Lumina não oferece endpoint de consulta — não há como recuperar dados via API.
+          // O webhook já carrega todos os dados necessários: extraímos do payload recebido.
+          logger.warn({ txId }, "Webhook paid: transação não encontrada no banco — usando dados do próprio webhook");
+          const txObj2 = (body["transaction"] || {}) as Record<string, unknown>;
+          const custObj = (body["customer"] || {}) as Record<string, unknown>;
+          const amountCents = (txObj2.amount_cents || txObj2.amountCents) as number | undefined;
+          const amountFloat = (txObj2.amount || txObj2.total_amount) as number | undefined;
+          const resolvedCents = amountCents ?? (amountFloat ? Math.round(amountFloat * 100) : 0);
+          const paidAtStr = (txObj2.paid_at || txObj2.paidAt || new Date().toISOString()) as string;
+          const createdAtStr = (txObj2.created_at || txObj2.createdAt || new Date().toISOString()) as string;
 
-              const utmOk = await sendUtmifyOrder({
-                orderId:       txId,
-                status:        "paid",
-                createdAt:     lumina.createdAt,
-                approvedAt:    new Date(),
-                customer: {
-                  name:     lumina.customer.name,
-                  email:    lumina.customer.email,
-                  phone:    lumina.customer.phone,
-                  document: lumina.customer.document.replace(/\D/g, ""),
-                },
-                amountInCents: lumina.amountInCents,
-                tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
-              });
-              if (utmOk) {
-                await markPaid(txId).catch(() => {});
-                await markUtmifyNotified(txId).catch(() => {});
-                logger.info({ txId }, "UTMify paid confirmado via recuperação Lumina no webhook");
-              } else {
-                logger.warn({ txId }, "UTMify rejeitou o evento recovered da Lumina — ficará sem notificação");
-              }
+          if (resolvedCents > 0 && custObj.name) {
+            await saveTx({
+              orderId:       txId,
+              status:        "waiting_payment",
+              createdAt:     new Date(createdAtStr),
+              amountInCents: resolvedCents,
+              customer: {
+                name:     (custObj.name     || "Desconhecido") as string,
+                email:    (custObj.email    || "") as string,
+                phone:    (custObj.phone    || "") as string,
+                document: ((custObj.document_number || custObj.document || "") as string).replace(/\D/g, ""),
+              },
+              tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
+            }).catch(() => {});
+
+            const utmOk = await sendUtmifyOrder({
+              orderId:       txId,
+              status:        "paid",
+              createdAt:     new Date(createdAtStr),
+              approvedAt:    new Date(paidAtStr),
+              customer: {
+                name:     (custObj.name     || "Desconhecido") as string,
+                email:    (custObj.email    || "") as string,
+                phone:    (custObj.phone    || "") as string,
+                document: ((custObj.document_number || custObj.document || "") as string).replace(/\D/g, ""),
+              },
+              amountInCents: resolvedCents,
+              tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
+            });
+            if (utmOk) {
+              await markPaid(txId).catch(() => {});
+              await markUtmifyNotified(txId).catch(() => {});
+              logger.info({ txId }, "Transação recuperada do webhook e registrada como paga com sucesso");
             } else {
-              logger.warn({ txId, luminaStatus: lumina.status }, "Webhook paid mas Lumina não confirma pagamento — ignorado");
+              logger.warn({ txId }, "UTMify rejeitou o evento recuperado do webhook");
             }
-          } catch (recErr) {
-            logger.error({ err: recErr, txId }, "Falha ao recuperar transação da Lumina no webhook");
+          } else {
+            logger.warn({ txId }, "Webhook paid sem dados suficientes para recuperar a transação — ignorado");
           }
         }
       }
