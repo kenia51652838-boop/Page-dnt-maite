@@ -359,156 +359,159 @@ router.get("/webhook/logs", async (_req, res) => {
 });
 
 // POST /api/webhook/lumina
-router.post("/webhook/lumina", async (req, res) => {
-  try {
-    const body = req.body as Record<string, unknown>;
+router.post("/webhook/lumina", (req, res) => {
+  // Responde 200 imediatamente para evitar timeout no cluster da Lumina.
+  // Todo o processamento ocorre em segundo plano.
+  res.status(200).json({ success: true });
 
-    // Salva payload bruto no banco para diagnóstico
-    const safeHeaders: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(req.headers)) safeHeaders[k] = v;
-    await logWebhook("lumina", safeHeaders, body).catch(() => {});
+  const body = req.body as Record<string, unknown>;
 
-    // Log completo do payload para facilitar debug
-    logger.info({ rawBody: JSON.stringify(body) }, "Webhook Lumina - payload completo");
+  setImmediate(async () => {
+    try {
+      // Salva payload bruto no banco para diagnóstico
+      const safeHeaders: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(req.headers)) safeHeaders[k] = v;
+      await logWebhook("lumina", safeHeaders, body).catch(() => {});
 
-    // ── Formato real da Lumina (v2) ──────────────────────────────────────
-    // A Lumina envia event_type no root e os dados dentro de "transaction".
-    // transaction.status permanece "pending" mesmo em pagamentos aprovados;
-    // o campo correto para checar aprovação é event_type = "transaction.approved".
-    const eventType = (body["event_type"] as string || "").toLowerCase();
-    const txObj = (body["transaction"] || {}) as Record<string, unknown>;
+      // Log completo do payload para facilitar debug
+      logger.info({ rawBody: JSON.stringify(body) }, "Webhook Lumina - payload completo");
 
-    // ID: preferência para body.transaction.id (formato v2), com fallbacks
-    const candidates = [
-      txObj,
-      body,
-      body["_body"],
-      body["data"],
-      body["order"],
-    ].filter(Boolean) as Record<string, unknown>[];
+      // ── Formato real da Lumina (v2) ──────────────────────────────────────
+      // A Lumina envia event_type no root e os dados dentro de "transaction".
+      // transaction.status permanece "pending" mesmo em pagamentos aprovados;
+      // o campo correto para checar aprovação é event_type = "transaction.approved".
+      const eventType = (body["event_type"] as string || "").toLowerCase();
+      const txObj = (body["transaction"] || {}) as Record<string, unknown>;
 
-    let txId = "";
-    for (const candidate of candidates) {
-      if (typeof candidate !== "object") continue;
-      const c = candidate as Record<string, unknown>;
-      txId = txId || (
-        c["id"]             ||
-        c["transactionId"]  ||
-        c["transaction_id"] ||
-        c["externalId"]     ||
-        c["external_id"]    ||
-        c["orderId"]        ||
-        c["order_id"]       ||
-        ""
-      ) as string;
-      if (txId) break;
-    }
+      // ID: preferência para body.transaction.id (formato v2), com fallbacks
+      const candidates = [
+        txObj,
+        body,
+        body["_body"],
+        body["data"],
+        body["order"],
+      ].filter(Boolean) as Record<string, unknown>[];
 
-    // Status: event_type tem precedência sobre transaction.status
-    let rawStatus = "";
-    if (eventType === "transaction.approved") {
-      rawStatus = "APPROVED";
-    } else if (eventType === "transaction.pending") {
-      rawStatus = "PENDING";
-    } else if (eventType) {
-      rawStatus = eventType.replace("transaction.", "").toUpperCase();
-    } else {
-      // Fallback para formatos sem event_type
+      let txId = "";
       for (const candidate of candidates) {
         if (typeof candidate !== "object") continue;
         const c = candidate as Record<string, unknown>;
-        const s = (c["status"] || c["payment_status"] || c["paymentStatus"] || "") as string;
-        if (s) { rawStatus = s.toUpperCase(); break; }
-      }
-    }
-
-    const PAID_STATUSES = ["APPROVED", "PAID", "COMPLETED", "AUTHORIZED"];
-    const isPaid = PAID_STATUSES.includes(rawStatus);
-
-    logger.info({ txId, rawStatus, isPaid }, "Webhook Lumina processado");
-
-    if (isPaid && txId) {
-      // Tenta pelo order_id (ID Lumina) primeiro, depois pelo externalId (nosso ID)
-      let tx = await markPaid(txId);
-      if (!tx) {
-        tx = await markPaidByExternalId(txId);
-        if (tx) logger.info({ txId }, "Transação encontrada via externalId no webhook");
+        txId = txId || (
+          c["id"]             ||
+          c["transactionId"]  ||
+          c["transaction_id"] ||
+          c["externalId"]     ||
+          c["external_id"]    ||
+          c["orderId"]        ||
+          c["order_id"]       ||
+          ""
+        ) as string;
+        if (txId) break;
       }
 
-      if (tx) {
-        logger.info({ txId, orderId: tx.orderId }, "Disparando UTMify paid via webhook");
-        const utmOk = await sendUtmifyOrder({
-          orderId:       tx.orderId,
-          status:        "paid",
-          createdAt:     tx.createdAt,
-          approvedAt:    new Date(),
-          customer:      tx.customer,
-          amountInCents: tx.amountInCents,
-          tracking:      tx.tracking,
-        });
-        if (utmOk) {
-          await markUtmifyNotified(tx.orderId);
-          logger.info({ orderId: tx.orderId }, "UTMify paid confirmado e marcado via webhook");
-        } else {
-          logger.warn({ orderId: tx.orderId }, "UTMify paid FALHOU via webhook — transação ficará pendente para retry");
-        }
+      // Status: event_type tem precedência sobre transaction.status
+      let rawStatus = "";
+      if (eventType === "transaction.approved") {
+        rawStatus = "APPROVED";
+      } else if (eventType === "transaction.pending") {
+        rawStatus = "PENDING";
+      } else if (eventType) {
+        rawStatus = eventType.replace("transaction.", "").toUpperCase();
       } else {
-        // Transação não encontrada no banco local — tenta recuperar direto da Lumina
-        logger.warn({ txId }, "Webhook paid: transação não encontrada no banco — tentando recuperar da Lumina");
-        try {
-          const lumina = await getTransactionFull(txId);
-          if (lumina.isPaid) {
-            // Salva no banco para referência futura
-            await saveTx({
-              orderId:       txId,
-              externalId:    lumina.externalId || undefined,
-              status:        "waiting_payment",
-              createdAt:     lumina.createdAt,
-              amountInCents: lumina.amountInCents,
-              customer: {
-                name:     lumina.customer.name,
-                email:    lumina.customer.email,
-                phone:    lumina.customer.phone,
-                document: lumina.customer.document.replace(/\D/g, ""),
-              },
-              tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
-            }).catch(() => {});
-
-            const utmOk = await sendUtmifyOrder({
-              orderId:       txId,
-              status:        "paid",
-              createdAt:     lumina.createdAt,
-              approvedAt:    new Date(),
-              customer: {
-                name:     lumina.customer.name,
-                email:    lumina.customer.email,
-                phone:    lumina.customer.phone,
-                document: lumina.customer.document.replace(/\D/g, ""),
-              },
-              amountInCents: lumina.amountInCents,
-              tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
-            });
-            if (utmOk) {
-              await markPaid(txId).catch(() => {});
-              await markUtmifyNotified(txId).catch(() => {});
-              logger.info({ txId }, "UTMify paid confirmado via recuperação Lumina no webhook");
-            } else {
-              logger.warn({ txId }, "UTMify rejeitou o evento recovered da Lumina — ficará sem notificação");
-            }
-          } else {
-            logger.warn({ txId, luminaStatus: lumina.status }, "Webhook paid mas Lumina não confirma pagamento — ignorado");
-          }
-        } catch (recErr) {
-          logger.error({ err: recErr, txId }, "Falha ao recuperar transação da Lumina no webhook");
+        // Fallback para formatos sem event_type
+        for (const candidate of candidates) {
+          if (typeof candidate !== "object") continue;
+          const c = candidate as Record<string, unknown>;
+          const s = (c["status"] || c["payment_status"] || c["paymentStatus"] || "") as string;
+          if (s) { rawStatus = s.toUpperCase(); break; }
         }
       }
-    }
 
-    res.status(200).json({ success: true });
-  } catch (err) {
-    logger.error({ err }, "Erro ao processar webhook Lumina");
-    res.status(200).json({ success: true });
-  }
+      const PAID_STATUSES = ["APPROVED", "PAID", "COMPLETED", "AUTHORIZED"];
+      const isPaid = PAID_STATUSES.includes(rawStatus);
+
+      logger.info({ txId, rawStatus, isPaid }, "Webhook Lumina processado");
+
+      if (isPaid && txId) {
+        // Tenta pelo order_id (ID Lumina) primeiro, depois pelo externalId (nosso ID)
+        let tx = await markPaid(txId);
+        if (!tx) {
+          tx = await markPaidByExternalId(txId);
+          if (tx) logger.info({ txId }, "Transação encontrada via externalId no webhook");
+        }
+
+        if (tx) {
+          logger.info({ txId, orderId: tx.orderId }, "Disparando UTMify paid via webhook");
+          const utmOk = await sendUtmifyOrder({
+            orderId:       tx.orderId,
+            status:        "paid",
+            createdAt:     tx.createdAt,
+            approvedAt:    new Date(),
+            customer:      tx.customer,
+            amountInCents: tx.amountInCents,
+            tracking:      tx.tracking,
+          });
+          if (utmOk) {
+            await markUtmifyNotified(tx.orderId);
+            logger.info({ orderId: tx.orderId }, "UTMify paid confirmado e marcado via webhook");
+          } else {
+            logger.warn({ orderId: tx.orderId }, "UTMify paid FALHOU via webhook — transação ficará pendente para retry");
+          }
+        } else {
+          // Transação não encontrada no banco local — tenta recuperar direto da Lumina
+          logger.warn({ txId }, "Webhook paid: transação não encontrada no banco — tentando recuperar da Lumina");
+          try {
+            const lumina = await getTransactionFull(txId);
+            if (lumina.isPaid) {
+              // Salva no banco para referência futura
+              await saveTx({
+                orderId:       txId,
+                externalId:    lumina.externalId || undefined,
+                status:        "waiting_payment",
+                createdAt:     lumina.createdAt,
+                amountInCents: lumina.amountInCents,
+                customer: {
+                  name:     lumina.customer.name,
+                  email:    lumina.customer.email,
+                  phone:    lumina.customer.phone,
+                  document: lumina.customer.document.replace(/\D/g, ""),
+                },
+                tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
+              }).catch(() => {});
+
+              const utmOk = await sendUtmifyOrder({
+                orderId:       txId,
+                status:        "paid",
+                createdAt:     lumina.createdAt,
+                approvedAt:    new Date(),
+                customer: {
+                  name:     lumina.customer.name,
+                  email:    lumina.customer.email,
+                  phone:    lumina.customer.phone,
+                  document: lumina.customer.document.replace(/\D/g, ""),
+                },
+                amountInCents: lumina.amountInCents,
+                tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
+              });
+              if (utmOk) {
+                await markPaid(txId).catch(() => {});
+                await markUtmifyNotified(txId).catch(() => {});
+                logger.info({ txId }, "UTMify paid confirmado via recuperação Lumina no webhook");
+              } else {
+                logger.warn({ txId }, "UTMify rejeitou o evento recovered da Lumina — ficará sem notificação");
+              }
+            } else {
+              logger.warn({ txId, luminaStatus: lumina.status }, "Webhook paid mas Lumina não confirma pagamento — ignorado");
+            }
+          } catch (recErr) {
+            logger.error({ err: recErr, txId }, "Falha ao recuperar transação da Lumina no webhook");
+          }
+        }
+      }
+    } catch (err) {
+      logger.error({ err }, "Erro ao processar webhook Lumina em background");
+    }
+  });
 });
 
 // POST /api/pix/create-vip
