@@ -116,13 +116,13 @@ class PixQueue {
       })
       .catch((err) => {
         const e = this.jobs.get(jobId);
+        const raw = err instanceof Error ? err.message : String(err);
+        // Loga o erro técnico COMPLETO no Railway antes de sanitizar
+        logger.error({ jobId, rawError: raw }, "PIX background job falhou — erro técnico completo");
         if (e) {
           e.status = "error";
-          // Garante que mensagens técnicas (SyntaxError, ECONNRESET…) não vazam para o usuário
-          const raw = err instanceof Error ? err.message : String(err);
           e.error = sanitizePixError(raw);
         }
-        logger.error({ jobId, err }, "PIX background job falhou");
       });
 
     logger.info({ jobId, running: this.running, queued: this.waiters.length }, "PIX job submetido em background");

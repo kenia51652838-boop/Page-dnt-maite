@@ -131,26 +131,75 @@ export async function createPixTransaction(data: {
       const raw    = await safeParseJson(response, "createPix");
       const txData = extractBody(raw);
 
-      console.log(`[Lumina createPix] attempt=${attempt} HTTP=${response.status} body=${JSON.stringify(raw).slice(0, 600)}`);
+      // Log completo para diagnóstico no Railway — não truncar
+      console.log(`[Lumina createPix] attempt=${attempt} HTTP=${response.status} FULL_BODY=${JSON.stringify(raw)}`);
 
       if (!response.ok && response.status !== 201) {
         // Erros 4xx são permanentes — não tem sentido fazer retry
         const is4xx = response.status >= 400 && response.status < 500;
-        const errMsg = `Lumina API error ${response.status}: ${JSON.stringify(txData).slice(0, 300)}`;
+        const errMsg = `Lumina API error ${response.status}: ${JSON.stringify(txData)}`;
         if (is4xx) throw Object.assign(new Error(errMsg), { permanent: true });
         throw new Error(errMsg);
       }
 
-      const pixObj  = txData.pix as Record<string, unknown> | undefined;
-      const pixCode = (pixObj?.qrCode || pixObj?.qrcode || pixObj?.code || "") as string;
-      const txId    = (txData.id || txData.transactionId || "") as string;
-      const stamps  = txData.timestamps as Record<string, string> | undefined;
+      const pixObj = txData.pix as Record<string, unknown> | undefined;
 
-      console.log(`[Lumina createPix] txId="${txId}" externalId="${data.external_id}" pixCode=${pixCode ? "OK" : "MISSING"}`);
+      // Lumina pode usar vários nomes para o campo do QR code — testamos todos
+      const pixCode = (
+        pixObj?.qrCode     ||
+        pixObj?.qrcode     ||
+        pixObj?.emv        ||
+        pixObj?.payload    ||
+        pixObj?.brcode     ||
+        pixObj?.code       ||
+        pixObj?.copy_paste ||
+        txData.qrCode      ||
+        txData.qrcode      ||
+        txData.emv         ||
+        txData.payload     ||
+        ""
+      ) as string;
+
+      const txId   = (txData.id || txData.transactionId || "") as string;
+      const stamps = txData.timestamps as Record<string, string> | undefined;
+
+      console.log(`[Lumina createPix] txId="${txId}" externalId="${data.external_id}" pixCode=${pixCode ? "OK("+pixCode.slice(0,20)+"...)" : "MISSING"}`);
 
       if (!pixCode) {
-        // QR Code ausente pode ser bug ou resposta parcial — fazer retry
-        throw new Error(`QR Code PIX não retornado pela Lumina. Resposta: ${JSON.stringify(raw).slice(0, 300)}`);
+        // QR Code ausente — loga o body completo para diagnóstico no Railway
+        console.error(`[Lumina createPix] QR CODE AUSENTE — BODY COMPLETO: ${JSON.stringify(raw)}`);
+        // Se temos txId, tenta buscar o QR code diretamente via getPayment
+        if (txId) {
+          console.log(`[Lumina createPix] Tentando buscar QR code via getPayment txId="${txId}"`);
+          try {
+            await new Promise(r => setTimeout(r, 1500));
+            const fallbackUrl = `${BASE_URL}/transaction.getPayment?id=${encodeURIComponent(txId)}`;
+            const fallbackRes = await fetchWithTimeout(fallbackUrl, { method: "GET", headers: getHeaders() });
+            const fallbackRaw = await safeParseJson(fallbackRes, "createPix-fallback");
+            const fallbackData = extractBody(fallbackRaw);
+            console.log(`[Lumina createPix] fallback getPayment FULL_BODY=${JSON.stringify(fallbackRaw)}`);
+            const fbPixObj = fallbackData.pix as Record<string, unknown> | undefined;
+            const fallbackCode = (
+              fbPixObj?.qrCode || fbPixObj?.qrcode || fbPixObj?.emv ||
+              fbPixObj?.payload || fbPixObj?.brcode || fbPixObj?.code ||
+              fallbackData.qrCode || fallbackData.qrcode || fallbackData.emv || fallbackData.payload || ""
+            ) as string;
+            if (fallbackCode) {
+              console.log(`[Lumina createPix] QR code obtido via fallback getPayment OK`);
+              return {
+                transaction_id: txId,
+                external_id:    data.external_id,
+                pix_code:       fallbackCode,
+                expires_at:     stamps?.expiresAt || new Date(Date.now() + 30 * 60_000).toISOString(),
+                created_at:     stamps?.createdAt || new Date().toISOString(),
+                status:         (txData.status as string) || "PENDING",
+              };
+            }
+          } catch (fbErr) {
+            console.error(`[Lumina createPix] fallback getPayment falhou: ${String(fbErr)}`);
+          }
+        }
+        throw new Error(`QR Code PIX ausente na resposta da Lumina. Body: ${JSON.stringify(raw)}`);
       }
 
       return {
