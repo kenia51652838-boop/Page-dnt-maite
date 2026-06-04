@@ -8,9 +8,10 @@ export async function pollPixJob(jobId: string): Promise<{
   created_at: string;
   status: string;
 }> {
-  const MAX_ATTEMPTS = 60; // 60 × 2 s = 2 min máx
+  const MAX_ATTEMPTS = 60; // 60 tentativas × até 2 s = ~2 min máx
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
-    await new Promise(r => setTimeout(r, 2000));
+    // Primeira tentativa imediata; a partir da segunda, aguarda 2s
+    if (i > 0) await new Promise(r => setTimeout(r, 2000));
     try {
       const res  = await fetch(apiUrl(`/api/pix/job/${jobId}`));
       const data = await safeJson<{ status: string; result?: Record<string, string>; error?: string }>(res);

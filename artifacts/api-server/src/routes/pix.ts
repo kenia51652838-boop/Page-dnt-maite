@@ -76,7 +76,8 @@ router.post("/pix/create", async (req, res) => {
           external_id,
         });
         const txId = result.transaction_id || external_id;
-        await saveTx({
+        // fire-and-forget — não bloqueia a liberação do resultado pro frontend
+        saveTx({
           orderId:       txId,
           externalId:    external_id,
           status:        "waiting_payment",
@@ -90,8 +91,8 @@ router.post("/pix/create", async (req, res) => {
             ...(clientIp ? { ip: clientIp } : {}),
           },
           tracking,
-        });
-        logger.info({ txId, externalId: external_id }, "Transação PIX criada e salva");
+        }).then(() => logger.info({ txId, externalId: external_id }, "Transação PIX salva"))
+          .catch((err: unknown) => logger.warn({ err, txId }, "saveTx falhou (não crítico)"));
         sendUtmifyOrder({
           orderId:       txId,
           status:        "waiting_payment",
@@ -199,7 +200,8 @@ router.post("/pix/create-upsell", async (req, res) => {
           product_title:  "Hot - Assinatura quente",
         });
         const txId = result.transaction_id || external_id;
-        await saveTx({
+        // fire-and-forget — não bloqueia a liberação do resultado pro frontend
+        saveTx({
           orderId:       txId,
           externalId:    external_id,
           status:        "waiting_payment",
@@ -207,7 +209,8 @@ router.post("/pix/create-upsell", async (req, res) => {
           amountInCents,
           customer: { name: fullName, email, phone, document: cpf },
           tracking:      emptyTracking,
-        });
+        }).then(() => logger.info({ txId }, "Upsell PIX salvo"))
+          .catch((err: unknown) => logger.warn({ err, txId }, "saveTx upsell falhou (não crítico)"));
         sendUtmifyOrder({
           orderId:       txId,
           status:        "waiting_payment",
@@ -578,7 +581,8 @@ router.post("/pix/create-vip", async (req, res) => {
           product_title: "Hot - Assinatura mensal",
         });
         const txId = result.transaction_id || external_id;
-        await saveTx({
+        // fire-and-forget — não bloqueia a liberação do resultado pro frontend
+        saveTx({
           orderId:       txId,
           externalId:    external_id,
           status:        "waiting_payment",
@@ -592,7 +596,8 @@ router.post("/pix/create-vip", async (req, res) => {
             ...(clientIp ? { ip: clientIp } : {}),
           },
           tracking,
-        });
+        }).then(() => logger.info({ txId }, "VIP PIX salvo"))
+          .catch((err: unknown) => logger.warn({ err, txId }, "saveTx vip falhou (não crítico)"));
         sendUtmifyOrder({
           orderId:       txId,
           status:        "waiting_payment",
