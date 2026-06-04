@@ -1,5 +1,22 @@
 import { logger } from "./logger";
 
+// Mapeia erros técnicos para mensagens amigáveis ao usuário
+function sanitizePixError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (
+    lower.includes("json") || lower.includes("syntaxerror") ||
+    lower.includes("unexpected end") || lower.includes("unexpected token") ||
+    lower.includes("timeout") || lower.includes("econnreset") ||
+    lower.includes("econnrefused") || lower.includes("enotfound") ||
+    lower.includes("network") || lower.includes("fetch") ||
+    lower.includes("html") || lower.includes("sobrecarregado") ||
+    lower.includes("instável") || lower.includes("incompleta")
+  ) {
+    return "Serviço de pagamento temporariamente indisponível. Aguarde alguns instantes e tente novamente.";
+  }
+  return raw;
+}
+
 const MAX_CONCURRENT  = 5;
 const IDEMPOTENCY_TTL = 5 * 60_000;   // 5 min — cache de resultado final
 const JOB_TTL         = 15 * 60_000;  // 15 min — job fica na memória
@@ -101,7 +118,9 @@ class PixQueue {
         const e = this.jobs.get(jobId);
         if (e) {
           e.status = "error";
-          e.error  = err instanceof Error ? err.message : "Erro ao gerar PIX";
+          // Garante que mensagens técnicas (SyntaxError, ECONNRESET…) não vazam para o usuário
+          const raw = err instanceof Error ? err.message : String(err);
+          e.error = sanitizePixError(raw);
         }
         logger.error({ jobId, err }, "PIX background job falhou");
       });
