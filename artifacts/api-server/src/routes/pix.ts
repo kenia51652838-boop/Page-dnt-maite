@@ -61,6 +61,7 @@ router.post("/pix/create", async (req, res) => {
     };
     const clientIp = ((req.headers["x-forwarded-for"] as string) || "")
       .split(",")[0].trim() || undefined;
+    const clientUa = (req.headers["user-agent"] as string) || undefined;
 
     logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Submetendo PIX em background");
 
@@ -89,6 +90,7 @@ router.post("/pix/create", async (req, res) => {
             phone:    String(customer_phone),
             document: String(customer_cpf).replace(/\D/g, ""),
             ...(clientIp ? { ip: clientIp } : {}),
+            ...(clientUa ? { userAgent: clientUa } : {}),
           },
           tracking,
         }).then(() => logger.info({ txId, externalId: external_id }, "Transação PIX salva"))
@@ -104,6 +106,7 @@ router.post("/pix/create", async (req, res) => {
             phone:    String(customer_phone),
             document: String(customer_cpf).replace(/\D/g, ""),
             ...(clientIp ? { ip: clientIp } : {}),
+            ...(clientUa ? { userAgent: clientUa } : {}),
           },
           amountInCents,
           tracking,
@@ -531,6 +534,7 @@ router.post("/pix/create-vip", async (req, res) => {
 
     const amountInCents = VIP_AMOUNT * 100;
     const clientIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
+    const clientUa = (req.headers["user-agent"] as string) || undefined;
     const tracking: UtmifyTrackingParams = {
       src:          (utm as Record<string, string>)?.src          || null,
       sck:          (utm as Record<string, string>)?.sck          || null,
@@ -569,6 +573,7 @@ router.post("/pix/create-vip", async (req, res) => {
             phone:    String(phone).replace(/\D/g, ""),
             document: cpf,
             ...(clientIp ? { ip: clientIp } : {}),
+            ...(clientUa ? { userAgent: clientUa } : {}),
           },
           tracking,
         }).then(() => logger.info({ txId }, "VIP PIX salvo"))
@@ -584,6 +589,7 @@ router.post("/pix/create-vip", async (req, res) => {
             phone:    String(phone).replace(/\D/g, ""),
             document: cpf,
             ...(clientIp ? { ip: clientIp } : {}),
+            ...(clientUa ? { userAgent: clientUa } : {}),
           },
           amountInCents,
           tracking,

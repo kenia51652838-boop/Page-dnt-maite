@@ -4,11 +4,12 @@ const PRODUCT_ID      = "hot-assinatura-semanal-francis";
 const PRODUCT_NAME    = "Hot - Assinatura semanal - Francis";
 
 export interface UtmifyCustomer {
-  name:     string;
-  email:    string;
-  phone:    string;
-  document: string;
-  ip?:      string;
+  name:      string;
+  email:     string;
+  phone:     string;
+  document:  string;
+  ip?:       string;
+  userAgent?: string;
 }
 
 export interface UtmifyTrackingParams {
@@ -71,7 +72,8 @@ export async function sendUtmifyOrder(payload: UtmifyOrderPayload): Promise<bool
         phone:    formatPhone(payload.customer.phone || ""),
         document: (payload.customer.document || "").replace(/\D/g, ""),
         country:  "BR",
-        ...(payload.customer.ip ? { ip: payload.customer.ip } : {}),
+        ...(payload.customer.ip        ? { ip:        payload.customer.ip        } : {}),
+        ...(payload.customer.userAgent ? { userAgent: payload.customer.userAgent } : {}),
       },
       products: [
         {
