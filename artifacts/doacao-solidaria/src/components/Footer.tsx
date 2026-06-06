@@ -48,16 +48,16 @@ export default function Footer({ onPrivacyClick }: FooterProps) {
         }}>
           <div>
             <p style={{margin:0,fontSize:"0.7rem",color:"#666",textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:700}}>Campanha organizada por</p>
-            <p style={{margin:"2px 0 0",fontSize:"0.85rem",color:"#ddd",fontWeight:700}}>ONG Abelhinhas do Amor</p>
+            <p style={{margin:"2px 0 0",fontSize:"0.85rem",color:"#ddd",fontWeight:700}}>ONG Doação Solidária</p>
           </div>
           <div>
             <p style={{margin:0,fontSize:"0.7rem",color:"#666",textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:700}}>CNPJ</p>
-            <p style={{margin:"2px 0 0",fontSize:"0.85rem",color:"#ddd",fontWeight:700}}>62.669.301/0001-60</p>
+            <p style={{margin:"2px 0 0",fontSize:"0.85rem",color:"#ddd",fontWeight:700}}>19.284.731/0001-45</p>
           </div>
           <div>
             <p style={{margin:0,fontSize:"0.7rem",color:"#666",textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:700}}>Contato</p>
-            <a href="mailto:contato@abelhinhasdoamor.com.br" style={{display:"block",margin:"2px 0 0",fontSize:"0.85rem",color:"#24CA68",textDecoration:"none",fontWeight:600}}>
-              contato@abelhinhasdoamor.com.br
+            <a href="mailto:contato@doacaosolidaria.com.br" style={{display:"block",margin:"2px 0 0",fontSize:"0.85rem",color:"#24CA68",textDecoration:"none",fontWeight:600}}>
+              contato@doacaosolidaria.com.br
             </a>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function Footer({ onPrivacyClick }: FooterProps) {
         </div>
 
         <div style={{borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:"1.25rem",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"0.75rem"}}>
-          <p style={{fontSize:"0.73rem",color:"#666",margin:0}}>© 2026 ONG Abelhinhas do Amor · CNPJ 62.669.301/0001-60 · Todos os direitos reservados.</p>
+          <p style={{fontSize:"0.73rem",color:"#666",margin:0}}>© 2026 ONG Doação Solidária · CNPJ 19.284.731/0001-45 · Todos os direitos reservados.</p>
           <div style={{display:"flex",gap:"8px"}}>
             {["📱 App Store","🤖 Google Play"].map(label => (
               <a key={label} href="#" onClick={prevent} style={{

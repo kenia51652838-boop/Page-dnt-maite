@@ -370,7 +370,7 @@ export default function ContaAtrasada() {
                 Sr. Francivaldo Pereira Ricardo
               </div>
               <div style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.72rem", marginTop: "2px" }}>
-                ONG Abelhinhas do Amor
+                ONG Doação Solidária
               </div>
             </div>
           </div>
@@ -400,7 +400,7 @@ export default function ContaAtrasada() {
                 Francivaldo Pereira Ricardo
               </div>
               <div style={{ fontSize: "0.73rem", color: "#9ca3af", marginTop: "1px" }}>
-                ONG Abelhinhas do Amor · Campanha ativa
+                ONG Doação Solidária · Campanha ativa
               </div>
             </div>
             <div style={{

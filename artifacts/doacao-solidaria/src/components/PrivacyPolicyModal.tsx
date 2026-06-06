@@ -69,11 +69,11 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: Props) {
           lineHeight: 1.75,
         }}>
           <p style={{margin:"0 0 0.5rem",fontSize:"0.75rem",color:"#aaa"}}>
-            Última atualização: maio de 2026 · ONG Abelhinhas do Amor · CNPJ 62.669.301/0001-60
+            Última atualização: maio de 2026 · ONG Doação Solidária · CNPJ 19.284.731/0001-45
           </p>
 
           <Section title="1. Quem somos">
-            Esta campanha de arrecadação é organizada pela <strong>ONG Abelhinhas do Amor</strong>, pessoa jurídica de direito privado inscrita no CNPJ sob o n.º <strong>62.669.301/0001-60</strong>, com o objetivo de apoiar famílias em situação de vulnerabilidade social. Dúvidas podem ser enviadas para <a href="mailto:contato@abelhinhasdoamor.com.br" style={{color:"#24CA68"}}>contato@abelhinhasdoamor.com.br</a>.
+            Esta campanha de arrecadação é organizada pela <strong>ONG Doação Solidária</strong>, pessoa jurídica de direito privado inscrita no CNPJ sob o n.º <strong>19.284.731/0001-45</strong>, com o objetivo de apoiar famílias em situação de vulnerabilidade social. Dúvidas podem ser enviadas para <a href="mailto:contato@doacaosolidaria.com.br" style={{color:"#24CA68"}}>contato@doacaosolidaria.com.br</a>.
           </Section>
 
           <Section title="2. Quais dados coletamos">
@@ -119,7 +119,7 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: Props) {
               <li>Solicitar a correção ou exclusão dos seus dados</li>
               <li>Revogar consentimento a qualquer momento</li>
             </ul>
-            Para exercer esses direitos, entre em contato: <a href="mailto:contato@abelhinhasdoamor.com.br" style={{color:"#24CA68"}}>contato@abelhinhasdoamor.com.br</a>
+            Para exercer esses direitos, entre em contato: <a href="mailto:contato@doacaosolidaria.com.br" style={{color:"#24CA68"}}>contato@doacaosolidaria.com.br</a>
           </Section>
 
           <Section title="7. Retenção de dados">
@@ -127,9 +127,9 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: Props) {
           </Section>
 
           <Section title="8. Contato">
-            ONG Abelhinhas do Amor<br />
-            CNPJ: 62.669.301/0001-60<br />
-            E-mail: <a href="mailto:contato@abelhinhasdoamor.com.br" style={{color:"#24CA68"}}>contato@abelhinhasdoamor.com.br</a>
+            ONG Doação Solidária<br />
+            CNPJ: 19.284.731/0001-45<br />
+            E-mail: <a href="mailto:contato@doacaosolidaria.com.br" style={{color:"#24CA68"}}>contato@doacaosolidaria.com.br</a>
           </Section>
         </div>
 
