@@ -496,18 +496,20 @@ export default function ContaAtrasada() {
           </button>
         </div>
 
-        <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
-          <a
-            href="/"
-            style={{
-              color: "#9ca3af", fontSize: "0.8rem",
-              textDecoration: "none", display: "inline-flex",
-              alignItems: "center", gap: "4px",
-            }}
-          >
-            ← Não dessa vez — voltar para o início
-          </a>
-        </div>
+        {!txId && (
+          <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
+            <a
+              href="/"
+              style={{
+                color: "#9ca3af", fontSize: "0.8rem",
+                textDecoration: "none", display: "inline-flex",
+                alignItems: "center", gap: "4px",
+              }}
+            >
+              ← Não dessa vez — voltar para o início
+            </a>
+          </div>
+        )}
 
       </div>
     </div>
