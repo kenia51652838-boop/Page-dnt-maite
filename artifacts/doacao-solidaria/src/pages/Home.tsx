@@ -296,7 +296,7 @@ export default function Home() {
         if (data.status === "paid") {
           stopPolling();
           if (countdownRef.current) clearInterval(countdownRef.current);
-          try { (window as any).fbq?.("track", "Purchase", { value: paidAmountRef.current, currency: "BRL" }); } catch {}
+          try { (window as any).fbq?.("track", "Purchase", { value: paidAmountRef.current, currency: "BRL" }, { eventID: txId }); } catch {}
           setPixConfirmed(true);
           setHasActivePix(false);
           setPixModalOpen(false);
@@ -321,7 +321,7 @@ export default function Home() {
       if (data.status === "paid") {
         stopPolling();
         if (countdownRef.current) clearInterval(countdownRef.current);
-        try { (window as any).fbq?.("track", "Purchase", { value: paidAmountRef.current, currency: "BRL" }); } catch {}
+        try { (window as any).fbq?.("track", "Purchase", { value: paidAmountRef.current, currency: "BRL" }, { eventID: pixTxId }); } catch {}
         setPixConfirmed(true);
         setHasActivePix(false);
         setPixModalOpen(false);

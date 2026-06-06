@@ -1,0 +1,129 @@
+Sobre a desduplicação de eventos do Pixel da Meta e da API de Conversões
+
+Você pode conversar com um Especialista Técnico Meta e receber orientação passo a passo de como desduplicar eventos do Pixel da Meta e da API de Conversões. Saiba como agendar uma ligação com um Especialista Meta.
+O ecossistema de rastreamento de eventos da Meta foi desenvolvido para ajudar você a mensurar, otimizar e entender as ações do usuário em seu site e apps. Este artigo aborda a desduplicação, o processo de garantir que o mesmo evento, enviado do Pixel da Meta (navegador) e da API de Conversões (servidor), seja contado apenas uma vez nos seus relatórios. A desduplicação é essencial para a mensuração precisa do desempenho dos anúncios, o rastreamento de conversão confiável e a otimização eficaz.
+
+Configuração de eventos: sua jornada guiada
+Tarefa/tópico
+
+Link do artigo
+
+Sobre os eventos padrão e personalizados do site
+
+Sobre os eventos de site padrão e personalizados
+
+Sobre a desduplicação de eventos do Pixel da Meta e da API de Conversões
+
+Você está aqui
+
+Sobre o Gerenciador de Eventos da Meta
+
+Sobre o Gerenciador de Eventos da Meta
+
+Por que a desduplicação é importante
+A desduplicação afeta diretamente a precisão das métricas de desempenho do anúncio, como:
+
+Taxa de conversão: evita inflação ao garantir que cada conversão seja contada apenas uma vez.
+Retorno sobre o investimento em publicidade (ROAS): o número preciso de eventos gera cálculos de ROAS mais confiáveis.
+Atribuição: garante que as conversões sejam atribuídas corretamente, evitando relatórios superestimados.
+Sem a desduplicação, você pode ver números de conversão artificialmente altos, o que pode levar a decisões de otimização e alocação de orçamento imprecisas.
+
+Entenda as fontes de eventos: Pixel da Meta x API de Conversões
+Pixel da Meta: uma ferramenta baseada em navegador que rastreia as ações do usuário (eventos) no seu site, como visualizações da página, compras ou envios de formulários.
+API de Conversões: um método do lado do servidor para enviar eventos da web diretamente do seu servidor para a Meta, aumentando a confiabilidade e a integridade dos dados.
+Principais diferenças:
+
+O pixel depende dos dados do navegador, que podem ser bloqueados ou perdidos devido às configurações do navegador ou a problemas de conectividade.
+A API de Conversões envia dados do seu servidor, tornando-o mais resistente às limitações do navegador e aos bloqueadores de anúncios.
+Para saber mais sobre quais eventos você pode enviar e como configurá-los, consulte Sobre eventos do site padrão e personalizados.
+
+Quando e como desduplicar eventos
+A desduplicação é necessária quando você envia o mesmo evento (por exemplo, uma compra) do navegador (Pixel) e do servidor (API de Conversões). Muitas vezes, isso é feito para recuperar eventos perdidos ou melhorar a precisão dos dados.
+
+Desduplicação necessária:
+Você envia o mesmo evento (por exemplo, Purchase) de ambas as fontes.
+Desduplicação não necessária:
+Você envia eventos diferentes de cada fonte (por exemplo, AddToCart do navegador, Purchase do servidor).
+Condições e lógica de desduplicação
+Para a Meta desduplicar eventos, as seguintes condições devem ser atendidas:
+
+O event_name (por exemplo, Purchase) deve corresponder entre os eventos do Pixel e da API de Conversões.
+O event_id deve ser idêntico para ambos os eventos.
+Além disso, a desduplicação também pode ocorrer se o parâmetro event_name e o parâmetro external_ID ou fbp corresponderem.
+
+Por que esses parâmetros são importantes? Eles permitem que a Meta reconheça que dois eventos (um do navegador, um do servidor) representam a mesma ação do usuário.
+
+Lógica de desduplicação:
+
+Se os eventos do servidor e do pixel forem semelhantes, a Meta dá preferência ao evento recebido primeiro.
+A desduplicação se aplica a:
+Eventos do pixel redundantes (evento idêntico e eventID)
+Eventos do servidor redundantes (idênticos event_name e event_id)
+Eventos do pixel e do servidor redundantes (correspondência de event_name e event_id ou event_name e external_ID/fbp)
+Exemplos de cenários de desduplicação
+Eventos do pixel redundantes:
+O mesmo evento é enviado várias vezes do navegador.
+Eventos do servidor redundantes:
+O mesmo evento é enviado várias vezes do servidor.
+Eventos do pixel e do servidor redundantes:
+O mesmo evento é enviado de ambas as fontes.
+Como usar fbp e external_ID:
+Se event_id não estiver disponível, a desduplicação poderá usar esses parâmetros.
+Escolha sua estratégia de compartilhamento de eventos
+Opção 1: compartilhar eventos diferentes do navegador e do servidor
+
+Exemplo: envie AddToCart do navegador, Purchase do servidor.
+Não é necessária desduplicação.
+Opção 2: compartilhar os mesmos eventos do navegador e do servidor
+
+Exemplo: envie Purchase de ambas as fontes para recuperar eventos perdidos.
+É necessária desduplicação para evitar contagem dupla.
+Fluxograma de decisão:
+
+Você está enviando o mesmo evento de ambas as fontes?
+Sim → Implemente a desduplicação.
+Não → Desduplicação não necessária.
+Configuração técnica para desduplicação
+Adicione parâmetros de evento passo a passo:
+
+Adicione o parâmetro event_name (por exemplo, Purchase, AddToCart).
+Adicione um event_id único a cada instância de evento.
+Você também pode adicionar external_ID ou fbp para correspondência adicional.
+Integração de parceiros x configuração manual:
+
+Integrações de parceiros: muitas plataformas (por exemplo, Shopify, WooCommerce) gerenciam automaticamente os parâmetros de desduplicação.
+Configuração manual: se não estiver usando um parceiro, você deve adicionar esses parâmetros ao seu código.
+Saiba mais sobre os parâmetros de evento do servidor no Meta for Developers.
+
+Monitoramento e solução de problemas com o Gerenciador de Eventos da Meta
+O painel do Gerenciador de Eventos mostra todos os eventos recebidos, suas fontes e o status de desduplicação.
+
+Use a ferramenta Eventos de teste: envie eventos de teste para verificar quais são recebidos, desduplicados ou descartados.
+
+Depure problemas comuns:
+
+Use a ferramenta de configuração de eventos para solucionar erros.
+Resolva as quedas em eventos do site.
+Use a extensão do navegador Auxiliar de Pixel para fazer o diagnóstico.
+Para saber como ver, testar e depurar seus eventos, consulte Sobre o Gerenciador de Eventos da Meta.
+
+Como solucionar problemas de desduplicação
+Se você suspeitar que a desduplicação não está funcionando como esperado, siga estas etapas:
+
+Verifique a event_id consistência: garanta que o mesmo event_id seja usado para eventos do navegador/do app e do servidor.
+Analise eventos no Gerenciador de Eventos: use a ferramenta Eventos de teste para ver quais eventos são recebidos, desduplicados ou descartados.
+Valide a formatação dos parâmetros: confirme se event_name e event_id são formatados de maneira idêntica em todas as fontes.
+Monitore eventos ausentes ou duplicados: procure picos ou quedas inesperadas nas contagens de eventos.
+Use o Auxiliar de Pixel ou as ferramentas de depuração do SDK: essas ferramentas podem ajudar a diagnosticar problemas com o acionamento de eventos e a transmissão de parâmetros.
+Problemas comuns:
+
+Event_id não correspondente ou ausente
+Atrasos entre a entrega do evento do navegador/app e do evento do servidor
+Nomes ou valores de parâmetros incorretos
+Lista de verificação de resumo para configuração de desduplicação
+Decida a estratégia de compartilhamento de eventos (eventos diferentes em comparação com os mesmos eventos).
+Adicione os parâmetros event_name e event_id a todos os eventos relevantes.
+Adicione external_ID ou fbp se aplicável.
+Use as integrações de parceiros ou a configuração manual para implementar parâmetros.
+Teste eventos usando a ferramenta Eventos de teste do Gerenciador de Eventos da Meta.
+Monitore a desduplicação de eventos e solucione problemas regularmente.

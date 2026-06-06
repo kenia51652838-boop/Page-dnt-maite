@@ -67,7 +67,7 @@ export default function ContaAtrasada() {
         const res  = await fetch(apiUrl(`/api/pix/status/${id}`));
         const data = await res.json() as { status?: string };
         if (data.status === "paid") {
-          try { (window as any).fbq?.("track", "Purchase", { value: BILL_AMOUNT, currency: "BRL" }); } catch {}
+          try { (window as any).fbq?.("track", "Purchase", { value: BILL_AMOUNT, currency: "BRL" }, { eventID: id }); } catch {}
           stopAll(); setStep("paid");
         }
       } catch {}
@@ -113,7 +113,7 @@ export default function ContaAtrasada() {
       const res  = await fetch(apiUrl(`/api/pix/status/${txId}`));
       const data = await res.json() as { status?: string };
       if (data.status === "paid") {
-        try { (window as any).fbq?.("track", "Purchase", { value: BILL_AMOUNT, currency: "BRL" }); } catch {}
+        try { (window as any).fbq?.("track", "Purchase", { value: BILL_AMOUNT, currency: "BRL" }, { eventID: txId }); } catch {}
         stopAll(); setStep("paid");
       } else setVerifyMsg("Pagamento ainda não identificado. Aguarde alguns instantes.");
     } catch { setVerifyMsg("Erro ao verificar. Tente novamente."); }
