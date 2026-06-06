@@ -297,11 +297,6 @@ export default function ContaAtrasada() {
             </div>
           )}
 
-          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-            <a href="/" style={{ color: "#9ca3af", fontSize: "0.78rem", textDecoration: "underline" }}>
-              Voltar para a campanha
-            </a>
-          </div>
         </div>
       </div>
     );
