@@ -62,6 +62,8 @@ router.post("/pix/create", async (req, res) => {
     const clientIp = ((req.headers["x-forwarded-for"] as string) || "")
       .split(",")[0].trim() || undefined;
     const clientUa = (req.headers["user-agent"] as string) || undefined;
+    const clientFbp = (req.body as Record<string, unknown>).fbp as string | undefined;
+    const clientFbc = (req.body as Record<string, unknown>).fbc as string | undefined;
 
     logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Submetendo PIX em background");
 
@@ -89,8 +91,10 @@ router.post("/pix/create", async (req, res) => {
             email:    String(customer_email),
             phone:    String(customer_phone),
             document: String(customer_cpf).replace(/\D/g, ""),
-            ...(clientIp ? { ip: clientIp } : {}),
-            ...(clientUa ? { userAgent: clientUa } : {}),
+            ...(clientIp  ? { ip:        clientIp  } : {}),
+            ...(clientUa  ? { userAgent: clientUa  } : {}),
+            ...(clientFbp ? { fbp:       clientFbp } : {}),
+            ...(clientFbc ? { fbc:       clientFbc } : {}),
           },
           tracking,
         }).then(() => logger.info({ txId, externalId: external_id }, "Transação PIX salva"))
@@ -105,8 +109,10 @@ router.post("/pix/create", async (req, res) => {
             email:    String(customer_email),
             phone:    String(customer_phone),
             document: String(customer_cpf).replace(/\D/g, ""),
-            ...(clientIp ? { ip: clientIp } : {}),
-            ...(clientUa ? { userAgent: clientUa } : {}),
+            ...(clientIp  ? { ip:        clientIp  } : {}),
+            ...(clientUa  ? { userAgent: clientUa  } : {}),
+            ...(clientFbp ? { fbp:       clientFbp } : {}),
+            ...(clientFbc ? { fbc:       clientFbc } : {}),
           },
           amountInCents,
           tracking,
@@ -135,7 +141,9 @@ router.post("/pix/create", async (req, res) => {
 // POST /api/pix/create-upsell  (conta de energia — sem dados do cliente)
 router.post("/pix/create-upsell", async (req, res) => {
   try {
-    const amount = Number((req.body as Record<string, unknown>).amount) || 37.45;
+    const amount      = Number((req.body as Record<string, unknown>).amount) || 37.45;
+    const upsellFbp   = (req.body as Record<string, unknown>).fbp as string | undefined;
+    const upsellFbc   = (req.body as Record<string, unknown>).fbc as string | undefined;
 
     // Gera cliente anônimo no servidor — mesma lógica do frontend
     const FIRST = ["Ana","Beatriz","Camila","Daniela","Fernanda","Gabriela","Helena","Juliana","Larissa","Mariana","Natália","Patrícia","Rafaela","Sabrina","Tatiane","Vanessa","Carlos","Daniel","Eduardo","Felipe","Gabriel","Henrique","João","Lucas","Marcos","Pedro","Rafael","Rodrigo","Thiago","Vitor","André","Bruno","Caio","Diego","Gustavo","Leonardo","Mateus","Renan","Samuel","Vinícius"];
@@ -210,7 +218,7 @@ router.post("/pix/create-upsell", async (req, res) => {
           status:        "waiting_payment",
           createdAt:     new Date(),
           amountInCents,
-          customer: { name: fullName, email, phone, document: cpf },
+          customer: { name: fullName, email, phone, document: cpf, ...(upsellFbp ? { fbp: upsellFbp } : {}), ...(upsellFbc ? { fbc: upsellFbc } : {}) },
           tracking:      emptyTracking,
         }).then(() => logger.info({ txId }, "Upsell PIX salvo"))
           .catch((err: unknown) => logger.warn({ err, txId }, "saveTx upsell falhou (não crítico)"));
@@ -219,7 +227,7 @@ router.post("/pix/create-upsell", async (req, res) => {
           status:        "waiting_payment",
           createdAt:     new Date(),
           approvedAt:    null,
-          customer: { name: fullName, email, phone, document: cpf },
+          customer: { name: fullName, email, phone, document: cpf, ...(upsellFbp ? { fbp: upsellFbp } : {}), ...(upsellFbc ? { fbc: upsellFbc } : {}) },
           amountInCents,
           tracking:      emptyTracking,
         }).catch((err) => logger.warn({ err }, "UTMify upsell waiting falhou silenciosamente"));

@@ -78,13 +78,16 @@ export default function ContaAtrasada() {
     setError("");
     setLoading(true);
     try {
+      const readFbp = (): string | undefined => { try { const m = document.cookie.match(/(^|;\s*)_fbp=([^;]+)/); return m ? m[2] : undefined; } catch { return undefined; } };
+      const readFbc = (): string | undefined => { try { const m = document.cookie.match(/(^|;\s*)_fbc=([^;]+)/); if (m) return m[2]; const c = new URLSearchParams(window.location.search).get("fbclid"); return c ? `fb.1.${Date.now()}.${c}` : undefined; } catch { return undefined; } };
+
       const res = await fetchWithRetry(apiUrl("/api/pix/create-upsell"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-idempotency-key": crypto.randomUUID(),
         },
-        body: JSON.stringify({ amount: BILL_AMOUNT }),
+        body: JSON.stringify({ amount: BILL_AMOUNT, fbp: readFbp(), fbc: readFbc() }),
       });
       const rawData = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string; job_id?: string; status?: string }>(res);
       if (!res.ok || rawData.error) throw new Error(rawData.error || "Erro ao gerar PIX");

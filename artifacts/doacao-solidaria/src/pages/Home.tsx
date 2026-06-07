@@ -362,6 +362,9 @@ export default function Home() {
 
     const customer = generateAnonymousCustomer();
 
+    const readFbp = (): string | undefined => { try { const m = document.cookie.match(/(^|;\s*)_fbp=([^;]+)/); return m ? m[2] : undefined; } catch { return undefined; } };
+    const readFbc = (): string | undefined => { try { const m = document.cookie.match(/(^|;\s*)_fbc=([^;]+)/); if (m) return m[2]; const c = new URLSearchParams(window.location.search).get("fbclid"); return c ? `fb.1.${Date.now()}.${c}` : undefined; } catch { return undefined; } };
+
     try {
       const res = await fetchWithRetry(apiUrl("/api/pix/create"), {
         method: "POST",
@@ -376,6 +379,8 @@ export default function Home() {
           customer_phone: customer.phone,
           customer_cpf: customer.cpf,
           utm: utmParams,
+          fbp: readFbp(),
+          fbc: readFbc(),
         }),
       });
       const rawData = await safeJson<{

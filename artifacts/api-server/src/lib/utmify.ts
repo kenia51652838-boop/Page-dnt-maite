@@ -10,6 +10,8 @@ export interface UtmifyCustomer {
   document:  string;
   ip?:       string;
   userAgent?: string;
+  fbp?:      string;
+  fbc?:      string;
 }
 
 export interface UtmifyTrackingParams {
@@ -74,6 +76,8 @@ export async function sendUtmifyOrder(payload: UtmifyOrderPayload): Promise<bool
         country:  "BR",
         ...(payload.customer.ip        ? { ip:        payload.customer.ip        } : {}),
         ...(payload.customer.userAgent ? { userAgent: payload.customer.userAgent } : {}),
+        ...(payload.customer.fbp       ? { fbp:       payload.customer.fbp       } : {}),
+        ...(payload.customer.fbc       ? { fbc:       payload.customer.fbc       } : {}),
       },
       products: [
         {
