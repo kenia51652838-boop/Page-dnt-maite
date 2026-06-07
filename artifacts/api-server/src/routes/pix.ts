@@ -4,6 +4,7 @@ import { logger } from "../lib/logger";
 import { sendUtmifyOrder, type UtmifyTrackingParams } from "../lib/utmify";
 import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs, logError } from "../lib/txStore";
 import { pixQueue } from "../lib/pixQueue";
+import { sendFbCapiPurchase } from "../lib/fbCapi";
 
 const router = Router();
 
@@ -421,7 +422,19 @@ router.post("/webhook/lumina", (req, res) => {
         }
 
         if (tx) {
-          logger.info({ txId, orderId: tx.orderId }, "Disparando UTMify paid via webhook");
+          logger.info({ txId, orderId: tx.orderId }, "Disparando UTMify + FB CAPI paid via webhook");
+
+          // FB CAPI direto — tempo real, sem intermediário
+          sendFbCapiPurchase({
+            eventId:    tx.orderId,
+            eventTime:  Math.floor(Date.now() / 1000),
+            value:      tx.amountInCents / 100,
+            currency:   "BRL",
+            customer:   tx.customer,
+            clientIp:   tx.customer.ip,
+            clientAgent: tx.customer.userAgent,
+          }).catch(() => {});
+
           const utmOk = await sendUtmifyOrder({
             orderId:       tx.orderId,
             status:        "paid",
@@ -451,18 +464,29 @@ router.post("/webhook/lumina", (req, res) => {
           const createdAtStr = (txObj2.created_at || txObj2.createdAt || new Date().toISOString()) as string;
 
           if (resolvedCents > 0 && custObj.name) {
+            const fallbackCustomer = {
+              name:     (custObj.name     || "Desconhecido") as string,
+              email:    (custObj.email    || "") as string,
+              phone:    (custObj.phone    || "") as string,
+              document: ((custObj.document_number || custObj.document || "") as string).replace(/\D/g, ""),
+            };
+
             await saveTx({
               orderId:       txId,
               status:        "waiting_payment",
               createdAt:     new Date(createdAtStr),
               amountInCents: resolvedCents,
-              customer: {
-                name:     (custObj.name     || "Desconhecido") as string,
-                email:    (custObj.email    || "") as string,
-                phone:    (custObj.phone    || "") as string,
-                document: ((custObj.document_number || custObj.document || "") as string).replace(/\D/g, ""),
-              },
+              customer:      fallbackCustomer,
               tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
+            }).catch(() => {});
+
+            // FB CAPI direto — tempo real
+            sendFbCapiPurchase({
+              eventId:   txId,
+              eventTime: Math.floor(new Date(paidAtStr).getTime() / 1000),
+              value:     resolvedCents / 100,
+              currency:  "BRL",
+              customer:  fallbackCustomer,
             }).catch(() => {});
 
             const utmOk = await sendUtmifyOrder({
@@ -470,12 +494,7 @@ router.post("/webhook/lumina", (req, res) => {
               status:        "paid",
               createdAt:     new Date(createdAtStr),
               approvedAt:    new Date(paidAtStr),
-              customer: {
-                name:     (custObj.name     || "Desconhecido") as string,
-                email:    (custObj.email    || "") as string,
-                phone:    (custObj.phone    || "") as string,
-                document: ((custObj.document_number || custObj.document || "") as string).replace(/\D/g, ""),
-              },
+              customer:      fallbackCustomer,
               amountInCents: resolvedCents,
               tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
             });
