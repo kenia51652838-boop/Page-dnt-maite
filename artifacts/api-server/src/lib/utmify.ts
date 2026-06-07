@@ -63,6 +63,7 @@ export async function sendUtmifyOrder(payload: UtmifyOrderPayload): Promise<bool
 
     const body: Record<string, unknown> = {
       orderId:       payload.orderId,
+      eventId:       payload.orderId,
       platform:      UTMIFY_PLATFORM,
       paymentMethod: "pix",
       status:        payload.status,
