@@ -441,11 +441,30 @@ router.post("/webhook/lumina", (req, res) => {
       logger.info({ txId, rawStatus, isPaid }, "Webhook Lumina processado");
 
       if (isPaid && txId) {
-        // Tenta pelo order_id (ID Lumina) primeiro, depois pelo externalId (nosso ID)
-        let tx = await markPaid(txId);
+        // Tenta pelo order_id (ID Lumina) primeiro, depois pelo externalId (nosso ID).
+        // Retry com backoff para cobrir race condition onde o saveTx assíncrono ainda não
+        // completou quando o webhook chega — garante que o fbp/fbc capturado no frontend
+        // seja recuperado do banco em vez de cair no fallback sem esses dados.
+        const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+        const tryFind = async (): Promise<typeof tx> => {
+          let found = await markPaid(txId);
+          if (!found) {
+            found = await markPaidByExternalId(txId);
+            if (found) logger.info({ txId }, "Transação encontrada via externalId no webhook");
+          }
+          return found;
+        };
+
+        let tx = await tryFind();
         if (!tx) {
-          tx = await markPaidByExternalId(txId);
-          if (tx) logger.info({ txId }, "Transação encontrada via externalId no webhook");
+          await sleep(1000);
+          logger.info({ txId }, "Webhook: transação não encontrada, tentando novamente (1s)...");
+          tx = await tryFind();
+        }
+        if (!tx) {
+          await sleep(2000);
+          logger.info({ txId }, "Webhook: transação não encontrada, última tentativa (2s)...");
+          tx = await tryFind();
         }
 
         if (tx) {
