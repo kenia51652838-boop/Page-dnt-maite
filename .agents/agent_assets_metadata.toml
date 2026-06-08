@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "8auExCHllopc2faDHlUOU"
+uri = "file://.local/guia-facebook-utmify-capi.md"
+type = "text"
+title = "Guia: Facebook Pixel + UTMify + CAPI Server-Side"
