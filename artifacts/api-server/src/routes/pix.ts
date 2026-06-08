@@ -4,7 +4,7 @@ import { logger } from "../lib/logger";
 import { sendUtmifyOrder, type UtmifyTrackingParams } from "../lib/utmify";
 import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs, logError } from "../lib/txStore";
 import { pixQueue } from "../lib/pixQueue";
-import { sendFbCapiPurchase } from "../lib/fbCapi";
+import { sendFbCapiPurchase, sendFbCapiInitiateCheckout } from "../lib/fbCapi";
 
 const router = Router();
 
@@ -118,6 +118,23 @@ router.post("/pix/create", async (req, res) => {
           amountInCents,
           tracking,
         }).catch((err) => logger.warn({ err }, "UTMify waiting_payment falhou silenciosamente"));
+        // InitiateCheckout — sinal de intenção de compra ao Facebook quando PIX é gerado
+        sendFbCapiInitiateCheckout({
+          eventId:    txId,
+          eventTime:  Math.floor(Date.now() / 1000),
+          value:      amountInCents / 100,
+          currency:   "BRL",
+          customer: {
+            name:     String(customer_name),
+            email:    String(customer_email),
+            phone:    String(customer_phone),
+            document: String(customer_cpf).replace(/\D/g, ""),
+            fbp:      clientFbp,
+            fbc:      clientFbc,
+          },
+          clientIp:    clientIp,
+          clientAgent: clientUa,
+        }).catch(() => {});
         return { success: true, ...result };
       },
       (jobResult) => {
@@ -233,6 +250,15 @@ router.post("/pix/create-upsell", async (req, res) => {
           amountInCents,
           tracking:      emptyTracking,
         }).catch((err) => logger.warn({ err }, "UTMify upsell waiting falhou silenciosamente"));
+        // InitiateCheckout — sinal de intenção de compra ao Facebook quando PIX upsell é gerado
+        sendFbCapiInitiateCheckout({
+          eventId:    txId,
+          eventTime:  Math.floor(Date.now() / 1000),
+          value:      amountInCents / 100,
+          currency:   "BRL",
+          customer: { name: fullName, email, phone, document: cpf, fbp: upsellFbp, fbc: upsellFbc },
+          clientAgent: upsellUa,
+        }).catch(() => {});
         return { success: true, ...result };
       },
       (jobResult) => {
