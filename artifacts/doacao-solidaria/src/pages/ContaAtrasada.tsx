@@ -97,6 +97,7 @@ export default function ContaAtrasada() {
       setPixCode(data.pix_code || "");
       setTxId(data.transaction_id || "");
       setExpired(false);
+      try { (window as any).fbq?.("track", "InitiateCheckout", { value: BILL_AMOUNT, currency: "BRL", num_items: 1, content_ids: ["hot-assinatura-semanal-francis"] }, { eventID: `checkout_${data.transaction_id || ""}` }); } catch {}
       setStep("pix");
       startCountdown();
       startPolling(data.transaction_id || "");

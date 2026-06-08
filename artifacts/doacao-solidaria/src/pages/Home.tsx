@@ -417,6 +417,7 @@ export default function Home() {
       setHasActivePix(true);
       setPixLoadingOpen(false);
       closeDoacaoModal();
+      try { (window as any).fbq?.("track", "InitiateCheckout", { value, currency: "BRL", num_items: 1, content_ids: ["hot-assinatura-semanal-francis"] }, { eventID: `checkout_${data.transaction_id || ""}` }); } catch {}
       setPixModalOpen(true);
       document.body.style.overflow = "hidden";
       startCountdown(expAt);
