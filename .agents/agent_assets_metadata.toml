@@ -18,3 +18,9 @@ id = "L57lqsGWDOAH6pE6-pA03"
 uri = "file://guia-facebook-utmify-capi.txt"
 type = "text"
 title = "Guia: Facebook Pixel + UTMify + CAPI (download)"
+
+[[outputs]]
+id = "-31xXEVeaau29WIiDBWVf"
+uri = "file://guia-rastreamento-facebook-utmify.md"
+type = "text"
+title = "Guia Completo: Facebook Pixel + CAPI + UTMify"
