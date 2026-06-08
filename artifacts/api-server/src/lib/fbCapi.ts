@@ -45,13 +45,17 @@ export interface FbCapiPurchaseParams {
 export async function sendFbCapiPurchase(params: FbCapiPurchaseParams): Promise<void> {
   const userData: Record<string, string | string[]> = {};
 
-  if (params.customer.email)    userData["em"]  = sha256(params.customer.email);
-  if (params.customer.phone)    userData["ph"]  = sha256(normalizePhone(params.customer.phone));
-  if (params.customer.document) userData["db"]  = sha256(params.customer.document.replace(/\D/g, ""));
-  if (params.customer.fbp)      userData["fbp"] = params.customer.fbp;
-  if (params.customer.fbc)      userData["fbc"] = params.customer.fbc;
-  if (params.clientIp)          userData["client_ip_address"]  = params.clientIp;
-  if (params.clientAgent)       userData["client_user_agent"]  = params.clientAgent;
+  if (params.customer.email)    userData["em"]          = sha256(params.customer.email);
+  if (params.customer.phone)    userData["ph"]          = sha256(normalizePhone(params.customer.phone));
+  // CPF → external_id (identificador único estável do usuário, +4.93% conversões)
+  // NUNCA usar "db" para CPF — "db" é date of birth (YYYYMMDD) no Facebook
+  if (params.customer.document) userData["external_id"] = sha256(params.customer.document.replace(/\D/g, ""));
+  if (params.customer.fbp)      userData["fbp"]         = params.customer.fbp;
+  if (params.customer.fbc)      userData["fbc"]         = params.customer.fbc;
+  if (params.clientIp)          userData["client_ip_address"] = params.clientIp;
+  if (params.clientAgent)       userData["client_user_agent"] = params.clientAgent;
+  // Todos os clientes são brasileiros — melhora o match sem coleta extra
+  userData["country"] = sha256("br");
 
   if (params.customer.name) {
     const parts = params.customer.name.trim().split(/\s+/);
