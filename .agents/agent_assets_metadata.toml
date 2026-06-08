@@ -6,3 +6,9 @@ id = "8auExCHllopc2faDHlUOU"
 uri = "file://.local/guia-facebook-utmify-capi.md"
 type = "text"
 title = "Guia: Facebook Pixel + UTMify + CAPI Server-Side"
+
+[[outputs]]
+id = "yt8zw2V2JO2tXKxnn7bY4"
+uri = "file://guia-facebook-utmify-capi.md"
+type = "text"
+title = "Guia: Facebook Pixel + UTMify + CAPI Server-Side"
