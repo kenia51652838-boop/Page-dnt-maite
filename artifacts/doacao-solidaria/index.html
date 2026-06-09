@@ -79,7 +79,9 @@
       fbq('init', '1507785031003753');
       fbq('init', '1308311710742436');
       fbq('init', '2382122502268128');
-      fbq('track', 'PageView');
+      var pvId = 'pv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      window._pvEventId = pvId;
+      fbq('track', 'PageView', {}, { eventID: pvId });
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
