@@ -60,8 +60,7 @@ router.post("/pix/create", async (req, res) => {
       utm_content:  (utm as Record<string, string>)?.utm_content  || null,
       utm_term:     (utm as Record<string, string>)?.utm_term     || null,
     };
-    const clientIp = ((req.headers["x-forwarded-for"] as string) || "")
-      .split(",")[0].trim() || undefined;
+    const clientIp = req.ip || undefined;
     const clientUa = (req.headers["user-agent"] as string) || undefined;
     const clientFbp = (req.body as Record<string, unknown>).fbp as string | undefined;
     const clientFbc = (req.body as Record<string, unknown>).fbc as string | undefined;
@@ -145,7 +144,7 @@ router.post("/pix/create", async (req, res) => {
     if (idempKey) pixQueue.setPending(idempKey, jobId);
     res.json({ job_id: jobId, status: "processing" });
   } catch (err) {
-    const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
+    const userIp = req.ip || undefined;
     logger.error({ err }, "Erro ao criar transação PIX");
     logError("POST /api/pix/create", err, userIp, {
       amount: req.body?.amount,
@@ -269,7 +268,7 @@ router.post("/pix/create-upsell", async (req, res) => {
     if (idempKey) pixQueue.setPending(idempKey, jobId);
     res.json({ job_id: jobId, status: "processing" });
   } catch (err) {
-    const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
+    const userIp = req.ip || undefined;
     logger.error({ err }, "Erro ao criar PIX upsell");
     logError("POST /api/pix/create-upsell", err, userIp, {
       amount: (req.body as Record<string, unknown>)?.amount,
@@ -606,7 +605,7 @@ router.post("/pix/create-vip", async (req, res) => {
     }
 
     const amountInCents = VIP_AMOUNT * 100;
-    const clientIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
+    const clientIp = req.ip || undefined;
     const clientUa = (req.headers["user-agent"] as string) || undefined;
     const tracking: UtmifyTrackingParams = {
       src:          (utm as Record<string, string>)?.src          || null,
@@ -678,7 +677,7 @@ router.post("/pix/create-vip", async (req, res) => {
     if (idempKey) pixQueue.setPending(idempKey, jobId);
     res.json({ job_id: jobId, status: "processing" });
   } catch (err) {
-    const userIp = ((req.headers["x-forwarded-for"] as string) || "").split(",")[0].trim() || undefined;
+    const userIp = req.ip || undefined;
     logger.error({ err }, "Erro ao criar transação PIX VIP");
     logError("POST /api/pix/create-vip", err, userIp, {
       utm: (req.body as Record<string, unknown>)?.utm,

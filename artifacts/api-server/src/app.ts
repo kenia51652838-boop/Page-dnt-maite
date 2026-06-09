@@ -7,6 +7,10 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+// Necessário para Railway (e qualquer proxy reverso): garante que req.ip e
+// x-forwarded-for reflitam o IP real do cliente, incluindo endereços IPv6.
+app.set("trust proxy", true);
+
 app.use(
   pinoHttp({
     logger,
