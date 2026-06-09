@@ -1,0 +1,2 @@
+- [Doacao Solidaria project](doacao-solidaria.md) — FB Pixel/CAPI deduplication, Lumina webhook-only, Railway deploy via GitHub
+- [UTMify eventID sync](utmify-eventid.md) — UTMify captures explicit fbq eventID; without one it generates ob3_plugin-set_xxx causing 0% dedup coverage
