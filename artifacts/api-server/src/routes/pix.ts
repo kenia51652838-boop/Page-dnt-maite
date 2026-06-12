@@ -60,7 +60,9 @@ router.post("/pix/create", async (req, res) => {
       utm_content:  (utm as Record<string, string>)?.utm_content  || null,
       utm_term:     (utm as Record<string, string>)?.utm_term     || null,
     };
-    const clientIp = req.ip || undefined;
+    // Prefere IP capturado pelo browser (IPv6-aware) — evita mismatch IPv4/IPv6 no FB CAPI
+    const clientIp = (req.body as Record<string, unknown>).client_ip as string | undefined
+      || req.ip || undefined;
     const clientUa = (req.headers["user-agent"] as string) || undefined;
     const clientFbp = (req.body as Record<string, unknown>).fbp as string | undefined;
     const clientFbc = (req.body as Record<string, unknown>).fbc as string | undefined;

@@ -158,6 +158,7 @@ export default function Home() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const expiresAtRef = useRef<number>(0);
   const paidAmountRef = useRef<number>(0);
+  const clientIpRef = useRef<string | undefined>(undefined);
 
   const showToast = useCallback((t: Omit<ToastItem,"id">) => {
     const id = Math.random().toString(36).slice(2);
@@ -173,6 +174,20 @@ export default function Home() {
     setToasts(prev => prev.map(x => x.id === id ? {...x, leaving: true} : x));
     setTimeout(() => setToasts(prev => prev.filter(x => x.id !== id)), 400);
   };
+
+  // Captura o IP real do browser (IPv6-aware) no mount para usar no CAPI — evita mismatch IPv4/IPv6
+  useEffect(() => {
+    (async () => {
+      try {
+        const controller = new AbortController();
+        const to = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch("https://api64.ipify.org?format=json", { signal: controller.signal });
+        clearTimeout(to);
+        const data = await res.json() as { ip: string };
+        if (data.ip) clientIpRef.current = data.ip;
+      } catch {}
+    })();
+  }, []);
 
   // Fetch donor city when ThankYouModal opens (once per session)
   useEffect(() => {
@@ -381,6 +396,7 @@ export default function Home() {
           utm: utmParams,
           fbp: readFbp(),
           fbc: readFbc(),
+          client_ip: clientIpRef.current,
         }),
       });
       const rawData = await safeJson<{
@@ -417,6 +433,20 @@ export default function Home() {
       setHasActivePix(true);
       setPixLoadingOpen(false);
       closeDoacaoModal();
+      try {
+        // Re-init dos 3 pixels com dados do cliente para correspondência avançada no browser
+        const FB_PIXEL_IDS = ["1507785031003753", "1308311710742436", "2382122502268128"];
+        const nameParts = customer.name.trim().split(/\s+/);
+        const advData = {
+          em: customer.email,
+          ph: customer.phone.replace(/\D/g, ""),
+          fn: nameParts[0] || "",
+          ln: nameParts.slice(1).join(" ") || "",
+        };
+        for (const pid of FB_PIXEL_IDS) {
+          (window as any).fbq?.("init", pid, advData);
+        }
+      } catch {}
       try { (window as any).fbq?.("track", "InitiateCheckout", { value, currency: "BRL", num_items: 1, content_ids: ["hot-assinatura-semanal-francis"] }, { eventID: `checkout_${data.transaction_id || ""}` }); } catch {}
       setPixModalOpen(true);
       document.body.style.overflow = "hidden";
