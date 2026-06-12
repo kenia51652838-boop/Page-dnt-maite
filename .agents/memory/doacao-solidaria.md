@@ -19,7 +19,7 @@ description: Key architectural decisions and constraints for the Doacao Solidari
 ## CAPI Deduplication Strategy
 - Purchase: eventID = Lumina txId (e.g. `lum_abc123`) — used by browser fbq, CAPI direct, and UTMify
 - InitiateCheckout: eventID = `checkout_${txId}` — browser + CAPI direct
-- PageView: eventID = `pv_${Date.now()}_${random}` — browser fbq + UTMify server-side
+- PageView: eventID = `pv_${Date.now()}_${random}` — browser fbq + UTMify server-side (UTMify captures explicit eventID from fbq call)
 
 ## CAPI Field Rules
 - CPF → `external_id: sha256(cpf)` (NEVER use `db` field — that means date of birth)
@@ -27,7 +27,21 @@ description: Key architectural decisions and constraints for the Doacao Solidari
 - `fbp`/`fbc` sent raw (not hashed)
 - `custom_data`: contents, content_ids, content_type, num_items, order_id on Purchase
 
+## IPv4/IPv6 Fix
+- Browser captures real client IP via `https://api64.ipify.org?format=json` on mount (returns IPv6 when available)
+- Stored in `clientIpRef`, sent as `client_ip` in PIX creation payload
+- Server prefers `client_ip` from body over `req.ip` (which Railway may downgrade to IPv4)
+- Applied to all three routes: `/api/pix/create`, `/api/pix/create-upsell`, `/api/pix/create-vip`
+- Both `Home.tsx` and `ContaAtrasada.tsx` implement this pattern
+
+## Advanced Matching Fix
+- Before firing browser `fbq('track', 'InitiateCheckout', ...)`, re-init all 3 pixels with customer data:
+  `fbq('init', pixelId, { em, ph, fn, ln })` for each pixel ID
+- This covers InitiateCheckout and Purchase with user data in the browser pixel session
+- PageView at initial load cannot have advanced matching (no user data available yet — structural limitation of anonymous flow)
+
 ## Known Issues / Fixes Applied
 - `trust proxy: true` on Express app — use `req.ip` not manual x-forwarded-for parsing
 - Webhook retry (1s + 2s) before falling back to webhook-only data — fixes fbp missing on fast webhooks
 - `ENOTFOUND base` on startup = non-critical secondary DB error, ignore
+- "Correspondência avançada manual" warning: partially resolved by re-init at checkout; PageView will still lack user data unless real form fields (email/phone) are added to page entry flow
