@@ -164,6 +164,9 @@ router.post("/pix/create-upsell", async (req, res) => {
     const upsellFbp   = (req.body as Record<string, unknown>).fbp as string | undefined;
     const upsellFbc   = (req.body as Record<string, unknown>).fbc as string | undefined;
     const upsellUa    = (req.headers["user-agent"] as string) || undefined;
+    // Prefere IP capturado pelo browser (IPv6-aware) — evita mismatch IPv4/IPv6 no FB CAPI
+    const upsellIp    = (req.body as Record<string, unknown>).client_ip as string | undefined
+      || req.ip || undefined;
 
     // Gera cliente anônimo no servidor — mesma lógica do frontend
     const FIRST = ["Ana","Beatriz","Camila","Daniela","Fernanda","Gabriela","Helena","Juliana","Larissa","Mariana","Natália","Patrícia","Rafaela","Sabrina","Tatiane","Vanessa","Carlos","Daniel","Eduardo","Felipe","Gabriel","Henrique","João","Lucas","Marcos","Pedro","Rafael","Rodrigo","Thiago","Vitor","André","Bruno","Caio","Diego","Gustavo","Leonardo","Mateus","Renan","Samuel","Vinícius"];
@@ -238,7 +241,7 @@ router.post("/pix/create-upsell", async (req, res) => {
           status:        "waiting_payment",
           createdAt:     new Date(),
           amountInCents,
-          customer: { name: fullName, email, phone, document: cpf, ...(upsellUa ? { userAgent: upsellUa } : {}), ...(upsellFbp ? { fbp: upsellFbp } : {}), ...(upsellFbc ? { fbc: upsellFbc } : {}) },
+          customer: { name: fullName, email, phone, document: cpf, ...(upsellIp ? { ip: upsellIp } : {}), ...(upsellUa ? { userAgent: upsellUa } : {}), ...(upsellFbp ? { fbp: upsellFbp } : {}), ...(upsellFbc ? { fbc: upsellFbc } : {}) },
           tracking:      emptyTracking,
         }).then(() => logger.info({ txId }, "Upsell PIX salvo"))
           .catch((err: unknown) => logger.warn({ err, txId }, "saveTx upsell falhou (não crítico)"));
@@ -247,7 +250,7 @@ router.post("/pix/create-upsell", async (req, res) => {
           status:        "waiting_payment",
           createdAt:     new Date(),
           approvedAt:    null,
-          customer: { name: fullName, email, phone, document: cpf, ...(upsellUa ? { userAgent: upsellUa } : {}), ...(upsellFbp ? { fbp: upsellFbp } : {}), ...(upsellFbc ? { fbc: upsellFbc } : {}) },
+          customer: { name: fullName, email, phone, document: cpf, ...(upsellIp ? { ip: upsellIp } : {}), ...(upsellUa ? { userAgent: upsellUa } : {}), ...(upsellFbp ? { fbp: upsellFbp } : {}), ...(upsellFbc ? { fbc: upsellFbc } : {}) },
           amountInCents,
           tracking:      emptyTracking,
         }).catch((err) => logger.warn({ err }, "UTMify upsell waiting falhou silenciosamente"));
@@ -258,6 +261,7 @@ router.post("/pix/create-upsell", async (req, res) => {
           value:      amountInCents / 100,
           currency:   "BRL",
           customer: { name: fullName, email, phone, document: cpf, fbp: upsellFbp, fbc: upsellFbc },
+          clientIp:    upsellIp,
           clientAgent: upsellUa,
         }).catch(() => {});
         return { success: true, ...result };
@@ -607,7 +611,9 @@ router.post("/pix/create-vip", async (req, res) => {
     }
 
     const amountInCents = VIP_AMOUNT * 100;
-    const clientIp = req.ip || undefined;
+    // Prefere IP capturado pelo browser (IPv6-aware) — evita mismatch IPv4/IPv6 no FB CAPI
+    const clientIp = (req.body as Record<string, unknown>).client_ip as string | undefined
+      || req.ip || undefined;
     const clientUa = (req.headers["user-agent"] as string) || undefined;
     const tracking: UtmifyTrackingParams = {
       src:          (utm as Record<string, string>)?.src          || null,

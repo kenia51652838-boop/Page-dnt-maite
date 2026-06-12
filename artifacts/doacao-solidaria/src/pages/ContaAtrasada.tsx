@@ -30,12 +30,27 @@ export default function ContaAtrasada() {
   const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const cdRef      = useRef<ReturnType<typeof setInterval> | null>(null);
   const expiresRef = useRef<number>(0);
+  const clientIpRef = useRef<string | undefined>(undefined);
 
   function stopAll() {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
     if (cdRef.current)   { clearInterval(cdRef.current);   cdRef.current   = null; }
   }
   useEffect(() => () => stopAll(), []);
+
+  // Captura o IP real do browser (IPv6-aware) no mount para usar no CAPI — evita mismatch IPv4/IPv6
+  useEffect(() => {
+    (async () => {
+      try {
+        const controller = new AbortController();
+        const to = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch("https://api64.ipify.org?format=json", { signal: controller.signal });
+        clearTimeout(to);
+        const data = await res.json() as { ip: string };
+        if (data.ip) clientIpRef.current = data.ip;
+      } catch {}
+    })();
+  }, []);
 
   // Lê doador recente do localStorage e exibe o toast de confirmação
   useEffect(() => {
@@ -87,7 +102,7 @@ export default function ContaAtrasada() {
           "Content-Type": "application/json",
           "x-idempotency-key": crypto.randomUUID(),
         },
-        body: JSON.stringify({ amount: BILL_AMOUNT, fbp: readFbp(), fbc: readFbc() }),
+        body: JSON.stringify({ amount: BILL_AMOUNT, fbp: readFbp(), fbc: readFbc(), client_ip: clientIpRef.current }),
       });
       const rawData = await safeJson<{ pix_code?: string; transaction_id?: string; error?: string; job_id?: string; status?: string }>(res);
       if (!res.ok || rawData.error) throw new Error(rawData.error || "Erro ao gerar PIX");
