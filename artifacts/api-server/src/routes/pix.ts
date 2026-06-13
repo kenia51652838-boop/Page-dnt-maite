@@ -81,8 +81,9 @@ router.post("/pix/create", async (req, res) => {
           external_id,
         });
         const txId = result.transaction_id || external_id;
-        // fire-and-forget — não bloqueia a liberação do resultado pro frontend
-        saveTx({
+        // awaited — garante que o registro esteja no banco antes do QR ser exibido,
+        // evitando race condition onde o webhook chega antes do saveTx completar
+        await saveTx({
           orderId:       txId,
           externalId:    external_id,
           status:        "waiting_payment",
@@ -234,8 +235,8 @@ router.post("/pix/create-upsell", async (req, res) => {
           product_title:  "Hot - Assinatura quente",
         });
         const txId = result.transaction_id || external_id;
-        // fire-and-forget — não bloqueia a liberação do resultado pro frontend
-        saveTx({
+        // awaited — garante que o registro esteja no banco antes do QR ser exibido
+        await saveTx({
           orderId:       txId,
           externalId:    external_id,
           status:        "waiting_payment",
@@ -640,8 +641,8 @@ router.post("/pix/create-vip", async (req, res) => {
           product_title: "Hot - Assinatura mensal",
         });
         const txId = result.transaction_id || external_id;
-        // fire-and-forget — não bloqueia a liberação do resultado pro frontend
-        saveTx({
+        // awaited — garante que o registro esteja no banco antes do QR ser exibido
+        await saveTx({
           orderId:       txId,
           externalId:    external_id,
           status:        "waiting_payment",
