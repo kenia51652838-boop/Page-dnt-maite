@@ -30,7 +30,26 @@ app.use(
     },
   }),
 );
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  "https://salvar.esperancaunida.click",
+  "https://francis-production.up.railway.app",
+  /^https?:\/\/localhost(:\d+)?$/,
+  /\.replit\.dev$/,
+  /\.riker\.replit\.dev$/,
+];
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      const allowed = ALLOWED_ORIGINS.some((o) =>
+        typeof o === "string" ? o === origin : o.test(origin),
+      );
+      cb(allowed ? null : new Error("Not allowed by CORS"), allowed);
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
