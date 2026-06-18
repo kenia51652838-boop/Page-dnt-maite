@@ -4,11 +4,18 @@ import Navbar from "@/components/Navbar";
 import FomoNotification from "@/components/FomoNotification";
 import PrivateFomoToast from "@/components/PrivateFomoToast";
 
-const BILL_AMOUNT = 37.45;
+const BILL_AMOUNT  = 37.45;
+const DUE_DATE     = new Date("2026-05-05T08:00:00-03:00");
+const CUT_DATE_STR = "06/05/2026 às 08h47";
 const FOMO_UPSELL_KEY = "fomo_shown_upsell_v1";
 
 function fmtBRL(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+}
+
+function daysOverdue() {
+  const diff = Date.now() - DUE_DATE.getTime();
+  return Math.max(1, Math.floor(diff / 86_400_000));
 }
 
 type Step = "story" | "pix" | "paid";
@@ -26,6 +33,8 @@ export default function ContaAtrasada() {
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   const [fomoData, setFomoData]   = useState<{ name: string; city: string; amount: number } | null>(null);
   const [fomoVisible, setFomoVisible] = useState(false);
+  const [viewCount]               = useState(() => Math.floor(Math.random() * 18) + 34);
+  const [donorName, setDonorName] = useState<string | null>(null);
 
   const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const cdRef      = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -38,7 +47,6 @@ export default function ContaAtrasada() {
   }
   useEffect(() => () => stopAll(), []);
 
-  // Captura o IP real do browser (IPv6-aware) no mount para usar no CAPI — evita mismatch IPv4/IPv6
   useEffect(() => {
     (async () => {
       try {
@@ -52,7 +60,6 @@ export default function ContaAtrasada() {
     })();
   }, []);
 
-  // Lê doador recente do localStorage e exibe o toast de confirmação
   useEffect(() => {
     try {
       const raw = localStorage.getItem("ds_recent_donor");
@@ -61,6 +68,9 @@ export default function ContaAtrasada() {
       if (Date.now() - donor.timestamp < 10 * 60 * 1000) {
         setFomoData({ name: donor.nome, city: donor.city || "", amount: donor.valorNum });
         setFomoVisible(true);
+      }
+      if (donor.nome && donor.nome.toLowerCase() !== "anônimo" && donor.nome.toLowerCase() !== "anonimo") {
+        setDonorName(donor.nome.split(" ")[0]);
       }
     } catch {}
   }, []);
@@ -150,7 +160,7 @@ export default function ContaAtrasada() {
 
   const page: React.CSSProperties = {
     minHeight: "100dvh",
-    background: "#f4f6f8",
+    background: "#f0f2f5",
     fontFamily: "'Montserrat', 'Lato', sans-serif",
   };
 
@@ -160,61 +170,81 @@ export default function ContaAtrasada() {
     padding: "0 1rem 3rem",
   };
 
-  const card: React.CSSProperties = {
-    background: "#fff",
-    borderRadius: "16px",
-    border: "1.5px solid #e5e7eb",
-    padding: "1.25rem",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-  };
-
   /* ── SUCESSO ──────────────────────────────────────────────────────────── */
   if (step === "paid") {
     return (
       <div style={page}>
         <Navbar onCreateCampaign={() => {}} />
-        <div style={{ ...wrap, paddingTop: "2.5rem", textAlign: "center" }}>
-          <div style={{
-            width: 72, height: 72,
-            background: "linear-gradient(135deg,#dcfce7,#bbf7d0)",
-            borderRadius: "50%",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "2rem", margin: "0 auto 1.25rem",
-          }}>💡</div>
+        <div style={{ ...wrap, paddingTop: "2rem" }}>
 
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#111827", margin: "0 0 0.6rem" }}>
-            A luz vai voltar hoje!
-          </h1>
-          <p style={{ color: "#4b5563", lineHeight: 1.75, fontSize: "0.925rem", margin: "0 0 1.5rem" }}>
-            Seu pagamento de <strong>{fmtBRL(BILL_AMOUNT)}</strong> foi confirmado. O Sr.&nbsp;
-            Francivaldo e seus 4 filhos vão dormir com a energia funcionando esta noite.
-          </p>
-
+          {/* Comprovante */}
           <div style={{
-            ...card,
-            display: "flex", alignItems: "center", gap: "12px",
-            textAlign: "left", marginBottom: "1.75rem",
+            background: "#fff",
+            borderRadius: "16px",
             border: "1.5px solid #d1fae5",
+            overflow: "hidden",
+            boxShadow: "0 4px 20px rgba(22,163,74,0.12)",
+            marginBottom: "1.25rem",
           }}>
+            {/* Topo verde */}
             <div style={{
-              width: 38, height: 38, flexShrink: 0,
-              background: "#24CA68", borderRadius: "50%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: "1rem",
-            }}>✓</div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#111827" }}>
-                Energia elétrica — {fmtBRL(BILL_AMOUNT)}
+              background: "linear-gradient(135deg,#16a34a,#22c55e)",
+              padding: "1.5rem 1.25rem 1.25rem",
+              textAlign: "center",
+            }}>
+              <div style={{
+                width: 60, height: 60,
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1.75rem", margin: "0 auto 0.75rem",
+              }}>✓</div>
+              <div style={{ color: "#fff", fontWeight: 800, fontSize: "1.2rem", lineHeight: 1.3 }}>
+                {donorName ? `Obrigado, ${donorName}!` : "Doação confirmada!"}
               </div>
-              <div style={{ fontSize: "0.78rem", color: "#16a34a", marginTop: "2px" }}>
-                Pendência quitada com sucesso
+              <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.82rem", marginTop: "4px" }}>
+                Seu PIX foi processado com sucesso
+              </div>
+            </div>
+
+            {/* Corpo do comprovante */}
+            <div style={{ padding: "1.25rem" }}>
+              {/* Linha decorativa tipo rasgo de papel */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                marginBottom: "1.1rem",
+              }}>
+                <div style={{ flex: 1, height: "1px", background: "repeating-linear-gradient(90deg,#e5e7eb 0,#e5e7eb 6px,transparent 6px,transparent 12px)" }} />
+                <span style={{ fontSize: "0.68rem", color: "#9ca3af", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Comprovante</span>
+                <div style={{ flex: 1, height: "1px", background: "repeating-linear-gradient(90deg,#e5e7eb 0,#e5e7eb 6px,transparent 6px,transparent 12px)" }} />
+              </div>
+
+              <Row label="Beneficiário" value="Francivaldo Pereira Ricardo" />
+              <Row label="Referência" value="Energia elétrica — conta em atraso" />
+              <Row label="Valor pago" value={fmtBRL(BILL_AMOUNT)} highlight />
+              <Row label="Situação da conta" value="QUITADA ✓" green />
+              <Row label="Data" value={new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })} />
+
+              <div style={{
+                marginTop: "1.1rem",
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "10px",
+                padding: "0.85rem 1rem",
+                fontSize: "0.83rem",
+                color: "#15803d",
+                lineHeight: 1.65,
+              }}>
+                ⚡ A distribuidora receberá o pagamento e a energia do Sr. Francivaldo será religada em até <strong>24h úteis</strong>. Seus 4 filhos vão dormir com luz esta noite.
               </div>
             </div>
           </div>
 
-          <a href="/" style={{ color: "#9ca3af", fontSize: "0.82rem", textDecoration: "underline" }}>
-            Voltar para a campanha
-          </a>
+          <div style={{ textAlign: "center" }}>
+            <a href="/" style={{ color: "#9ca3af", fontSize: "0.8rem", textDecoration: "underline" }}>
+              Voltar para a campanha
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -228,57 +258,105 @@ export default function ContaAtrasada() {
         <FomoNotification onDonate={() => {}} storageKey={FOMO_UPSELL_KEY} />
 
         <div style={{ ...wrap, paddingTop: "1.5rem" }}>
+
+          {/* Timer */}
           <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
-              background: "#fef9c3", border: "1.5px solid #fde047",
-              borderRadius: "999px", padding: "5px 14px", marginBottom: "0.75rem",
-              fontSize: "0.8rem", fontWeight: 700, color: "#854d0e",
+              background: expired ? "#fef2f2" : "#fef9c3",
+              border: `1.5px solid ${expired ? "#fca5a5" : "#fde047"}`,
+              borderRadius: "999px", padding: "5px 16px",
+              fontSize: "0.8rem", fontWeight: 700,
+              color: expired ? "#dc2626" : "#854d0e",
             }}>
-              ⏱ PIX expira em {countdown}
+              ⏱ {expired ? "PIX expirado" : `PIX expira em ${countdown}`}
             </div>
-            <h1 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#111827", margin: "0 0 0.25rem" }}>
-              PIX gerado — copie e pague
-            </h1>
-            <p style={{ color: "#6b7280", fontSize: "0.85rem", margin: 0 }}>
-              Valor: <strong style={{ color: "#111827" }}>{fmtBRL(BILL_AMOUNT)}</strong> · Energia elétrica do Sr. Francivaldo
-            </p>
           </div>
 
-          <div style={{ ...card, marginBottom: "1rem" }}>
-            <PendenciaItem />
+          {/* Mini conta */}
+          <div style={{
+            background: "#fff",
+            borderRadius: "14px",
+            border: "1.5px solid #e5e7eb",
+            overflow: "hidden",
+            marginBottom: "1rem",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}>
+            {/* Header da conta */}
+            <div style={{
+              background: "#1e3a5f",
+              padding: "10px 14px",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <div>
+                <div style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Distribuidora de Energia</div>
+                <div style={{ color: "#fff", fontWeight: 800, fontSize: "0.85rem" }}>Aviso de Débito em Atraso</div>
+              </div>
+              <div style={{
+                background: "#ef4444", color: "#fff",
+                fontSize: "0.6rem", fontWeight: 800,
+                padding: "3px 8px", borderRadius: "4px",
+                letterSpacing: "0.06em",
+              }}>CORTE REALIZADO</div>
+            </div>
 
-            <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: "1rem", marginTop: "1rem" }}>
-              <div style={{
-                fontSize: "0.7rem", fontWeight: 700, color: "#9ca3af",
-                letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "8px",
-              }}>
-                Código PIX — copia e cola
+            <div style={{ padding: "0.9rem 1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
+                <MiniField label="Nome" value="Francivaldo P. Ricardo" />
+                <MiniField label="Vencimento" value="05/05/2026" />
+                <MiniField label="Em atraso há" value={`${daysOverdue()} dias`} red />
+                <MiniField label="Valor" value={fmtBRL(BILL_AMOUNT)} red bold />
               </div>
-              <div style={{
-                background: "#f9fafb", border: "1px solid #e5e7eb",
-                borderRadius: "8px", padding: "10px 12px",
-                fontSize: "0.7rem", color: "#374151",
-                wordBreak: "break-all", lineHeight: 1.6, marginBottom: "10px",
-                fontFamily: "monospace", userSelect: "text" as const,
-              }}>
-                {pixCode}
-              </div>
-              <button
-                onClick={handleCopy}
-                disabled={expired}
-                style={{
-                  width: "100%",
-                  background: copied ? "#16a34a" : "linear-gradient(135deg,#24CA68,#1aad56)",
-                  color: "#fff", border: "none", borderRadius: "10px",
-                  padding: "13px 16px", fontSize: "0.95rem", fontWeight: 700,
-                  cursor: expired ? "not-allowed" : "pointer",
-                  opacity: expired ? 0.5 : 1,
-                  boxShadow: expired || copied ? "none" : "0 4px 12px rgba(36,202,104,0.3)",
-                }}
-              >
-                {copied ? "✅ Copiado!" : "📋 Copiar código PIX"}
-              </button>
+              <Barcode />
+            </div>
+          </div>
+
+          {/* PIX code */}
+          <div style={{
+            background: "#fff",
+            borderRadius: "14px",
+            border: "1.5px solid #e5e7eb",
+            padding: "1rem",
+            marginBottom: "1rem",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}>
+            <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#9ca3af", letterSpacing: "0.07em", textTransform: "uppercase" as const, marginBottom: "8px" }}>
+              Código PIX — copia e cola
+            </div>
+            <div style={{
+              background: "#f9fafb", border: "1px solid #e5e7eb",
+              borderRadius: "8px", padding: "10px 12px",
+              fontSize: "0.7rem", color: "#374151",
+              wordBreak: "break-all" as const, lineHeight: 1.6, marginBottom: "10px",
+              fontFamily: "monospace", userSelect: "text" as const,
+            }}>
+              {pixCode}
+            </div>
+            <button
+              onClick={handleCopy}
+              disabled={expired}
+              style={{
+                width: "100%",
+                background: copied ? "#16a34a" : "linear-gradient(135deg,#24CA68,#1aad56)",
+                color: "#fff", border: "none", borderRadius: "10px",
+                padding: "13px 16px", fontSize: "0.95rem", fontWeight: 700,
+                cursor: expired ? "not-allowed" : "pointer",
+                opacity: expired ? 0.5 : 1,
+                boxShadow: expired || copied ? "none" : "0 4px 12px rgba(36,202,104,0.3)",
+              }}
+            >
+              {copied ? "✅ Copiado!" : "📋 Copiar código PIX"}
+            </button>
+
+            <div style={{
+              marginTop: "10px",
+              display: "flex", alignItems: "center", gap: "6px",
+              background: "#f0fdf4", borderRadius: "8px", padding: "8px 10px",
+            }}>
+              <span style={{ fontSize: "0.9rem" }}>🔒</span>
+              <span style={{ fontSize: "0.73rem", color: "#15803d", lineHeight: 1.5 }}>
+                Seu PIX paga diretamente a distribuidora de energia do Sr. Francivaldo
+              </span>
             </div>
           </div>
 
@@ -315,7 +393,6 @@ export default function ContaAtrasada() {
               )}
             </div>
           )}
-
         </div>
       </div>
     );
@@ -330,7 +407,7 @@ export default function ContaAtrasada() {
 
       {/* ── Faixa de atenção ──────────────────────────────────────────────── */}
       <div style={{
-        background: "#dc2626",
+        background: "#1e3a5f",
         padding: "9px 20px",
         textAlign: "center",
       }}>
@@ -338,116 +415,169 @@ export default function ContaAtrasada() {
           margin: 0,
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 700,
-          fontSize: "0.8rem",
+          fontSize: "0.78rem",
           color: "#fff",
           letterSpacing: "0.02em",
           lineHeight: 1.5,
         }}>
-          🔔 Você foi selecionado(a) para algo importante. Não feche esta página.
+          ⚡ A conta de energia do Sr. Francivaldo chegou até você — ela ainda não foi quitada
         </p>
       </div>
 
       <div style={{ ...wrap, paddingTop: "1.5rem" }}>
 
-        {/* ── Campanha card (foto + progresso) ─────────────────────────── */}
-        <div style={{ ...card, padding: 0, overflow: "hidden", marginBottom: "1.25rem" }}>
+        {/* ── Prova social ──────────────────────────────────────────────────── */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+          marginBottom: "1.1rem",
+          fontSize: "0.75rem", color: "#6b7280", fontWeight: 600,
+        }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: "4px",
+            background: "#fff", border: "1px solid #e5e7eb",
+            borderRadius: "999px", padding: "4px 12px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+          }}>
+            👁 <span>{viewCount} pessoas viram esta conta hoje</span>
+          </span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: "4px",
+            background: "#fff7ed", border: "1px solid #fed7aa",
+            borderRadius: "999px", padding: "4px 12px",
+            color: "#92400e",
+          }}>
+            🕐 nenhuma ajudou ainda
+          </span>
+        </div>
 
-          {/* Foto hero */}
-          <div style={{ position: "relative", height: "160px", overflow: "hidden" }}>
+        {/* ── Foto + urgência ───────────────────────────────────────────────── */}
+        <div style={{
+          background: "#fff",
+          borderRadius: "16px",
+          border: "1.5px solid #e5e7eb",
+          overflow: "hidden",
+          marginBottom: "1.1rem",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+        }}>
+          <div style={{ position: "relative", height: "170px", overflow: "hidden" }}>
             <picture>
               <source srcSet={`${BASE}img/francivaldo.webp`} type="image/webp" />
               <img
                 src={`${BASE}img/francivaldo.jpg`}
                 alt="Sr. Francivaldo Pereira Ricardo"
-                style={{
-                  width: "100%", height: "100%", objectFit: "cover",
-                  objectPosition: "center 20%",
-                }}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }}
               />
             </picture>
             <div style={{
               position: "absolute", inset: 0,
-              background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.65) 100%)",
+              background: "linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.72) 100%)",
             }} />
-            <div style={{
-              position: "absolute", bottom: "12px", left: "14px", right: "14px",
-            }}>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: "5px",
-                background: "rgba(36,202,104,0.9)", borderRadius: "999px",
-                padding: "3px 10px", fontSize: "0.68rem", fontWeight: 800,
-                color: "#fff", letterSpacing: "0.05em", marginBottom: "5px",
-              }}>
-                🟢 CAMPANHA ATIVA
-              </div>
-              <div style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", lineHeight: 1.25, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
+            <div style={{ position: "absolute", bottom: "12px", left: "14px", right: "14px" }}>
+              <div style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", lineHeight: 1.25, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
                 Sr. Francivaldo Pereira Ricardo
               </div>
-              <div style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.72rem", marginTop: "2px" }}>
-                ONG Doação Solidária
+              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.72rem", marginTop: "2px" }}>
+                ONG Doação Solidária — Nordeste, Brasil
               </div>
             </div>
           </div>
 
-          {/* Rodapé do card */}
-          <div style={{ padding: "0.75rem 1.125rem", display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Linha de status — energia cortada */}
+          <div style={{
+            padding: "0.7rem 1rem",
+            display: "flex", alignItems: "center", gap: "10px",
+            borderTop: "1.5px solid #fef2f2",
+            background: "#fffbfb",
+          }}>
             <div style={{
               width: 8, height: 8, borderRadius: "50%",
-              background: "#24CA68",
-              boxShadow: "0 0 0 3px rgba(36,202,104,0.2)",
+              background: "#ef4444",
+              boxShadow: "0 0 0 3px rgba(239,68,68,0.2)",
               flexShrink: 0,
+              animation: "pulse 1.5s infinite",
             }} />
-            <span style={{ fontSize: "0.75rem", color: "#4b5563", fontWeight: 600 }}>
-              Pendência identificada · aguardando o doador selecionado
+            <span style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: 700 }}>
+              Energia cortada desde {CUT_DATE_STR} · {daysOverdue() - 1} dia{daysOverdue() - 1 !== 1 ? "s" : ""} sem luz
             </span>
           </div>
         </div>
 
-        {/* ── Pendências card ────────────────────────────────────────────── */}
-        <div style={{ ...card, marginBottom: "1.25rem" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+        {/* ── Conta de energia (documento) ──────────────────────────────────── */}
+        <div style={{
+          background: "#fff",
+          borderRadius: "14px",
+          border: "1.5px solid #e5e7eb",
+          overflow: "hidden",
+          marginBottom: "1.1rem",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+        }}>
+          {/* Cabeçalho estilo distribuidora */}
+          <div style={{
+            background: "#1e3a5f",
+            padding: "10px 14px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
             <div>
-              <div style={{ fontSize: "0.68rem", fontWeight: 800, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase" as const, marginBottom: "2px" }}>
-                Pendências do beneficiário
-              </div>
-              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>
-                Francivaldo Pereira Ricardo
-              </div>
-              <div style={{ fontSize: "0.73rem", color: "#9ca3af", marginTop: "1px" }}>
-                ONG Doação Solidária · Campanha ativa
-              </div>
+              <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>Distribuidora de Energia</div>
+              <div style={{ color: "#fff", fontWeight: 800, fontSize: "0.85rem" }}>Conta de Energia Elétrica</div>
             </div>
             <div style={{
-              background: "#fef2f2", color: "#dc2626",
-              fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.06em",
-              padding: "4px 10px", borderRadius: "999px",
-              border: "1px solid #fca5a5", flexShrink: 0, marginLeft: "8px",
-            }}>
-              1 PENDENTE
-            </div>
+              background: "#ef4444", color: "#fff",
+              fontSize: "0.58rem", fontWeight: 800,
+              padding: "3px 8px", borderRadius: "4px",
+              letterSpacing: "0.06em", textTransform: "uppercase" as const,
+            }}>CORTE REALIZADO</div>
           </div>
 
-          <PendenciaItem />
+          <div style={{ padding: "0.9rem 1rem" }}>
+            {/* Dados da conta */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 12px", marginBottom: "12px" }}>
+              <MiniField label="Titular" value="Francivaldo P. Ricardo" />
+              <MiniField label="Nº da conta" value="3847-2" />
+              <MiniField label="Competência" value="Abril / 2026" />
+              <MiniField label="Vencimento" value="05/05/2026" />
+              <MiniField label="Em atraso há" value={`${daysOverdue()} dias`} red />
+              <MiniField label="Valor total" value={fmtBRL(BILL_AMOUNT)} red bold />
+            </div>
 
-          <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: "0.75rem", marginTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: "0.78rem", color: "#9ca3af" }}>Total em aberto</span>
-            <span style={{ fontSize: "1rem", fontWeight: 800, color: "#dc2626" }}>{fmtBRL(BILL_AMOUNT)}</span>
+            {/* Pendências */}
+            <div style={{
+              background: "#fef2f2", border: "1px solid #fca5a5",
+              borderRadius: "8px", padding: "8px 10px",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              marginBottom: "12px",
+            }}>
+              <div>
+                <div style={{ fontSize: "0.73rem", fontWeight: 700, color: "#111827" }}>Energia Elétrica</div>
+                <div style={{ fontSize: "0.65rem", color: "#6b7280", marginTop: "1px" }}>Venceu em 05/05/2026</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#dc2626" }}>{fmtBRL(BILL_AMOUNT)}</div>
+                <div style={{
+                  fontSize: "0.58rem", fontWeight: 800,
+                  padding: "1px 6px", borderRadius: "999px",
+                  background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5",
+                  display: "inline-block", marginTop: "2px",
+                }}>EM ATRASO</div>
+              </div>
+            </div>
+
+            <Barcode />
           </div>
         </div>
 
-        {/* ── Copy emocional ─────────────────────────────────────────────── */}
-        <p style={{ fontSize: "1rem", color: "#111827", lineHeight: 1.75, fontWeight: 600, marginBottom: "0.75rem" }}>
-          Essa conta de luz estava aqui, esperando.<br />
-          <strong>Esperando por você.</strong>
+        {/* ── Copy emocional ─────────────────────────────────────────────────── */}
+        <p style={{ fontSize: "1rem", color: "#111827", lineHeight: 1.75, fontWeight: 700, marginBottom: "0.6rem" }}>
+          Essa conta chegou até você por um motivo.
         </p>
-        <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.8, marginBottom: "0.9rem" }}>
-          Nesse exato momento a energia do Sr. Francivaldo está cortada. Sem luz, a geladeira parou,
-          o ventilador que foi recebido por doações também parou — e seus <strong>4 filhos</strong>, o menor com 6 anos,
-          estão agora no escuro. Ele deixou a conta atrasar tentando não deixar faltar comida para as crianças.
+        <p style={{ fontSize: "0.88rem", color: "#4b5563", lineHeight: 1.85, marginBottom: "0.8rem" }}>
+          Desde {CUT_DATE_STR}, a energia do Sr. Francivaldo está cortada. A geladeira parou,
+          o ventilador doado pela campanha também parou — e os seus <strong>4 filhos</strong>, o mais novo
+          com 6 anos, estão dormindo no escuro e no calor. Ele deixou a conta atrasar para não deixar faltar comida.
         </p>
-        <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: 1.8, marginBottom: "1.25rem" }}>
-          Poucas pessoas chegam até esta página. A ONG separou <strong>uma única conta</strong> —
-          e ela apareceu para você. Não foi por acaso.
+        <p style={{ fontSize: "0.88rem", color: "#4b5563", lineHeight: 1.85, marginBottom: "1.25rem" }}>
+          A ONG identificou <strong>uma única conta</strong> pendente para este mês —
+          e ela apareceu para você entre centenas de doadores. Quem quita, quita sozinho.
         </p>
 
         <div style={{
@@ -456,31 +586,40 @@ export default function ContaAtrasada() {
           marginBottom: "1.75rem", display: "flex", alignItems: "flex-start", gap: "10px",
         }}>
           <span style={{ fontSize: "1.1rem", flexShrink: 0, marginTop: "1px" }}>⚡</span>
-          <p style={{ fontSize: "0.85rem", color: "#92400e", lineHeight: 1.7, margin: 0 }}>
+          <p style={{ fontSize: "0.83rem", color: "#92400e", lineHeight: 1.7, margin: 0 }}>
             <strong>{fmtBRL(BILL_AMOUNT)}</strong> é o valor exato desta conta.
-            Se você pagar agora, a energia do Sr. Francivaldo volta <strong>ainda hoje</strong>.
+            Se você pagar agora, a energia volta <strong>ainda hoje</strong>.
             Esse gesto é seu — de mais ninguém.
           </p>
         </div>
 
-        {/* ── CTA card ───────────────────────────────────────────────────── */}
-        <div style={card}>
+        {/* ── CTA card ───────────────────────────────────────────────────────── */}
+        <div style={{
+          background: "#fff",
+          borderRadius: "16px",
+          border: "1.5px solid #e5e7eb",
+          padding: "1.25rem",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+        }}>
           <div style={{ marginBottom: "1rem" }}>
             <div style={{ fontSize: "1rem", fontWeight: 800, color: "#111827", marginBottom: "4px" }}>
-              Quitar pendência via PIX
+              Quitar esta conta via PIX
             </div>
             <div style={{ fontSize: "0.82rem", color: "#6b7280" }}>
-              Um clique — sem cadastro. O PIX é gerado na hora.
+              Sem cadastro. O código PIX é gerado em segundos.
             </div>
           </div>
 
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
-            background: "#f9fafb", borderRadius: "10px",
-            padding: "10px 14px", marginBottom: "1rem",
+            background: "#fef2f2", border: "1px solid #fca5a5",
+            borderRadius: "10px", padding: "10px 14px", marginBottom: "1rem",
           }}>
-            <span style={{ fontSize: "0.82rem", color: "#374151", fontWeight: 600 }}>Energia elétrica — em atraso</span>
-            <span style={{ fontSize: "1rem", fontWeight: 800, color: "#111827" }}>{fmtBRL(BILL_AMOUNT)}</span>
+            <div>
+              <div style={{ fontSize: "0.78rem", color: "#374151", fontWeight: 700 }}>Energia elétrica — em atraso</div>
+              <div style={{ fontSize: "0.68rem", color: "#9ca3af", marginTop: "2px" }}>{daysOverdue()} dias de atraso</div>
+            </div>
+            <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "#dc2626" }}>{fmtBRL(BILL_AMOUNT)}</span>
           </div>
 
           {error && (
@@ -506,8 +645,19 @@ export default function ContaAtrasada() {
               letterSpacing: "0.01em",
             }}
           >
-            {loading ? "Gerando PIX..." : `⚡ Gerar PIX — ${fmtBRL(BILL_AMOUNT)}`}
+            {loading ? "Gerando PIX..." : `⚡ Quitar conta — ${fmtBRL(BILL_AMOUNT)}`}
           </button>
+
+          <div style={{
+            marginTop: "10px",
+            display: "flex", alignItems: "center", gap: "6px",
+            background: "#f9fafb", borderRadius: "8px", padding: "8px 10px",
+          }}>
+            <span style={{ fontSize: "0.9rem" }}>🔒</span>
+            <span style={{ fontSize: "0.72rem", color: "#6b7280", lineHeight: 1.5 }}>
+              Pagamento seguro via PIX · vai direto para a distribuidora de energia
+            </span>
+          </div>
         </div>
 
         {!txId && (
@@ -540,38 +690,60 @@ export default function ContaAtrasada() {
   );
 }
 
-function PendenciaItem() {
+/* ── Componentes auxiliares ────────────────────────────────────────────── */
+
+function MiniField({ label, value, red, bold }: { label: string; value: string; red?: boolean; bold?: boolean }) {
+  return (
+    <div>
+      <div style={{ fontSize: "0.6rem", color: "#9ca3af", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, marginBottom: "2px" }}>
+        {label}
+      </div>
+      <div style={{ fontSize: "0.78rem", fontWeight: bold ? 800 : 600, color: red ? "#dc2626" : "#111827" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, highlight, green }: { label: string; value: string; highlight?: boolean; green?: boolean }) {
   return (
     <div style={{
-      display: "flex", alignItems: "center", gap: "12px",
-      background: "#fafafa", border: "1px solid #f3f4f6",
-      borderRadius: "12px", padding: "12px 14px",
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      padding: "7px 0",
+      borderBottom: "1px solid #f3f4f6",
     }}>
+      <span style={{ fontSize: "0.78rem", color: "#6b7280" }}>{label}</span>
+      <span style={{
+        fontSize: "0.82rem",
+        fontWeight: highlight || green ? 800 : 600,
+        color: green ? "#16a34a" : highlight ? "#111827" : "#374151",
+      }}>{value}</span>
+    </div>
+  );
+}
+
+function Barcode() {
+  const bars = Array.from({ length: 48 }, (_, i) => ({
+    w: [1, 2, 1, 3, 1, 2, 2, 1][i % 8],
+    dark: i % 3 !== 2,
+  }));
+  return (
+    <div style={{ textAlign: "center" }}>
       <div style={{
-        width: 42, height: 42, flexShrink: 0,
-        background: "#fef2f2", borderRadius: "10px",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "1.15rem",
-      }}>⚡</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#111827", marginBottom: "2px" }}>
-          Energia Elétrica
-        </div>
-        <div style={{ fontSize: "0.73rem", color: "#6b7280" }}>
-          Venceu em 05/05/2026
-        </div>
+        display: "inline-flex", alignItems: "flex-end", gap: "1.5px",
+        height: "36px", padding: "0 4px",
+      }}>
+        {bars.map((b, i) => (
+          <div key={i} style={{
+            width: `${b.w * 2}px`,
+            height: b.dark ? (i % 5 === 0 ? "100%" : "80%") : "60%",
+            background: b.dark ? "#1e3a5f" : "#94a3b8",
+            borderRadius: "1px",
+          }} />
+        ))}
       </div>
-      <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#dc2626", marginBottom: "4px" }}>
-          {fmtBRL(BILL_AMOUNT)}
-        </div>
-        <div style={{
-          display: "inline-block", fontSize: "0.62rem", fontWeight: 800,
-          letterSpacing: "0.06em", padding: "2px 7px", borderRadius: "999px",
-          background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5",
-        }}>
-          EM ATRASO
-        </div>
+      <div style={{ fontSize: "0.6rem", color: "#9ca3af", marginTop: "3px", letterSpacing: "0.2em" }}>
+        3847 2026 0505 {Math.floor(BILL_AMOUNT * 100).toString().padStart(6, "0")}
       </div>
     </div>
   );
