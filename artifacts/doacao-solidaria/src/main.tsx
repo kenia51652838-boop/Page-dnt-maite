@@ -8,6 +8,7 @@ const ALLOWED_HOSTS = [
   "apoio.esperancaviva.digital",
   "apoio.felicidadefamiliar.info",
   "salvar.esperancaunida.click",
+  "apoio.campanhahoje.digital",
   "francis-production.up.railway.app",
 ];
 
