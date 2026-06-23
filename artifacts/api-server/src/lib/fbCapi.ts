@@ -5,6 +5,8 @@ const PIXELS = [
   { id: process.env["FB_PIXEL_OITAVO"] || "1507785031003753", token: process.env["FB_TOKEN_OITAVO"] || "" },
   { id: process.env["FB_PIXEL_DECIMO"] || "1308311710742436", token: process.env["FB_TOKEN_DECIMO"] || "" },
   { id: process.env["FB_PIXEL_ONZE"]   || "2382122502268128", token: process.env["FB_TOKEN_ONZE"]   || "" },
+  { id: process.env["FB_PIXEL_DOZE"]   || "2008889186664643", token: process.env["FB_TOKEN_DOZE"]   || "" },
+  { id: process.env["FB_PIXEL_QUINZE"] || "1678939216734559", token: process.env["FB_TOKEN_QUINZE"] || "" },
 ];
 
 const FB_API_VERSION = "v19.0";

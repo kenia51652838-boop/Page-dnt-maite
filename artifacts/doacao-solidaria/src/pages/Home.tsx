@@ -435,7 +435,7 @@ export default function Home() {
       closeDoacaoModal();
       try {
         // Re-init dos 3 pixels com dados do cliente para correspondência avançada no browser
-        const FB_PIXEL_IDS = ["1507785031003753", "1308311710742436", "2382122502268128"];
+        const FB_PIXEL_IDS = ["1507785031003753", "1308311710742436", "2382122502268128", "2008889186664643", "1678939216734559"];
         const nameParts = customer.name.trim().split(/\s+/);
         const advData = {
           em: customer.email,
