@@ -289,7 +289,7 @@ input, textarea, select {
   .only-desktop { display: none !important; }
   /* Espaço para o bar fixo dos botões não cobrir o conteúdo (inclui safe-area do iPhone) */
   main {
-    padding-bottom: calc(140px + env(safe-area-inset-bottom));
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
   }
 }
 @media (min-width: 1024px) {
