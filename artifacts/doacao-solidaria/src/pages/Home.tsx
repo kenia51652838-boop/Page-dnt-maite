@@ -95,8 +95,9 @@ function generateDonors() {
   const values = [30,35,40,50,60,75,100,150,200,300];
   const colors = ["#0ea5e9","#22c55e","#f97316","#a855f7","#ef4444","#14b8a6","#f59e0b","#6366f1"];
   const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
-  // Tempos escalonados em minutos: cada doador aparece mais cedo que o anterior
-  const minsAgoList = [2, 5, 9, 14, 20, 27, 35, 44];
+  // Donors históricos: sempre anteriores a qualquer sessão razoável (mín. 25 min)
+  // Somente FOMO em tempo real adiciona entradas recentes ("Agora mesmo")
+  const minsAgoList = [25, 37, 50, 65, 82, 101, 124, 150];
   const now = Date.now();
   return Array.from({ length: 8 }, (_, i) => {
     const name = pick(firstNames) + " " + pick(lastNames);
