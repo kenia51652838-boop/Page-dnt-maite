@@ -266,21 +266,8 @@ export default function Home() {
     } catch {}
   }, []);
 
-  // Live donors
-  useEffect(() => {
-    const firstNames = ["Ana","Bruno","Carla","Diego","Eduarda","Felipe","Gabi","Helena","Igor","João","Karina","Luana","Marcos","Nathalia","Otávio","Paula","Rafael","Sofia","Thiago","Vitória"];
-    const lastNames = ["Silva","Santos","Oliveira","Souza","Lima","Costa","Ferreira","Rodrigues","Alves","Pereira","Martins","Ribeiro","Carvalho","Gomes","Barbosa","Rocha","Dias","Monteiro","Nunes","Macedo"];
-    const values = [30,35,40,50,60,75,100,150,200,300];
-    const colors = ["#0ea5e9","#22c55e","#f97316","#a855f7","#ef4444","#14b8a6","#f59e0b","#6366f1"];
-    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
-    const interval = setInterval(() => {
-      const name = pick(firstNames) + " " + pick(lastNames);
-      const parts = name.trim().split(/\s+/);
-      const initials = ((parts[0]?.[0] || "") + (parts[parts.length-1]?.[0] || "")).toUpperCase();
-      setLiveDonors(prev => [{ nome: name, initials, color: pick(colors), valorNum: pick(values), addedAt: Date.now() }, ...prev.slice(0,9)]);
-    }, 18000 + Math.random() * 12000);
-    return () => clearInterval(interval);
-  }, [donors]);
+  // Live donors: alimentado exclusivamente pelo FOMO, doações reais e retorno de doador salvo
+  // (interval silencioso removido — evita "Agora mesmo" fantasma sem toast correspondente)
 
   // Countdown
   function startCountdown(expiresAt: number) {
@@ -690,7 +677,12 @@ export default function Home() {
 
       <ExitIntentModal onDonate={openDoacaoModal} />
 
-      <FomoNotification onDonate={(amount) => setFomoBonus(amount)} />
+      <FomoNotification onDonate={(amount, donor) => {
+        setFomoBonus(prev => prev + amount);
+        const colors = ["#0ea5e9","#22c55e","#f97316","#a855f7","#ef4444","#14b8a6","#f59e0b","#6366f1"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        setLiveDonors(prev => [{ nome: donor.name, initials: donor.initials, color, valorNum: amount, addedAt: Date.now(), isNew: true }, ...prev.slice(0, 9)]);
+      }} />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>

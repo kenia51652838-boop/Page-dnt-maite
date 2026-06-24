@@ -1,7 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 
+interface DonorInfo {
+  name: string;
+  initials: string;
+}
+
 interface Props {
-  onDonate: (amount: number) => void;
+  onDonate: (amount: number, donor: DonorInfo) => void;
   enabled?: boolean;
   storageKey?: string;
 }
@@ -97,7 +102,7 @@ export default function FomoNotification({ onDonate, enabled = true, storageKey 
       setCity(cityStr);
       setVisible(true);
       sessionStorage.setItem(storageKey, "1");
-      onDonateRef.current(fakeAmount);
+      onDonateRef.current(fakeAmount, { name: fakeName, initials: getInitials(fakeName) });
 
       // Auto-dismiss após 7 segundos
       setTimeout(() => dismiss(), 7000);
