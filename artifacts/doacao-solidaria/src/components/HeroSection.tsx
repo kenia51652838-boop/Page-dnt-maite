@@ -42,8 +42,21 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
 
   const effectivePCT = ((target / META) * 100).toFixed(2);
   const DOADORES_SIMULADOS = Math.round(target / 35);
-  const daysSinceRef = Math.floor((Date.now() - CAMPAIGN_CYCLE_REF.getTime()) / 86_400_000);
-  const daysLeft = 5 - (daysSinceRef % 6);
+  const daysSinceRef  = Math.floor((Date.now() - CAMPAIGN_CYCLE_REF.getTime()) / 86_400_000);
+  const daysLeft      = 5 - (daysSinceRef % 6);
+  const cycleEnd      = new Date(CAMPAIGN_CYCLE_REF.getTime() + (Math.floor(daysSinceRef / 6) * 6 + 5) * 86_400_000);
+  const cycleEndLabel = daysLeft === 0
+    ? "hoje"
+    : cycleEnd.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  const isUrgent = daysLeft <= 2;
+  const accentColor  = isUrgent ? "#dc2626" : "#d97706";
+  const bgGradient   = isUrgent
+    ? "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)"
+    : "linear-gradient(135deg, #fff7ed 0%, #fef9ec 100%)";
+  const borderColor  = isUrgent ? "#fca5a5" : "#fcd34d";
+  const pillBg       = isUrgent ? "#dc2626" : "#f59e0b";
+  const subtextColor = isUrgent ? "#991b1b" : "#a16207";
 
   const criacao = (() => {
     const d = new Date();
@@ -179,24 +192,70 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
 
         {/* Timer de urgência */}
         <div style={{
-            display: "inline-flex", alignItems: "center", gap: "6px",
-            background: daysLeft <= 2 ? "#fef2f2" : "#fff7ed",
-            border: `1px solid ${daysLeft <= 2 ? "#fca5a5" : "#fed7aa"}`,
-            borderRadius: "8px", padding: "6px 12px",
-            marginBottom: "12px",
-          }}>
-            <span style={{ fontSize: "0.85rem" }}>⏰</span>
-            <span style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 700, fontSize: "0.78rem",
-              color: daysLeft <= 2 ? "#dc2626" : "#92400e",
-            }}>
-              {daysLeft === 0
-                ? "Último dia da campanha"
-                : `${daysLeft} dia${daysLeft > 1 ? "s" : ""} restantes`
-              } · campanha na reta final
-            </span>
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: bgGradient,
+          border: `1px solid ${borderColor}`,
+          borderLeft: `4px solid ${accentColor}`,
+          borderRadius: "10px",
+          padding: "10px 14px",
+          marginBottom: "14px",
+          gap: "10px",
+          boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+            <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>⏰</span>
+            <div>
+              <p style={{
+                margin: 0,
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 800, fontSize: "0.82rem",
+                color: accentColor, lineHeight: 1.25,
+              }}>
+                {daysLeft === 0
+                  ? "Último dia da campanha!"
+                  : `${daysLeft} dia${daysLeft > 1 ? "s" : ""} restantes`}
+              </p>
+              <p style={{
+                margin: 0,
+                fontFamily: "'Lato', sans-serif",
+                fontSize: "0.68rem", fontWeight: 600,
+                color: subtextColor, lineHeight: 1.3,
+                marginTop: "2px",
+              }}>
+                campanha na reta final
+              </p>
+            </div>
           </div>
+
+          <div style={{
+            background: pillBg,
+            borderRadius: "8px",
+            padding: "5px 11px",
+            textAlign: "center",
+            flexShrink: 0,
+            boxShadow: `0 2px 8px ${pillBg}55`,
+          }}>
+            <p style={{
+              margin: 0,
+              fontFamily: "'Lato', sans-serif",
+              fontSize: "0.58rem", fontWeight: 700,
+              color: "rgba(255,255,255,0.85)",
+              textTransform: "uppercase", letterSpacing: "0.09em",
+              lineHeight: 1.3,
+            }}>
+              encerra em
+            </p>
+            <p style={{
+              margin: 0,
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: daysLeft === 0 ? "0.82rem" : "0.75rem",
+              fontWeight: 800, color: "#fff",
+              lineHeight: 1.25, marginTop: "1px",
+            }}>
+              {cycleEndLabel}
+            </p>
+          </div>
+        </div>
 
         {/* Stats */}
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px", flexWrap: "wrap" }}>
