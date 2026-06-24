@@ -7,7 +7,8 @@ interface HeroSectionProps {
   arrecadado?: number;
 }
 
-const CAMPAIGN_ID = "3812047";
+const CAMPAIGN_ID    = "3812047";
+const CAMPAIGN_END   = new Date("2026-06-28T23:59:00-03:00");
 
 export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSectionProps) {
   const target = arrecadado ?? ARRECADADO;
@@ -41,6 +42,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
 
   const effectivePCT = ((target / META) * 100).toFixed(2);
   const DOADORES_SIMULADOS = Math.round(target / 35);
+  const daysLeft = Math.max(0, Math.ceil((CAMPAIGN_END.getTime() - Date.now()) / 86_400_000));
 
   const criacao = (() => {
     const d = new Date();
@@ -173,6 +175,29 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
             transition: "width 1.8s cubic-bezier(0.25, 1, 0.5, 1)",
           }} />
         </div>
+
+        {/* Timer de urgência */}
+        {daysLeft <= 7 && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: "6px",
+            background: daysLeft <= 2 ? "#fef2f2" : "#fff7ed",
+            border: `1px solid ${daysLeft <= 2 ? "#fca5a5" : "#fed7aa"}`,
+            borderRadius: "8px", padding: "6px 12px",
+            marginBottom: "12px",
+          }}>
+            <span style={{ fontSize: "0.85rem" }}>⏰</span>
+            <span style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 700, fontSize: "0.78rem",
+              color: daysLeft <= 2 ? "#dc2626" : "#92400e",
+            }}>
+              {daysLeft === 0
+                ? "Último dia da campanha"
+                : `${daysLeft} dia${daysLeft > 1 ? "s" : ""} restantes`
+              } · campanha na reta final
+            </span>
+          </div>
+        )}
 
         {/* Stats */}
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px", flexWrap: "wrap" }}>

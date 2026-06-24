@@ -123,6 +123,7 @@ export default function Home() {
   const utmParams = readUtmParams();
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
   const [fomoBonus, setFomoBonus] = useState(0);
+  const [realBonus, setRealBonus] = useState(0);
   const [donors] = useState(generateDonors);
   const [liveDonors, setLiveDonors] = useState(donors);
 
@@ -315,6 +316,7 @@ export default function Home() {
           setPixConfirmed(true);
           setHasActivePix(false);
           setPixModalOpen(false);
+          setRealBonus(prev => prev + paidAmountRef.current);
           setThankYouOpen(true);
           document.body.style.overflow = "hidden";
         } else if (data.status === "expired") {
@@ -340,6 +342,7 @@ export default function Home() {
         setPixConfirmed(true);
         setHasActivePix(false);
         setPixModalOpen(false);
+        setRealBonus(prev => prev + paidAmountRef.current);
         setThankYouOpen(true);
         document.body.style.overflow = "hidden";
       } else {
@@ -516,7 +519,7 @@ export default function Home() {
     });
   }
 
-  const efectivoArrecadado = ARRECADADO + fomoBonus;
+  const efectivoArrecadado = ARRECADADO + fomoBonus + realBonus;
 
   const donationForm = (
     <DonationForm

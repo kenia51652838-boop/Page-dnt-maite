@@ -146,6 +146,39 @@ export default function DonationForm({
         </p>
       </div>
 
+      {/* Avatar stack — prova social */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: "10px",
+        marginBottom: "1rem",
+        background: "#f0fdf4", border: "1px solid #bbf7d0",
+        borderRadius: "10px", padding: "8px 12px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          {[
+            { i: "AC", c: "#24CA68" },
+            { i: "RM", c: "#0ea5e9" },
+            { i: "FL", c: "#a855f7" },
+            { i: "CE", c: "#f97316" },
+            { i: "MT", c: "#ef4444" },
+          ].map((a, idx) => (
+            <div key={idx} style={{
+              width: 28, height: 28, borderRadius: "50%",
+              background: a.c, color: "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "0.65rem", fontWeight: 800,
+              fontFamily: "'Montserrat', sans-serif",
+              border: "2px solid #fff",
+              marginLeft: idx === 0 ? 0 : -8,
+              zIndex: 5 - idx,
+              position: "relative",
+            }}>{a.i}</div>
+          ))}
+        </div>
+        <p style={{ margin: 0, fontSize: "0.75rem", color: "#166534", fontWeight: 600, lineHeight: 1.4 }}>
+          Ana C., Bruno S. e <strong>+{(donorCount - 2).toLocaleString("pt-BR")}</strong> pessoas já ajudaram
+        </p>
+      </div>
+
       {/* Label */}
       <p style={{
         fontSize: "0.8rem",
