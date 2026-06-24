@@ -192,68 +192,58 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
 
         {/* Timer de urgência */}
         <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: bgGradient,
-          border: `1px solid ${borderColor}`,
-          borderLeft: `4px solid ${accentColor}`,
-          borderRadius: "10px",
-          padding: "10px 14px",
+          display: "flex", alignItems: "center", gap: "12px",
+          background: "#fff",
+          border: "1px solid #e5e7eb",
+          borderLeft: `3px solid ${accentColor}`,
+          borderRadius: "8px",
+          padding: "11px 14px",
           marginBottom: "14px",
-          gap: "10px",
-          boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
+          boxShadow: "0 1px 5px rgba(0,0,0,0.06)",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
-            <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>⏰</span>
-            <div>
-              <p style={{
-                margin: 0,
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 800, fontSize: "0.82rem",
-                color: accentColor, lineHeight: 1.25,
-              }}>
-                {daysLeft === 0
-                  ? "Último dia da campanha!"
-                  : `${daysLeft} dia${daysLeft > 1 ? "s" : ""} restantes`}
-              </p>
-              <p style={{
-                margin: 0,
-                fontFamily: "'Lato', sans-serif",
-                fontSize: "0.68rem", fontWeight: 600,
-                color: subtextColor, lineHeight: 1.3,
-                marginTop: "2px",
-              }}>
-                campanha na reta final
-              </p>
-            </div>
-          </div>
-
+          {/* Indicador vivo */}
           <div style={{
-            background: pillBg,
-            borderRadius: "8px",
-            padding: "5px 11px",
-            textAlign: "center",
-            flexShrink: 0,
-            boxShadow: `0 2px 8px ${pillBg}55`,
-          }}>
+            width: 8, height: 8, borderRadius: "50%",
+            background: accentColor, flexShrink: 0,
+            boxShadow: `0 0 0 3px ${accentColor}22`,
+          }} />
+
+          {/* Texto */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               margin: 0,
               fontFamily: "'Lato', sans-serif",
-              fontSize: "0.58rem", fontWeight: 700,
-              color: "rgba(255,255,255,0.85)",
-              textTransform: "uppercase", letterSpacing: "0.09em",
-              lineHeight: 1.3,
+              fontSize: "0.65rem", fontWeight: 700,
+              color: "#9ca3af",
+              textTransform: "uppercase", letterSpacing: "0.08em",
+              lineHeight: 1,
             }}>
-              encerra em
+              Campanha encerrando
             </p>
-            <p style={{
-              margin: 0,
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: daysLeft === 0 ? "0.82rem" : "0.75rem",
-              fontWeight: 800, color: "#fff",
-              lineHeight: 1.25, marginTop: "1px",
+            <div style={{
+              display: "flex", alignItems: "baseline",
+              flexWrap: "wrap", gap: "6px",
+              marginTop: "4px",
             }}>
-              {cycleEndLabel}
-            </p>
+              <span style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 800, fontSize: "0.88rem",
+                color: accentColor, lineHeight: 1,
+              }}>
+                {daysLeft === 0 ? "Último dia" : `${daysLeft} dia${daysLeft > 1 ? "s" : ""} restantes`}
+              </span>
+              <span style={{ color: "#d1d5db", fontSize: "0.75rem", lineHeight: 1 }}>|</span>
+              <span style={{
+                fontFamily: "'Lato', sans-serif",
+                fontSize: "0.78rem", fontWeight: 600,
+                color: "#374151", lineHeight: 1,
+              }}>
+                encerra em{" "}
+                <span style={{ fontWeight: 700, color: "#111" }}>
+                  {cycleEndLabel}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
 
