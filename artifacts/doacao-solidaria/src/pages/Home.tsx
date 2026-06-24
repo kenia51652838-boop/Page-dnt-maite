@@ -526,7 +526,7 @@ export default function Home() {
       <Navbar onCreateCampaign={() => showToast({title:"Em breve", message:"Funcionalidade em desenvolvimento.", type:"info"})} />
 
       <main className="flex-grow">
-        <div style={{background:"#f5f5f5",minHeight:"100vh",paddingBottom:"100px"}}>
+        <div style={{background:"#f5f5f5",minHeight:"100vh"}}>
           <HeroSection onDonate={openDoacaoModal} formatBRL={formatBRL} arrecadado={efectivoArrecadado} />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 layout-campanha">
