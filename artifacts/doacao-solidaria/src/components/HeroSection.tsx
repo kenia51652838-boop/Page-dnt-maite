@@ -218,7 +218,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
               textTransform: "uppercase", letterSpacing: "0.08em",
               lineHeight: 1,
             }}>
-              Campanha encerrando
+              Campanha na reta final
             </p>
             <div style={{
               display: "flex", alignItems: "baseline",
