@@ -8,7 +8,7 @@ interface HeroSectionProps {
 }
 
 const CAMPAIGN_ID    = "3812047";
-const CAMPAIGN_END   = new Date("2026-06-28T23:59:00-03:00");
+const CAMPAIGN_CYCLE_REF = new Date("2026-06-24T00:00:00-03:00");
 
 export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSectionProps) {
   const target = arrecadado ?? ARRECADADO;
@@ -42,7 +42,8 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
 
   const effectivePCT = ((target / META) * 100).toFixed(2);
   const DOADORES_SIMULADOS = Math.round(target / 35);
-  const daysLeft = Math.max(0, Math.ceil((CAMPAIGN_END.getTime() - Date.now()) / 86_400_000));
+  const daysSinceRef = Math.floor((Date.now() - CAMPAIGN_CYCLE_REF.getTime()) / 86_400_000);
+  const daysLeft = 5 - (daysSinceRef % 6);
 
   const criacao = (() => {
     const d = new Date();
@@ -177,8 +178,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
         </div>
 
         {/* Timer de urgência */}
-        {daysLeft <= 7 && (
-          <div style={{
+        <div style={{
             display: "inline-flex", alignItems: "center", gap: "6px",
             background: daysLeft <= 2 ? "#fef2f2" : "#fff7ed",
             border: `1px solid ${daysLeft <= 2 ? "#fca5a5" : "#fed7aa"}`,
@@ -197,7 +197,6 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
               } · campanha na reta final
             </span>
           </div>
-        )}
 
         {/* Stats */}
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px", flexWrap: "wrap" }}>
