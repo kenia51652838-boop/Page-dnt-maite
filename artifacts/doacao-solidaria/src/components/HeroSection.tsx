@@ -155,7 +155,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           marginBottom: "20px",
           letterSpacing: "-0.02em",
         }}>
-          4 filhos, 1 pai com a perna machucada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje. Por favor, ajude{" "}
+          4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje. Por favor, ajude{" "}
           <img src={emojiPleading} alt="" aria-hidden="true" style={{ display: "inline", height: "1.1em", width: "1.1em", verticalAlign: "-0.15em", objectFit: "contain" }} />
         </h1>
 
