@@ -523,6 +523,8 @@ router.post("/webhook/lumina", (req, res) => {
               document: ((custObj.document_number || custObj.document || "") as string).replace(/\D/g, ""),
             };
 
+            // 1. Salva e marca como paid imediatamente — garante que o retry job
+            //    consegue pegar mesmo que a UTMify falhe logo abaixo.
             await saveTx({
               orderId:       txId,
               status:        "waiting_payment",
@@ -531,8 +533,10 @@ router.post("/webhook/lumina", (req, res) => {
               customer:      fallbackCustomer,
               tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
             }).catch(() => {});
+            await markPaid(txId).catch(() => {});
+            logger.info({ txId }, "Transação recuperada do webhook e registrada como paga no banco");
 
-            // FB CAPI direto — tempo real
+            // 2. FB CAPI direto — tempo real
             sendFbCapiPurchase({
               eventId:   txId,
               eventTime: Math.floor(new Date(paidAtStr).getTime() / 1000),
@@ -541,6 +545,8 @@ router.post("/webhook/lumina", (req, res) => {
               customer:  fallbackCustomer,
             }).catch(() => {});
 
+            // 3. UTMify — se falhar, fica status='paid' + utmify_notified_at IS NULL
+            //    e o retry job (a cada 10s) vai reenviar automaticamente.
             const utmOk = await sendUtmifyOrder({
               orderId:       txId,
               status:        "paid",
@@ -551,11 +557,10 @@ router.post("/webhook/lumina", (req, res) => {
               tracking: { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null },
             });
             if (utmOk) {
-              await markPaid(txId).catch(() => {});
               await markUtmifyNotified(txId).catch(() => {});
-              logger.info({ txId }, "Transação recuperada do webhook e registrada como paga com sucesso");
+              logger.info({ txId }, "UTMify paid confirmado para transação recuperada do webhook");
             } else {
-              logger.warn({ txId }, "UTMify rejeitou o evento recuperado do webhook");
+              logger.warn({ txId }, "UTMify falhou para transação do webhook — retry job reenviará em até 10s");
             }
           } else {
             logger.warn({ txId }, "Webhook paid sem dados suficientes para recuperar a transação — ignorado");

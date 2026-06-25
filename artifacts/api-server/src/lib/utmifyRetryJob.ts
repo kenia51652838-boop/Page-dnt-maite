@@ -38,5 +38,5 @@ export function startUtmifyRetryJob() {
   setTimeout(() => { runRetry().catch(() => {}); }, 5_000);
   // Depois roda a cada 30 segundos
   setInterval(() => { runRetry().catch(() => {}); }, INTERVAL_MS);
-  logger.info("UTMify retry job iniciado (intervalo: 30 segundos)");
+  logger.info("UTMify retry job iniciado (intervalo: 10 segundos)");
 }
