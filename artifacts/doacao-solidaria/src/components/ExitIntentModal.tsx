@@ -115,7 +115,7 @@ export default function ExitIntentModal({ onDonate }: Props) {
             margin: "0 0 0.85rem",
             textAlign: "center",
           }}>
-            Eduardo, Maria Gabriele, Maurício e Maria Julia vão dormir sem saber se terão o que comer amanhã. O pai deles trabalha com a perna machucada e ainda fica sem jantar para que eles possam comer.
+            Eduardo, Maria Gabriele, Maurício e Maria Julia vão dormir sem saber se terão o que comer amanhã. O pai deles trabalha com a perna fraturada e ainda fica sem jantar para que eles possam comer.
           </p>
           <p style={{
             fontFamily: "'Lato', sans-serif",

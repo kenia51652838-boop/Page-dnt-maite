@@ -80,7 +80,7 @@ export default function DonationForm({
         marginBottom: "0.75rem",
         paddingRight: "2rem",
       }}>
-        4 filhos, 1 pai com a perna machucada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
+        4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
       </h2>
 
       {/* Valor + progresso */}
