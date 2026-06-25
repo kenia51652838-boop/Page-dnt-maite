@@ -236,6 +236,32 @@ export async function getErrorLogs(limit = 50): Promise<Array<Record<string, unk
 }
 
 // Retorna transações pagas que ainda não foram notificadas ao UTMify
+export async function getWaitingPayment(): Promise<StoredTx[]> {
+  if (!pool) {
+    return Array.from(memStore.values()).filter(tx => tx.status === "waiting_payment");
+  }
+  const result = await pool.query(
+    `SELECT * FROM transactions
+     WHERE status = 'waiting_payment'
+     ORDER BY created_at DESC LIMIT 100`,
+  );
+  return result.rows.map(rowToTx);
+}
+
+export async function upsertAndMarkPaid(tx: StoredTx): Promise<void> {
+  if (!pool) {
+    memStore.set(tx.orderId, { ...tx, status: "paid" });
+    return;
+  }
+  await pool.query(
+    `INSERT INTO transactions (order_id, external_id, status, amount_in_cents, customer, tracking, created_at, paid_at)
+     VALUES ($1, $2, 'paid', $3, $4, $5, $6, NOW())
+     ON CONFLICT (order_id) DO UPDATE
+       SET status = 'paid', paid_at = COALESCE(transactions.paid_at, NOW())`,
+    [tx.orderId, tx.externalId ?? null, tx.amountInCents, tx.customer, tx.tracking, tx.createdAt],
+  );
+}
+
 export async function getPaidNotNotified(): Promise<StoredTx[]> {
   if (!pool) {
     return Array.from(memStore.values()).filter(

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { logger } from "../lib/logger";
 import { sendUtmifyOrder } from "../lib/utmify";
-import { markPaid, getTx, getTxByExternalId, markUtmifyNotified, getErrorLogs } from "../lib/txStore";
+import { markPaid, getTx, getTxByExternalId, markUtmifyNotified, getErrorLogs, getWaitingPayment, upsertAndMarkPaid } from "../lib/txStore";
 
 const router = Router();
 
@@ -108,6 +108,114 @@ router.post("/admin/recover-sales", async (req, res) => {
     summary: `${fired} eventos disparados, ${skipped} ignorados/erros`,
     results,
   });
+});
+
+/**
+ * GET /api/admin/pending-sales?token=YYY
+ * Lista todas as transações ainda em waiting_payment (possíveis vendas perdidas)
+ */
+router.get("/admin/pending-sales", async (req, res) => {
+  if (!checkAdminToken(req, res)) return;
+  try {
+    const pending = await getWaitingPayment();
+    const now = Date.now();
+    res.json({
+      count: pending.length,
+      note: "Transações em waiting_payment há mais de 15min são suspeitas de webhook perdido",
+      sales: pending.map(tx => ({
+        orderId:       tx.orderId,
+        customer:      tx.customer.name,
+        amount:        `R$ ${(tx.amountInCents / 100).toFixed(2)}`,
+        createdAt:     tx.createdAt,
+        minutesAgo:    Math.floor((now - tx.createdAt.getTime()) / 60000),
+        likelySuspect: (now - tx.createdAt.getTime()) > 15 * 60 * 1000,
+      })),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+/**
+ * POST /api/admin/force-paid
+ * Força uma transação como paga e dispara UTMify — mesmo que não exista no banco.
+ * Útil para recuperar vendas onde o webhook nunca chegou.
+ *
+ * Body: {
+ *   orderId: string,          (ID da Lumina, ex: "lum_xxx")
+ *   amountInCents: number,    (ex: 3000 para R$30)
+ *   customerName: string,
+ *   customerEmail?: string,
+ *   customerPhone?: string,
+ *   customerDocument?: string
+ * }
+ */
+router.post("/admin/force-paid", async (req, res) => {
+  if (!checkAdminToken(req, res)) return;
+
+  const { orderId, amountInCents, customerName, customerEmail, customerPhone, customerDocument } =
+    req.body as Record<string, unknown>;
+
+  if (!orderId || !amountInCents || !customerName) {
+    res.status(400).json({ error: "Campos obrigatórios: orderId, amountInCents, customerName" });
+    return;
+  }
+
+  try {
+    const txId      = String(orderId).trim();
+    const cents     = Number(amountInCents);
+    const customer  = {
+      name:     String(customerName),
+      email:    String(customerEmail    || ""),
+      phone:    String(customerPhone    || ""),
+      document: String(customerDocument || "").replace(/\D/g, ""),
+    };
+    const tracking  = { src: null, sck: null, utm_source: null, utm_campaign: null, utm_medium: null, utm_content: null, utm_term: null };
+
+    // Garante que o registro existe e está como paid
+    await upsertAndMarkPaid({
+      orderId:       txId,
+      status:        "paid",
+      createdAt:     new Date(),
+      amountInCents: cents,
+      customer,
+      tracking,
+    });
+
+    logger.info({ txId, amount: cents }, "Admin force-paid: transação upsertada como paga");
+
+    // Dispara UTMify imediatamente
+    const utmOk = await sendUtmifyOrder({
+      orderId:       txId,
+      status:        "paid",
+      createdAt:     new Date(),
+      approvedAt:    new Date(),
+      customer,
+      amountInCents: cents,
+      tracking,
+    });
+
+    if (utmOk) {
+      await markUtmifyNotified(txId);
+      logger.info({ txId }, "Admin force-paid: UTMify confirmado");
+    } else {
+      logger.warn({ txId }, "Admin force-paid: UTMify falhou — retry job tentará em até 10s");
+    }
+
+    res.json({
+      success: true,
+      orderId:      txId,
+      amount:       `R$ ${(cents / 100).toFixed(2)}`,
+      customer:     customerName,
+      utmifyFired:  utmOk,
+      note:         utmOk
+        ? "Transação marcada como paga e UTMify notificado com sucesso."
+        : "Transação marcada como paga. UTMify falhou mas o retry job tentará novamente em até 10s.",
+    });
+  } catch (err) {
+    logger.error({ err }, "Admin force-paid: erro");
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+  }
 });
 
 /**
