@@ -155,8 +155,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           marginBottom: "20px",
           letterSpacing: "-0.02em",
         }}>
-          4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje. Por favor, ajude{" "}
-          <img src={emojiPleading} alt="" aria-hidden="true" style={{ display: "inline", height: "1.1em", width: "1.1em", verticalAlign: "-0.15em", objectFit: "contain" }} />
+          4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
         </h1>
 
         {/* Valor animado */}
@@ -212,16 +211,6 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
 
           {/* Texto */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{
-              margin: 0,
-              fontFamily: "'Lato', sans-serif",
-              fontSize: "0.65rem", fontWeight: 700,
-              color: "#9ca3af",
-              textTransform: "uppercase", letterSpacing: "0.08em",
-              lineHeight: 1,
-            }}>
-              Campanha na reta final
-            </p>
             <div style={{
               display: "flex", alignItems: "baseline",
               flexWrap: "wrap", gap: "6px",
