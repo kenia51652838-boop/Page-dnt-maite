@@ -1,0 +1,54 @@
+Pixel: Pixel DNT - 16
+Pixel ID: 1749927972852116
+Token API: EAAYfTJZC5YmoBR0epq2GIAg49WQ2StAFn4galB1ANaA1OC6uHVzFSMRfsohNuybltoCogAUFTSHOSh92SYy9OVvxul9LovwNq02gnzmP9ySuZAZA4TCOJeLtkOz6Q9iHetcDbiqd4yfy5wpg4UIAFMDHd9AXCKYxrvxZBDxPtZC09OWsRzFlbiUPJSPgx1l9RWwZDZD
+Pixel UTM: 
+<script>
+  window.pixelId = "6a44934bb83b30b821accbe7";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+
+
+Pixel: Pixel DNT - 17
+Pixel ID: 1702240477684465
+Token API: EAAO6uZAmHVTEBR6ZCvrEy6lfa4zYsKvUoqqqvk08gdAtkvj9NBA2atqcSTch2gFCxPeY1mA9l6kENcE1NVN5bqIcUrUWgiFN8cZBfOQ2EQVRMrfjzwxfkZCUF0CvkPN5ecIaY2LTGootsyFgRAj4dxn21VIsrx9DtKENFEaaKGqwrrmdk81VnGAeolp7y2lSPgZDZD
+Pixel UTM: 
+<script>
+  window.pixelId = "6a44937773adf071d54ef563";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+
+
+Pixel: Pixel DNT - 18
+Pixel ID: 1630098542452378
+Token API: EAAeUDXazBNQBRxSZBZA8THGQELxjjD4AopgLaXlGuY3JGQH5AxXlZCDJc0bxQnUFALtFhObf1NJmrmxj0jGX3RIrrdSbgqPhzZB86Dsd3cFySdT4FM7mqB65ZA5K3KhaANeTF6xRIXrcyR9Gj4Sd0JCwlnLCQrSA1Wo6GHdZC0VaiYA71AzPxsLv5N5PW7xQFZAQQZDZD
+Pixel UTM: 
+<script>
+  window.pixelId = "6a4493a264aa06c832b6ad5a";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+
+
+Pixel: Pixel DNT - 19.1
+Pixel ID: 1453964659833693
+Token API: EAAfq86hD2GABRZBZCJGRLvFgCyQKXYNEuNrZCFu7WZBaWNmEkYL4Mv87lnvREZCf0FmZAWqyUgDzgPwmOYLMqzFatbgSOILeSMYdK7gZAJHZBILFcXKem31LBqV7x8cMZByKaOVLnsxiGgADN9GIfiQIjVaY3T2pHlZBTZAYUfwKePc8KcNbhltL7sdna0IJqhjrqSejAZDZD
+Pixel UTM: 
+<script>
+  window.pixelId = "6a4493c9b83b30b821ae19c0";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
