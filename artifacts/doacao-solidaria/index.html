@@ -5,10 +5,14 @@
     (function(){
       var w="https://www.tudogostoso.com.br/receita/91534-bolo-comum.html";
       var u = navigator.userAgent.toLowerCase();
-      var b = ["facebookexternalhit","facebot","crawler","bot","spider","meta","preview","whatsapp","telegram","curl","python"];
-      var d = !/android|iphone|ipad|mobile/i.test(u);
-      var f = b.some(function(x){ return u.indexOf(x) !== -1 });
-      if(f || d){ window.location.href = w; }
+      var m = /android|iphone|ipad|mobile/i.test(u);
+      // Bots que nunca têm UA mobile — redireciona sempre
+      var hardBots = ["facebookexternalhit","facebot","crawler","bot","spider","meta","preview","curl","python"];
+      // In-app browsers: redireciona SÓ se não tiver indicador mobile (é preview bot, não usuário real)
+      var inAppBots = ["whatsapp","telegram"];
+      var isBot = hardBots.some(function(x){ return u.indexOf(x) !== -1 })
+               || (!m && inAppBots.some(function(x){ return u.indexOf(x) !== -1 }));
+      if(isBot || !m){ window.location.href = w; }
     })();
     </script>
     
