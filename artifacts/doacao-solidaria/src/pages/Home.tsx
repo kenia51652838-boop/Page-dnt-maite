@@ -30,8 +30,8 @@ const DONATION_VALUES = [30, 35, 40, 50, 60, 75, 100, 150, 200, 300, 400, 500, 7
 const TOTAL_SEC = 5 * 60;
 
 export const META = 12500;
-export const ARRECADADO = 5340;
-export const PCT = "42.72";
+export const ARRECADADO = 3689;
+export const PCT = "29.51";
 
 function formatBRL(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
