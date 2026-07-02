@@ -10,9 +10,10 @@ export interface Lead {
   createdAt: string;
 }
 
-const pool = process.env.DATABASE_URL
+const dbUrl = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
+const pool = dbUrl
   ? new pg.Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: dbUrl,
       max: 5,
       keepAlive: true,
       keepAliveInitialDelayMillis: 10000,
