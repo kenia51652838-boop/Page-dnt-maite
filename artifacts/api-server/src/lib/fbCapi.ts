@@ -141,6 +141,40 @@ export async function sendFbCapiPurchase(params: FbCapiParams): Promise<void> {
 }
 
 /**
+ * Envia evento PageView para todos os pixels via CAPI.
+ * Deve ser chamado quando a página carrega — complementa o pixel browser
+ * e garante cobertura mesmo com ad-blockers / iOS ITP / Safari.
+ * Nunca lança exceção.
+ */
+export async function sendFbCapiPageView(params: {
+  eventId:      string;
+  eventTime:    number;
+  sourceUrl?:   string;
+  clientIp?:    string;
+  clientAgent?: string;
+  fbp?:         string;
+  fbc?:         string;
+}): Promise<void> {
+  const ud: Record<string, string> = {};
+  if (params.fbp)         ud["fbp"]               = params.fbp;
+  if (params.fbc)         ud["fbc"]               = params.fbc;
+  if (params.clientIp)    ud["client_ip_address"] = params.clientIp;
+  if (params.clientAgent) ud["client_user_agent"] = params.clientAgent;
+  ud["country"] = sha256("br");
+
+  const payload = {
+    event_name:       "PageView",
+    event_time:       params.eventTime,
+    event_id:         params.eventId,
+    event_source_url: params.sourceUrl || SOURCE_URL,
+    action_source:    "website",
+    user_data:        ud,
+  };
+
+  await dispatchEvent("PageView", payload);
+}
+
+/**
  * Envia evento InitiateCheckout para todos os pixels.
  * Deve disparar quando o PIX é gerado (usuário iniciou o checkout).
  * Dá ao algoritmo do Facebook sinal de intenção de compra antes do pagamento.

@@ -92,6 +92,24 @@
       var pvId = 'pv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       window._pvEventId = pvId;
       fbq('track', 'PageView', {}, { eventID: pvId });
+      // CAPI PageView — server-side, bypassa ad-blockers / iOS ITP / Safari ITP
+      try {
+        var _fbpM = document.cookie.match(/(^|;\s*)_fbp=([^;]+)/);
+        var _fbcM = document.cookie.match(/(^|;\s*)_fbc=([^;]+)/);
+        var _fbclid = new URLSearchParams(window.location.search).get('fbclid');
+        fetch('/api/events/pageview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body: JSON.stringify({
+            event_id: pvId,
+            event_source_url: window.location.href,
+            fbp: _fbpM ? _fbpM[2] : null,
+            fbc: _fbcM ? _fbcM[2] : (_fbclid ? 'fb.1.' + Date.now() + '.' + _fbclid : null),
+            client_user_agent: navigator.userAgent,
+          })
+        }).catch(function(){});
+      } catch(e) {}
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
