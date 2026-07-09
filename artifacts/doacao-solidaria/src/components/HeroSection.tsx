@@ -208,7 +208,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
             lineHeight: 1.6,
             fontStyle: "italic",
           }}>
-            "Eu sou muito grato a Deus pelos alimentos que estamos conseguindo comprar. Estávamos a duas semanas sem comer carne e hoje, graças à ajuda de vocês, consegui comprar o suficiente para os meus filhos e pra mim nos alimentarmos hoje. Só gratidão a Deus pela vida de vocês."
+            "Hoje meus filhos me perguntaram se ia ter janta. Graças a vocês, a resposta foi sim. Que Deus abençoe cada um."
           </p>
         </div>
 
