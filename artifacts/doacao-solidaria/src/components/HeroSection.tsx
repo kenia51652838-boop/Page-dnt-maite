@@ -152,11 +152,25 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           fontSize: "clamp(1.25rem, 4vw, 1.65rem)",
           color: "#1a1a1a",
           lineHeight: 1.28,
-          marginBottom: "20px",
+          marginBottom: "8px",
           letterSpacing: "-0.02em",
         }}>
           4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
         </h1>
+        <p style={{
+          fontFamily: "'Lato', sans-serif",
+          fontSize: "0.92rem",
+          fontWeight: 700,
+          color: "#e53e3e",
+          marginBottom: "18px",
+          marginTop: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+        }}>
+          <img src={emojiPleading} alt="" style={{ width: "18px", height: "18px", display: "inline-block" }} />
+          Por favor, ajude
+        </p>
 
         {/* Valor animado */}
         <div style={{ marginBottom: "12px" }}>
@@ -189,6 +203,50 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
             borderRadius: "999px",
             transition: "width 1.8s cubic-bezier(0.25, 1, 0.5, 1)",
           }} />
+        </div>
+
+        {/* Timer de urgência */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: "12px",
+          background: bgGradient,
+          border: `1px solid ${borderColor}`,
+          borderLeft: `3px solid ${accentColor}`,
+          borderRadius: "8px",
+          padding: "11px 14px",
+          marginBottom: "14px",
+          boxShadow: "0 1px 5px rgba(0,0,0,0.06)",
+        }}>
+          <div style={{
+            width: 8, height: 8, borderRadius: "50%",
+            background: accentColor, flexShrink: 0,
+            boxShadow: `0 0 0 3px ${accentColor}22`,
+          }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              display: "flex", alignItems: "baseline",
+              flexWrap: "wrap", gap: "6px",
+              marginTop: "2px",
+            }}>
+              <span style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 800, fontSize: "0.88rem",
+                color: accentColor, lineHeight: 1,
+              }}>
+                {daysLeft === 0 ? "Último dia" : `${daysLeft} dia${daysLeft > 1 ? "s" : ""} restantes`}
+              </span>
+              <span style={{ color: "#d1d5db", fontSize: "0.75rem", lineHeight: 1 }}>|</span>
+              <span style={{
+                fontFamily: "'Lato', sans-serif",
+                fontSize: "0.78rem", fontWeight: 600,
+                color: subtextColor, lineHeight: 1,
+              }}>
+                encerra em{" "}
+                <span style={{ fontWeight: 700, color: accentColor }}>
+                  {cycleEndLabel}
+                </span>
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Stats */}
