@@ -17,7 +17,6 @@ import Footer from "@/components/Footer";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
 import ExitIntentModal from "@/components/ExitIntentModal";
 import FomoNotification from "@/components/FomoNotification";
-import BeneficiaryMessageModal from "@/components/BeneficiaryMessageModal";
 
 export type ToastItem = {
   id: string;
@@ -675,8 +674,6 @@ export default function Home() {
       <PixBankNoticeModal isOpen={bankNoticeOpen} onClose={() => setBankNoticeOpen(false)} />
 
       <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} />
-
-      <BeneficiaryMessageModal onDonate={openDoacaoModal} />
 
       <ExitIntentModal onDonate={openDoacaoModal} />
 

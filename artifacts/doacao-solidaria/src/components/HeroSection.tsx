@@ -151,16 +151,66 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           fontWeight: 800,
           fontSize: "clamp(1.25rem, 4vw, 1.65rem)",
           color: "#1a1a1a",
-          lineHeight: 1.35,
-          marginBottom: "20px",
+          lineHeight: 1.28,
+          marginBottom: "16px",
           letterSpacing: "-0.02em",
         }}>
-          4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.{" "}
-          <span style={{ color: "#e53e3e", whiteSpace: "nowrap" }}>
-            Por favor me ajude{" "}
-            <img src={emojiPleading} alt="" style={{ width: "1em", height: "1em", display: "inline", verticalAlign: "-0.15em" }} />
-          </span>
+          4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
         </h1>
+
+        {/* Mensagem do beneficiário */}
+        <div style={{
+          background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+          border: "1px solid #bbf7d0",
+          borderLeft: "3px solid #16a34a",
+          borderRadius: "10px",
+          padding: "13px 15px",
+          marginBottom: "20px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: "50%",
+              overflow: "hidden", flexShrink: 0,
+              border: "1.5px solid #16a34a",
+            }}>
+              <picture>
+                <source srcSet={`${import.meta.env.BASE_URL}img/francivaldo.webp`} type="image/webp" />
+                <img
+                  src={`${import.meta.env.BASE_URL}img/francivaldo.jpg`}
+                  alt="Sr. Francivaldo"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+                />
+              </picture>
+            </div>
+            <div>
+              <span style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 700, fontSize: "0.75rem",
+                color: "#15803d",
+              }}>
+                Mensagem do beneficiário
+              </span>
+              <span style={{
+                fontFamily: "'Lato', sans-serif",
+                fontSize: "0.72rem",
+                color: "#4ade80",
+                marginLeft: "6px",
+              }}>
+                · Francivaldo Pereira Ricardo
+              </span>
+            </div>
+          </div>
+          <p style={{
+            margin: 0,
+            fontFamily: "'Lato', sans-serif",
+            fontSize: "0.86rem",
+            color: "#166534",
+            lineHeight: 1.6,
+            fontStyle: "italic",
+          }}>
+            "Eu sou muito grato a Deus pelos alimentos que estamos conseguindo comprar. Estávamos a duas semanas sem comer carne e hoje, graças à ajuda de vocês, consegui comprar o suficiente para os meus filhos e pra mim nos alimentarmos. Só gratidão a Deus pela vida de vocês."
+          </p>
+        </div>
 
         {/* Valor animado */}
         <div style={{ marginBottom: "12px" }}>
