@@ -30,8 +30,6 @@ const LAST_NAMES = [
   "Teixeira","Vieira","Tavares","Duarte","Cardoso","Melo","Moreira","Nascimento","Lopes","Leite",
 ];
 
-const CONNECTORS = ["dos", "das", "de", "da"];
-
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -41,11 +39,9 @@ function generateName(): string {
   const last1 = pick(LAST_NAMES);
   let last2 = pick(LAST_NAMES);
   while (last2 === last1) last2 = pick(LAST_NAMES);
-  const useConnector = Math.random() > 0.4;
-  if (useConnector) {
-    return `${first} ${pick(CONNECTORS)} ${last1} ${last2}`;
-  }
-  return `${first} ${last1} ${last2}`;
+  return Math.random() > 0.5
+    ? `${first} ${last1} ${last2}`
+    : `${first} ${last1}`;
 }
 
 function formatBRL(v: number) {
