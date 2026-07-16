@@ -2,15 +2,20 @@ import * as crypto from "crypto";
 import { logger } from "./logger";
 
 const PIXELS = [
-  { id: process.env["FB_PIXEL_OITAVO"]     || "1507785031003753", token: process.env["FB_TOKEN_OITAVO"]     || "" },
-  { id: process.env["FB_PIXEL_DECIMO"]     || "1308311710742436", token: process.env["FB_TOKEN_DECIMO"]     || "" },
-  { id: process.env["FB_PIXEL_ONZE"]       || "2382122502268128", token: process.env["FB_TOKEN_ONZE"]       || "" },
-  { id: process.env["FB_PIXEL_DOZE"]       || "2008889186664643", token: process.env["FB_TOKEN_DOZE"]       || "" },
-  { id: process.env["FB_PIXEL_QUINZE"]     || "1678939216734559", token: process.env["FB_TOKEN_QUINZE"]     || "" },
-  { id: process.env["FB_PIXEL_DEZESSEIS"]  || "1749927972852116", token: process.env["FB_TOKEN_DEZESSEIS"]  || "" },
-  { id: process.env["FB_PIXEL_DEZESSETE"]  || "1702240477684465", token: process.env["FB_TOKEN_DEZESSETE"]  || "" },
-  { id: process.env["FB_PIXEL_DEZOITO"]    || "1630098542452378", token: process.env["FB_TOKEN_DEZOITO"]    || "" },
-  { id: process.env["FB_PIXEL_DEZENOVE"]   || "1453964659833693", token: process.env["FB_TOKEN_DEZENOVE"]   || "" },
+  { id: process.env["FB_PIXEL_OITAVO"]        || "1507785031003753", token: process.env["FB_TOKEN_OITAVO"]        || "" },
+  { id: process.env["FB_PIXEL_DECIMO"]        || "1308311710742436", token: process.env["FB_TOKEN_DECIMO"]        || "" },
+  { id: process.env["FB_PIXEL_ONZE"]          || "2382122502268128", token: process.env["FB_TOKEN_ONZE"]          || "" },
+  { id: process.env["FB_PIXEL_DOZE"]          || "2008889186664643", token: process.env["FB_TOKEN_DOZE"]          || "" },
+  { id: process.env["FB_PIXEL_QUINZE"]        || "1678939216734559", token: process.env["FB_TOKEN_QUINZE"]        || "" },
+  { id: process.env["FB_PIXEL_DEZESSEIS"]     || "1749927972852116", token: process.env["FB_TOKEN_DEZESSEIS"]     || "" },
+  { id: process.env["FB_PIXEL_DEZESSETE"]     || "1702240477684465", token: process.env["FB_TOKEN_DEZESSETE"]     || "" },
+  { id: process.env["FB_PIXEL_DEZOITO"]       || "1630098542452378", token: process.env["FB_TOKEN_DEZOITO"]       || "" },
+  { id: process.env["FB_PIXEL_DEZENOVE"]      || "1453964659833693", token: process.env["FB_TOKEN_DEZENOVE"]      || "" },
+  { id: process.env["FB_PIXEL_VINTE_UM"]      || "884525884727990",  token: process.env["FB_TOKEN_VINTE_UM"]      || "" },
+  { id: process.env["FB_PIXEL_VINTE_DOIS"]    || "2037312823529469", token: process.env["FB_TOKEN_VINTE_DOIS"]    || "" },
+  { id: process.env["FB_PIXEL_VINTE_TRES"]    || "858598507083947",  token: process.env["FB_TOKEN_VINTE_TRES"]    || "" },
+  { id: process.env["FB_PIXEL_VINTE_QUATRO"]  || "2137253990339060", token: process.env["FB_TOKEN_VINTE_QUATRO"]  || "" },
+  { id: process.env["FB_PIXEL_VINTE_CINCO"]   || "1022558637084726", token: process.env["FB_TOKEN_VINTE_CINCO"]   || "" },
 ];
 
 const FB_API_VERSION = "v19.0";
