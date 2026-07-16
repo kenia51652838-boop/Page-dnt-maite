@@ -245,49 +245,6 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           }} />
         </div>
 
-        {/* Timer de urgência */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: "12px",
-          background: bgGradient,
-          border: `1px solid ${borderColor}`,
-          borderLeft: `3px solid ${accentColor}`,
-          borderRadius: "8px",
-          padding: "11px 14px",
-          marginBottom: "14px",
-          boxShadow: "0 1px 5px rgba(0,0,0,0.06)",
-        }}>
-          <div style={{
-            width: 8, height: 8, borderRadius: "50%",
-            background: accentColor, flexShrink: 0,
-            boxShadow: `0 0 0 3px ${accentColor}22`,
-          }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              display: "flex", alignItems: "baseline",
-              flexWrap: "wrap", gap: "6px",
-              marginTop: "2px",
-            }}>
-              <span style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 800, fontSize: "0.88rem",
-                color: accentColor, lineHeight: 1,
-              }}>
-                {daysLeft === 0 ? "Último dia" : `${daysLeft} dia${daysLeft > 1 ? "s" : ""} restantes`}
-              </span>
-              <span style={{ color: "#d1d5db", fontSize: "0.75rem", lineHeight: 1 }}>|</span>
-              <span style={{
-                fontFamily: "'Lato', sans-serif",
-                fontSize: "0.78rem", fontWeight: 600,
-                color: subtextColor, lineHeight: 1,
-              }}>
-                encerra em{" "}
-                <span style={{ fontWeight: 700, color: accentColor }}>
-                  {cycleEndLabel}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
 
         {/* Stats */}
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px", flexWrap: "wrap" }}>
