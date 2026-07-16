@@ -208,7 +208,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
             lineHeight: 1.6,
             fontStyle: "italic",
           }}>
-            "Hoje meus filhos me perguntaram se ia ter janta. Graças a vocês, a resposta foi sim. Que Deus abençoe cada um."
+            "Hoje meus filhos me perguntaram se ia ter janta. Graças as doações que recebemos hoje, a resposta foi sim. Que Deus abençoe cada um."
           </p>
         </div>
 
