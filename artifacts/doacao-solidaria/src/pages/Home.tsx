@@ -425,8 +425,13 @@ export default function Home() {
       setPixLoadingOpen(false);
       closeDoacaoModal();
       try {
-        // Re-init dos 3 pixels com dados do cliente para correspondência avançada no browser
-        const FB_PIXEL_IDS = ["1507785031003753", "1308311710742436", "2382122502268128", "2008889186664643", "1678939216734559"];
+        // Re-init de todos os pixels com dados do cliente para correspondência avançada no browser
+        const FB_PIXEL_IDS = [
+          "1507785031003753","1308311710742436","2382122502268128","2008889186664643",
+          "1678939216734559","1749927972852116","1702240477684465","1630098542452378",
+          "1453964659833693","884525884727990","2037312823529469","858598507083947",
+          "2137253990339060","1022558637084726",
+        ];
         const nameParts = customer.name.trim().split(/\s+/);
         const advData = {
           em: customer.email,

@@ -8,6 +8,29 @@ import { sendFbCapiPurchase, sendFbCapiInitiateCheckout } from "../lib/fbCapi";
 
 const router = Router();
 
+/** Extrai o IP real do cliente, filtrando IPs privados/loopback que vêm de proxies internos. */
+function extractClientIp(req: { headers: Record<string, string | string[] | undefined>; ip?: string }, bodyIp?: string): string | undefined {
+  const isPrivate = (ip: string) =>
+    /^(::1$|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|::ffff:127\.|fe80:|fd[0-9a-f]{2}:)/i.test(ip.trim());
+
+  const candidates: (string | undefined)[] = [];
+
+  // 1. IP enviado pelo browser via body (ipify.org) — mais confiável para IPv6
+  if (bodyIp) candidates.push(bodyIp.trim());
+
+  // 2. Primeiro IP em X-Forwarded-For (IP do cliente antes dos proxies)
+  const xff = req.headers["x-forwarded-for"];
+  if (xff) {
+    const first = (Array.isArray(xff) ? xff[0] : xff).split(",")[0].trim();
+    candidates.push(first);
+  }
+
+  // 3. req.ip (Express com trust proxy)
+  if (req.ip) candidates.push(req.ip.trim());
+
+  return candidates.find(ip => ip && !isPrivate(ip));
+}
+
 // POST /api/pix/create
 router.post("/pix/create", async (req, res) => {
   try {
@@ -60,14 +83,12 @@ router.post("/pix/create", async (req, res) => {
       utm_content:  (utm as Record<string, string>)?.utm_content  || null,
       utm_term:     (utm as Record<string, string>)?.utm_term     || null,
     };
-    // Prefere IP capturado pelo browser (IPv6-aware) — evita mismatch IPv4/IPv6 no FB CAPI
-    const clientIp = (req.body as Record<string, unknown>).client_ip as string | undefined
-      || req.ip || undefined;
-    const clientUa = (req.headers["user-agent"] as string) || undefined;
+    const clientIp  = extractClientIp(req, (req.body as Record<string, unknown>).client_ip as string | undefined);
+    const clientUa  = (req.headers["user-agent"] as string) || undefined;
     const clientFbp = (req.body as Record<string, unknown>).fbp as string | undefined;
     const clientFbc = (req.body as Record<string, unknown>).fbc as string | undefined;
 
-    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued }, "Submetendo PIX em background");
+    logger.info({ postback_url, external_id, queued: pixQueue.stats.queued, hasIp: !!clientIp }, "Submetendo PIX em background");
 
     const jobId = pixQueue.submitJob(
       async () => {
@@ -165,9 +186,7 @@ router.post("/pix/create-upsell", async (req, res) => {
     const upsellFbp   = (req.body as Record<string, unknown>).fbp as string | undefined;
     const upsellFbc   = (req.body as Record<string, unknown>).fbc as string | undefined;
     const upsellUa    = (req.headers["user-agent"] as string) || undefined;
-    // Prefere IP capturado pelo browser (IPv6-aware) — evita mismatch IPv4/IPv6 no FB CAPI
-    const upsellIp    = (req.body as Record<string, unknown>).client_ip as string | undefined
-      || req.ip || undefined;
+    const upsellIp    = extractClientIp(req, (req.body as Record<string, unknown>).client_ip as string | undefined);
 
     // Gera cliente anônimo no servidor — mesma lógica do frontend
     const FIRST = ["Ana","Beatriz","Camila","Daniela","Fernanda","Gabriela","Helena","Juliana","Larissa","Mariana","Natália","Patrícia","Rafaela","Sabrina","Tatiane","Vanessa","Carlos","Daniel","Eduardo","Felipe","Gabriel","Henrique","João","Lucas","Marcos","Pedro","Rafael","Rodrigo","Thiago","Vitor","André","Bruno","Caio","Diego","Gustavo","Leonardo","Mateus","Renan","Samuel","Vinícius"];
@@ -537,12 +556,15 @@ router.post("/webhook/lumina", (req, res) => {
             logger.info({ txId }, "Transação recuperada do webhook e registrada como paga no banco");
 
             // 2. FB CAPI direto — tempo real
+            // Nota: no caminho fallback não temos IP do cliente (veio do webhook da Lumina,
+            // não do browser). Enviamos sem IP para não bloquear o envio do evento.
             sendFbCapiPurchase({
-              eventId:   txId,
-              eventTime: Math.floor(new Date(paidAtStr).getTime() / 1000),
-              value:     resolvedCents / 100,
-              currency:  "BRL",
-              customer:  fallbackCustomer,
+              eventId:    txId,
+              eventTime:  Math.floor(new Date(paidAtStr).getTime() / 1000),
+              value:      resolvedCents / 100,
+              currency:   "BRL",
+              customer:   fallbackCustomer,
+              clientAgent: req.headers["user-agent"] as string | undefined,
             }).catch(() => {});
 
             // 3. UTMify — se falhar, fica status='paid' + utmify_notified_at IS NULL
@@ -617,10 +639,8 @@ router.post("/pix/create-vip", async (req, res) => {
     }
 
     const amountInCents = VIP_AMOUNT * 100;
-    // Prefere IP capturado pelo browser (IPv6-aware) — evita mismatch IPv4/IPv6 no FB CAPI
-    const clientIp = (req.body as Record<string, unknown>).client_ip as string | undefined
-      || req.ip || undefined;
-    const clientUa = (req.headers["user-agent"] as string) || undefined;
+    const clientIp  = extractClientIp(req, (req.body as Record<string, unknown>).client_ip as string | undefined);
+    const clientUa  = (req.headers["user-agent"] as string) || undefined;
     const tracking: UtmifyTrackingParams = {
       src:          (utm as Record<string, string>)?.src          || null,
       sck:          (utm as Record<string, string>)?.sck          || null,
