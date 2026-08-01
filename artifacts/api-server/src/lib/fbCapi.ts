@@ -16,6 +16,7 @@ const PIXELS = [
   { id: process.env["FB_PIXEL_VINTE_TRES"]    || "858598507083947",  token: process.env["FB_TOKEN_VINTE_TRES"]    || "" },
   { id: process.env["FB_PIXEL_VINTE_QUATRO"]  || "2137253990339060", token: process.env["FB_TOKEN_VINTE_QUATRO"]  || "" },
   { id: process.env["FB_PIXEL_VINTE_CINCO"]   || "1022558637084726", token: process.env["FB_TOKEN_VINTE_CINCO"]   || "" },
+  { id: process.env["FB_PIXEL_VINTE_SEIS"]   || "2432126570599671", token: process.env["FB_TOKEN_VINTE_SEIS"]   || "" },
 ];
 
 const FB_API_VERSION = "v19.0";
