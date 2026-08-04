@@ -352,6 +352,17 @@ router.get("/pix/status/:id", async (req, res) => {
 
       // Garante UTMify notificado
       if (!localTx.utmifyNotifiedAt) {
+        // Envia waiting_payment antes para garantir que a UTMify tem o pedido criado.
+        await sendUtmifyOrder({
+          orderId:       id,
+          status:        "waiting_payment",
+          createdAt:     localTx.createdAt,
+          approvedAt:    null,
+          customer:      localTx.customer,
+          amountInCents: localTx.amountInCents,
+          tracking:      localTx.tracking,
+        }).catch((err) => logger.warn({ err, txId: id }, "UTMify waiting_payment (pré-paid polling) falhou — seguindo para paid"));
+
         const utmOk = await sendUtmifyOrder({
           orderId:       id,
           status:        "paid",
@@ -505,6 +516,20 @@ router.post("/webhook/lumina", (req, res) => {
             clientIp:   tx.customer.ip,
             clientAgent: tx.customer.userAgent,
           }).catch(() => {});
+
+          // Garante que a UTMify tem o pedido criado antes de receber o paid.
+          // Se o waiting_payment original falhou silenciosamente durante a geração do PIX,
+          // a UTMify retorna HTTP 200 com data:{} para o paid (aceita mas não registra).
+          // Enviando waiting_payment aqui primeiro, garantimos que o pedido sempre existe.
+          await sendUtmifyOrder({
+            orderId:       tx.orderId,
+            status:        "waiting_payment",
+            createdAt:     tx.createdAt,
+            approvedAt:    null,
+            customer:      tx.customer,
+            amountInCents: tx.amountInCents,
+            tracking:      tx.tracking,
+          }).catch((err) => logger.warn({ err, orderId: tx.orderId }, "UTMify waiting_payment (pré-paid webhook) falhou — seguindo para paid"));
 
           const utmOk = await sendUtmifyOrder({
             orderId:       tx.orderId,

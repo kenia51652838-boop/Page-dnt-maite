@@ -12,6 +12,18 @@ async function runRetry() {
     logger.info({ count: pending.length }, "UTMify retry job: processando transações pendentes");
 
     for (const tx of pending) {
+      // Envia waiting_payment antes do paid para garantir que a UTMify tem o pedido criado.
+      // Sem isso, a UTMify retorna HTTP 200 mas data:{} (sem registro) para paid de pedidos desconhecidos.
+      await sendUtmifyOrder({
+        orderId:       tx.orderId,
+        status:        "waiting_payment",
+        createdAt:     tx.createdAt,
+        approvedAt:    null,
+        customer:      tx.customer,
+        amountInCents: tx.amountInCents,
+        tracking:      tx.tracking,
+      }).catch((err) => logger.warn({ err, orderId: tx.orderId }, "UTMify retry: waiting_payment falhou — seguindo para paid"));
+
       const utmOk = await sendUtmifyOrder({
         orderId:       tx.orderId,
         status:        "paid",

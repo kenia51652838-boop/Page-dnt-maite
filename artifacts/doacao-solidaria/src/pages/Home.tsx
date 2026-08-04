@@ -606,7 +606,7 @@ export default function Home() {
           </button>
         )}
         <a
-          href={`https://wa.me/?text=${encodeURIComponent("Olha só isso... Um pai de 47 anos, com a perna fraturada, cria 4 filhos SOZINHO e ainda deixa de comer para que eles possam jantar. Você pode ajudar com qualquer valor, até R$30 já garante o jantar dessa família hoje 💚\n\n" + window.location.href)}`}
+          href={`https://wa.me/?text=${encodeURIComponent("Olha só isso... Um pai de 47 anos, com a perna fraturada, cria 4 filhos SOZINHO e ainda deixa de comer para que eles possam jantar. Você pode ajudar com qualquer valor, até R$30 já garante o jantar dessa família hoje 💚\n\n" + window.location.origin + window.location.pathname + "?utm_source=whatsapp&utm_medium=share")}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{
