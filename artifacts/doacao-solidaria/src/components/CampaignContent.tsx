@@ -135,20 +135,28 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             🎥 Assista ao vídeo da mãe da Maíte e entenda por que ela precisa de você
           </h2>
 
-          {/* Foto da campanha */}
+          {/* Vídeo da campanha — embed responsivo 16:9 */}
           <div style={{
-            borderRadius: "12px",
+            position: "relative",
+            paddingBottom: "56.25%",
+            height: 0,
             overflow: "hidden",
+            borderRadius: "12px",
             marginBottom: "1.75rem",
             boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-            lineHeight: 0,
           }}>
-            <img
-              src={`${import.meta.env.BASE_URL}img/maite.png`}
-              alt="Maíte e sua mãe Glaice"
-              loading="lazy"
-              decoding="async"
-              style={{ width: "100%", display: "block" }}
+            <iframe
+              src="https://www.youtube.com/embed/v08G0MutJI8"
+              title="Vídeo da mãe da Maíte"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{
+                position: "absolute",
+                top: 0, left: 0,
+                width: "100%", height: "100%",
+                border: "none",
+                borderRadius: "12px",
+              }}
             />
           </div>
 
