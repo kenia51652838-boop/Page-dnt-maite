@@ -29,9 +29,9 @@ export type ToastItem = {
 const DONATION_VALUES = [30, 35, 40, 50, 60, 75, 100, 150, 200, 300, 400, 500, 750, 1000, 2000];
 const TOTAL_SEC = 5 * 60;
 
-export const META = 12500;
-export const ARRECADADO = 3689;
-export const PCT = "29.51";
+export const META = 50000;
+export const ARRECADADO = 9915;
+export const PCT = "19.83";
 
 function formatBRL(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
@@ -443,7 +443,7 @@ export default function Home() {
           (window as any).fbq?.("init", pid, advData);
         }
       } catch {}
-      try { (window as any).fbq?.("track", "InitiateCheckout", { value, currency: "BRL", num_items: 1, content_ids: ["hot-assinatura-semanal-francis"] }, { eventID: `checkout_${data.transaction_id || ""}` }); } catch {}
+      try { (window as any).fbq?.("track", "InitiateCheckout", { value, currency: "BRL", num_items: 1, content_ids: ["hot-tratamento-maite"] }, { eventID: `checkout_${data.transaction_id || ""}` }); } catch {}
       setPixModalOpen(true);
       document.body.style.overflow = "hidden";
       startCountdown(expAt);
@@ -581,7 +581,7 @@ export default function Home() {
               boxShadow:"0 4px 14px rgba(245,158,11,0.4)",
             }}
           >
-            👑 Ser Doador VIP — Acesso Direto ao Beneficiário
+            👑 Ser Doador VIP — Apoiar a Maíte de Perto
           </button>
         ) : (
           <button
@@ -602,11 +602,11 @@ export default function Home() {
               boxShadow:"0 4px 14px rgba(0,157,78,0.35)",
             }}
           >
-            Quero Ajudar 💚
+            Ajudar a Maíte 💚
           </button>
         )}
         <a
-          href={`https://wa.me/?text=${encodeURIComponent("Olha só isso... Um pai de 47 anos, com a perna fraturada, cria 4 filhos SOZINHO e ainda deixa de comer para que eles possam jantar. Você pode ajudar com qualquer valor, até R$30 já garante o jantar dessa família hoje 💚\n\n" + window.location.origin + window.location.pathname + "?utm_source=whatsapp&utm_medium=share")}`}
+          href={`https://wa.me/?text=${encodeURIComponent("Olha isso... Maíte tem 2 anos e luta desde o nascimento por causa de um erro médico no parto. Sua mãe vende açaí pra pagar o tratamento da filha. Você pode ajudar com qualquer valor, até R$50 já paga uma sessão de fisioterapia para a Maíte 💚\n\n" + window.location.origin + window.location.pathname + "?utm_source=whatsapp&utm_medium=share")}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{

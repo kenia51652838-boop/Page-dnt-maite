@@ -219,7 +219,7 @@ export default function ContaAtrasada() {
                 <div style={{ flex: 1, height: "1px", background: "repeating-linear-gradient(90deg,#e5e7eb 0,#e5e7eb 6px,transparent 6px,transparent 12px)" }} />
               </div>
 
-              <Row label="Beneficiário" value="Francivaldo Pereira Ricardo" />
+              <Row label="Beneficiária" value="Família de Maíte (Glaice)" />
               <Row label="Referência" value="Energia elétrica — conta em atraso" />
               <Row label="Valor pago" value={fmtBRL(BILL_AMOUNT)} highlight />
               <Row label="Situação da conta" value="QUITADA ✓" green />
@@ -235,7 +235,7 @@ export default function ContaAtrasada() {
                 color: "#15803d",
                 lineHeight: 1.65,
               }}>
-                ⚡ A distribuidora receberá o pagamento e a energia do Sr. Francivaldo será religada em até <strong>24h úteis</strong>. Seus 4 filhos vão dormir com luz esta noite.
+                ⚡ A distribuidora receberá o pagamento e a energia da família da Maíte será religada em até <strong>24h úteis</strong>. A Maíte vai dormir com luz esta noite.
               </div>
             </div>
           </div>
@@ -302,7 +302,7 @@ export default function ContaAtrasada() {
 
             <div style={{ padding: "0.9rem 1rem" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
-                <MiniField label="Nome" value="Francivaldo P. Ricardo" />
+                <MiniField label="Nome" value="Glaice (família da Maíte)" />
                 <MiniField label="Vencimento" value="05/05/2026" />
                 <MiniField label="Em atraso há" value={`${daysOverdue()} dias`} red />
                 <MiniField label="Valor" value={fmtBRL(BILL_AMOUNT)} red bold />
@@ -355,7 +355,7 @@ export default function ContaAtrasada() {
             }}>
               <span style={{ fontSize: "0.9rem" }}>🔒</span>
               <span style={{ fontSize: "0.73rem", color: "#15803d", lineHeight: 1.5 }}>
-                Seu PIX paga diretamente a distribuidora de energia do Sr. Francivaldo
+                Seu PIX paga diretamente a distribuidora de energia da família da Maíte
               </span>
             </div>
           </div>
@@ -420,7 +420,7 @@ export default function ContaAtrasada() {
           letterSpacing: "0.02em",
           lineHeight: 1.5,
         }}>
-          ⚡ A conta de energia do Sr. Francivaldo chegou até você — ela ainda não foi quitada
+          ⚡ A conta de energia da família da Maíte chegou até você — ela ainda não foi quitada
         </p>
       </div>
 
@@ -460,21 +460,18 @@ export default function ContaAtrasada() {
           boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
         }}>
           <div style={{ position: "relative", height: "170px", overflow: "hidden" }}>
-            <picture>
-              <source srcSet={`${BASE}img/francivaldo.webp`} type="image/webp" />
-              <img
-                src={`${BASE}img/francivaldo.jpg`}
-                alt="Sr. Francivaldo Pereira Ricardo"
+            <img
+                src={`${BASE}img/maite.png`}
+                alt="Maíte e sua mãe Glaice"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }}
               />
-            </picture>
             <div style={{
               position: "absolute", inset: 0,
               background: "linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.72) 100%)",
             }} />
             <div style={{ position: "absolute", bottom: "12px", left: "14px", right: "14px" }}>
               <div style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", lineHeight: 1.25, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-                Sr. Francivaldo Pereira Ricardo
+                Glaice — mãe da Maíte
               </div>
               <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.72rem", marginTop: "2px" }}>
                 ONG Doação Solidária — Nordeste, Brasil
@@ -532,7 +529,7 @@ export default function ContaAtrasada() {
           <div style={{ padding: "0.9rem 1rem" }}>
             {/* Dados da conta */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 12px", marginBottom: "12px" }}>
-              <MiniField label="Titular" value="Francivaldo P. Ricardo" />
+              <MiniField label="Titular" value="Glaice (família da Maíte)" />
               <MiniField label="Nº da conta" value="3847-2" />
               <MiniField label="Competência" value="Abril / 2026" />
               <MiniField label="Vencimento" value="05/05/2026" />
@@ -571,13 +568,13 @@ export default function ContaAtrasada() {
           Essa conta chegou até você por um motivo.
         </p>
         <p style={{ fontSize: "0.88rem", color: "#4b5563", lineHeight: 1.85, marginBottom: "0.8rem" }}>
-          Desde {CUT_DATE_STR}, a energia do Sr. Francivaldo está cortada. A geladeira parou,
-          o ventilador doado pela campanha também parou — e os seus <strong>4 filhos</strong>, o mais novo
-          com 6 anos, estão dormindo no escuro e no calor. Ele deixou a conta atrasar para não deixar faltar comida.
+          Desde {CUT_DATE_STR}, a energia da família da Maíte está cortada. A geladeira parou
+          e a <strong>pequena Maíte</strong>, que precisa de seus equipamentos de reabilitação, está
+          dormindo no escuro e no calor. A conta atrasou porque o dinheiro foi para o tratamento da Maíte.
         </p>
         <p style={{ fontSize: "0.88rem", color: "#4b5563", lineHeight: 1.85, marginBottom: "1.25rem" }}>
           A ONG identificou <strong>uma única conta</strong> pendente para este mês —
-          e ela apareceu para você entre centenas de doadores. Quem quita, quita sozinho.
+          e ela apareceu para você entre centenas de apoiadores. Quem quita, quita sozinho.
         </p>
 
         <div style={{

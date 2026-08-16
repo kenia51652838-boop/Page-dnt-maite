@@ -79,18 +79,13 @@ export default function BeneficiaryMessageModal({ onDonate }: Props) {
             border: "2px solid #24CA68",
             boxShadow: "0 0 0 3px #24CA6822",
           }}>
-            <picture>
-              <source srcSet={`${import.meta.env.BASE_URL}img/francivaldo.webp`} type="image/webp" />
-              <img
-                src={`${import.meta.env.BASE_URL}img/francivaldo.jpg`}
-                alt="Sr. Francivaldo"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-              />
-            </picture>
+            <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #24CA68, #15944a)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: "1.1rem", fontFamily: "'Montserrat', sans-serif" }}>G</span>
+            </div>
           </div>
           <div style={{ flex: 1 }}>
             <p style={{ margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "0.95rem", color: "#111" }}>
-              Sr. Francivaldo
+              Glaice (mãe da Maíte)
             </p>
             <p style={{ margin: 0, fontFamily: "'Lato', sans-serif", fontSize: "0.75rem", color: "#24CA68", fontWeight: 700 }}>
               ✓ Beneficiário verificado
@@ -115,17 +110,12 @@ export default function BeneficiaryMessageModal({ onDonate }: Props) {
           <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginBottom: "6px" }}>
             <div style={{
               width: 32, height: 32, borderRadius: "50%",
-              overflow: "hidden", flexShrink: 0,
+              background: "linear-gradient(135deg, #24CA68, #15944a)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
               border: "1.5px solid #e5e7eb",
             }}>
-              <picture>
-                <source srcSet={`${import.meta.env.BASE_URL}img/francivaldo.webp`} type="image/webp" />
-                <img
-                  src={`${import.meta.env.BASE_URL}img/francivaldo.jpg`}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-                />
-              </picture>
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: "0.72rem", fontFamily: "'Montserrat', sans-serif" }}>G</span>
             </div>
 
             <div style={{
@@ -154,8 +144,8 @@ export default function BeneficiaryMessageModal({ onDonate }: Props) {
                   color: "#1f2937",
                   lineHeight: 1.55,
                 }}>
-                  Olá. Meu nome é Francivaldo. Fraturei minha perna e não consigo trabalhar. Tenho 4 filhos e a geladeira está vazia — não sei como vou dar janta pra eles hoje.
-                  {" "}<span style={{ fontWeight: 700 }}>Por favor, se puder me ajudar com qualquer valor, vai mudar a nossa noite.</span>
+                  Olá. Sou a Glaice, mãe da Maíte. Minha filha sofreu sequelas graves por um erro médico no parto e precisa de tratamento contínuo. Estou trabalhando todo dia na minha açaiteria pra pagar a fisioterapia dela.
+                  {" "}<span style={{ fontWeight: 700 }}>Por favor, se puder me ajudar com qualquer valor, vai fazer toda a diferença no tratamento dela.</span>
                   {" "}Que Deus abençoe você. 🙏
                 </p>
               )}
@@ -191,7 +181,7 @@ export default function BeneficiaryMessageModal({ onDonate }: Props) {
               letterSpacing: "0.01em",
             }}
           >
-            Quero ajudar o Sr. Francivaldo 💚
+            Quero ajudar a Maíte 💚
           </button>
           <button
             onClick={dismiss}

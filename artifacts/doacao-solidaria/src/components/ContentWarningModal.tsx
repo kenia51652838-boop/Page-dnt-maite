@@ -103,8 +103,8 @@ export default function ContentWarningModal({ onDismiss }: Props) {
             marginBottom: "0.5rem",
           }}
         >
-          Esta página contém imagens e relatos reais de uma família vivendo em situação de{" "}
-          <strong>vulnerabilidade extrema</strong>. A história do Sr. Francivaldo é difícil de ler,
+          Esta página contém imagens e relatos reais de uma família vivendo uma situação de{" "}
+          <strong>dor extrema</strong>. A história da Maíte é difícil de ler,
           mas é uma realidade infeliz e existente nos dias de hoje.
         </p>
 

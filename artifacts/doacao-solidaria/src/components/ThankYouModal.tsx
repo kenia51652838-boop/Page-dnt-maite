@@ -302,7 +302,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
           </div>
 
           <p style={{ textAlign: "center", color: "#4b5563", fontSize: "0.875rem", lineHeight: 1.6, margin: 0 }}>
-            Você fez a diferença hoje para o Sr. Francivaldo e seus 4 filhos 💚
+            Você fez a diferença hoje para a Maíte e sua família 💚
           </p>
         </div>
       </div>
@@ -450,7 +450,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
               Obrigado pela sua doação! 💚
             </h2>
             <p style={{ color: "#4b5563", fontSize: "0.82rem", margin: 0, lineHeight: 1.5 }}>
-              O Francivaldo e seus 4 filhos já receberam sua contribuição de <strong>{formatBRL(donationAmount)}</strong>.
+              A Maíte e sua família já receberam sua contribuição de <strong>{formatBRL(donationAmount)}</strong>.
             </p>
           </div>
 
@@ -497,16 +497,16 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
               borderLeft: "3px solid #f59e0b",
             }}>
               <p style={{ fontSize: "0.8rem", color: "#78350f", lineHeight: 1.65, margin: 0 }}>
-                O Francivaldo não sabe seu nome. Mas você escolheu ajudar mesmo assim. Isso diz muito sobre quem você é.<br /><br />
-                Agora imagine ele <strong>recebendo uma ligação sua</strong>, sabendo que você acompanha de perto a recuperação dele e dos seus 4 filhos. Uma doação de mais <strong>R$50</strong> faz isso possível.
+                A Glaice não sabe seu nome. Mas você escolheu ajudar mesmo assim. Isso diz muito sobre quem você é.<br /><br />
+                Agora imagine ela <strong>recebendo uma mensagem sua</strong>, sabendo que você acompanha de perto o tratamento da Maíte. Uma doação de mais <strong>R$50</strong> faz isso possível.
               </p>
             </div>
 
             {/* Benefícios */}
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 0.75rem", display: "flex", flexDirection: "column", gap: "6px" }}>
               {([
-                ["📲", "Receba atualizações exclusivas sobre o Francivaldo e os filhos"],
-                ["📞", "Fale diretamente com o Francivaldo por ligação"],
+                ["📲", "Receba atualizações exclusivas sobre o tratamento da Maíte"],
+                ["📞", "Fale diretamente com a Glaice (mãe da Maíte)"],
                 ["🏠", "Acesso ao endereço para uma visita presencial"],
                 ["🤍", "Ganhe o Cartão de Boa Alma — você fez parte dessa história"],
                 ["🎁", "Concorra a prêmios especiais dos Doadores VIP"],
@@ -877,7 +877,7 @@ export default function ThankYouModal({ isOpen, donationAmount, arrecadado, onCl
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
                 {([
                   ["📲", "Atualizações exclusivas sobre o caso em breve"],
-                  ["📞", "Acesso ao contato direto com o Francivaldo"],
+                  ["📞", "Acesso ao contato direto com a Glaice (mãe da Maíte)"],
                   ["🪪", "Seu Cartão VIP digital será enviado"],
                   ["🎁", "Você já está concorrendo aos prêmios VIP"],
                 ] as [string, string][]).map(([icon, text]) => (

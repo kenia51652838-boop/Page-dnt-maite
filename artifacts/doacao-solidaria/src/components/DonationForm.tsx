@@ -2,21 +2,21 @@ import { useState } from "react";
 import { ARRECADADO, META } from "@/pages/Home";
 
 const CTA_MAP: Record<number, string> = {
-  30:   "Garantir o jantar de hoje",
-  35:   "Colocar comida na mesa",
-  40:   "Garantir 2 dias de refeição",
-  50:   "Garantir 3 dias de refeição",
-  60:   "Alimentar a família por 4 dias",
-  75:   "Garantir 4 dias de comida",
-  100:  "Garantir 6 dias de alimentação",
-  150:  "Garantir 1 semana de comida",
-  200:  "Mais de 1 semana garantida",
-  300:  "Garantir quase 2 semanas",
-  400:  "Garantir 2 semanas completas",
-  500:  "Garantir 3 semanas de cuidado",
-  750:  "Garantir mais de 1 mês",
-  1000: "Transformar a realidade deles",
-  2000: "Mudar completamente o futuro deles",
+  30:   "Ajudar no tratamento da Maíte",
+  35:   "Contribuir para a recuperação",
+  40:   "Pagar parte da consulta especializada",
+  50:   "Cobrir sessão de fisioterapia",
+  60:   "Garantir sessões de reabilitação",
+  75:   "Custear exames da Maíte",
+  100:  "Pagar uma semana de terapia",
+  150:  "Garantir duas semanas de reabilitação",
+  200:  "Cobrir tratamento mensal da Maíte",
+  300:  "Garantir um mês de fisioterapia",
+  400:  "Cobrir exames + sessões do mês",
+  500:  "Garantir mês completo de tratamento",
+  750:  "Ajudar no tratamento por 2 meses",
+  1000: "Transformar a reabilitação da Maíte",
+  2000: "Mudar completamente o futuro da Maíte",
 };
 
 interface DonationFormProps {
@@ -32,21 +32,21 @@ interface DonationFormProps {
 const MAIS_ESCOLHIDO = 75;
 
 const IMPACT_MAP: Record<number, string> = {
-  30:   "garante o jantar de hoje para o Sr. Francivaldo e os 4 filhos",
-  35:   "compra arroz, feijão e ovos para 2 dias de refeição",
-  40:   "cobre 2 dias de alimentação básica para toda a família",
-  50:   "garante 3 dias de refeições para as crianças",
-  60:   "alimenta a família por 3 a 4 dias com o básico do mercado",
-  75:   "cobre 4 dias de comida no prato para os 4 filhos",
-  100:  "garante 5 a 6 dias de alimentação completa para a família",
-  150:  "uma semana inteira de comida garantida para essa família",
-  200:  "mais de 1 semana de alimentação e itens básicos de higiene",
-  300:  "quase 2 semanas de comida e dignidade para os 4 filhos",
-  400:  "2 semanas de alimentação completa e ajuda no tratamento da perna",
-  500:  "3 semanas de comida e cuidado garantidos para essa família",
-  750:  "mais de 1 mês de refeições no prato para os 4 filhos",
-  1000: "muda completamente a realidade dessa família por mais de 1 mês",
-  2000: "garante mais de 2 meses de alimentação e dignidade para toda a família",
+  30:   "ajuda a cobrir parte dos exames e consultas especializadas para a Maíte",
+  35:   "contribui para a reabilitação neurológica que a Maíte precisa urgentemente",
+  40:   "paga parte de uma sessão de fisioterapia para a Maíte se desenvolver",
+  50:   "cobre uma sessão de fisioterapia ou fonoaudiologia para a Maíte",
+  60:   "garante uma semana de exercícios de reabilitação para a Maíte",
+  75:   "cobre exames ou duas sessões de terapia para a recuperação da Maíte",
+  100:  "garante uma semana completa de fisioterapia para a Maíte",
+  150:  "custeia duas semanas de reabilitação neurológica para a Maíte",
+  200:  "cobre mais de um mês de sessões de fisioterapia para a Maíte",
+  300:  "garante um mês inteiro de tratamento especializado para a Maíte",
+  400:  "cobre exames + sessões de reabilitação pelo mês inteiro",
+  500:  "garante mais de um mês de tratamento completo para a Maíte",
+  750:  "custeia dois meses de reabilitação e exames para a Maíte",
+  1000: "muda completamente o acesso ao tratamento da Maíte por vários meses",
+  2000: "garante mais de 3 meses de tratamento especializado e dignidade para a Maíte",
 };
 
 export default function DonationForm({
@@ -80,7 +80,7 @@ export default function DonationForm({
         marginBottom: "0.75rem",
         paddingRight: "2rem",
       }}>
-        4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
+        Maíte tem 2 anos e luta desde o primeiro dia de vida por causa de sequelas do parto
       </h2>
 
       {/* Valor + progresso */}

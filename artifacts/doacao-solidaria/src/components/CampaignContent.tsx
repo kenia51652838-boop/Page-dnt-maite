@@ -11,32 +11,32 @@ type Tab = typeof TABS[number];
 const ATUALIZACOES = [
   {
     id: 1,
-    data: "24 abr. 2026",
+    data: "15 ago. 2026",
     autor: "Equipe Vakinha",
-    titulo: "Conseguimos compras no mercado graças a vocês 🙏",
-    texto: "Com o apoio de quem doou, conseguimos fazer compras no supermercado essa semana. As crianças puderam comer direito. O Sr. Francivaldo agradece do fundo do coração cada centavo doado. A luta continua — ainda precisamos de muito apoio.",
-    reacoes: 312,
+    titulo: "A Glaice conseguiu a consulta com o neurologista 🙏",
+    texto: "Graças às doações recebidas, a Glaice conseguiu agendar a consulta com o neurologista infantil que a Maíte precisava com urgência. O médico confirmou que com fisioterapia intensiva e acompanhamento especializado, a Maíte tem grandes chances de evolução. Cada real doado está fazendo diferença real na vida dessa criança.",
+    reacoes: 428,
   },
   {
     id: 2,
-    data: "22 abr. 2026",
+    data: "13 ago. 2026",
     autor: "Equipe Vakinha",
-    titulo: "A perna do Francivaldo piorou, mas ele não para",
-    texto: "O Sr. Francivaldo foi ao hospital. O raio-x confirmou o deslocamento no osso do joelho. Mesmo assim, ele acorda cedo todo dia para trabalhar — porque parar significaria ver seus filhos passarem fome. Sua força é emocionante. Ajude essa família.",
-    reacoes: 271,
+    titulo: "Maíte começou as sessões de fisioterapia 💪",
+    texto: "Nesta semana a Maíte iniciou as primeiras sessões de fisioterapia. A fisiatra disse que ela tem potencial de melhora significativa, mas precisa de tratamento contínuo e sem interrupção. O tratamento é caro e a família não tem condições de arcar. Cada doação garante que a Maíte não perca uma sessão sequer.",
+    reacoes: 312,
   },
 ];
 
 const DOADORES = [
-  { nome: "Ana C.", valor: 150, tempo: "há 12 min", msg: "Meu Deus, que história difícil. Força, Sr. Francivaldo! 💚" },
-  { nome: "Roberto M.", valor: 50, tempo: "há 28 min", msg: "" },
-  { nome: "Fernanda Lima", valor: 200, tempo: "há 41 min", msg: "Esse pai é um herói. As crianças merecem o melhor." },
-  { nome: "Carlos Eduardo", valor: 100, tempo: "há 1h", msg: "" },
-  { nome: "Mariana T.", valor: 30, tempo: "há 1h 20min", msg: "Chorei muito assistindo o vídeo. Que Deus abençoe essa família 🙏" },
+  { nome: "Ana C.", valor: 150, tempo: "há 8 min", msg: "Meu Deus, que história difícil. Força, pequena Maíte! 💚" },
+  { nome: "Roberto M.", valor: 50, tempo: "há 23 min", msg: "" },
+  { nome: "Fernanda Lima", valor: 200, tempo: "há 37 min", msg: "Essa mãe é uma guerreira. A Maíte merece todo o tratamento do mundo." },
+  { nome: "Carlos Eduardo", valor: 100, tempo: "há 58 min", msg: "" },
+  { nome: "Mariana T.", valor: 75, tempo: "há 1h 15min", msg: "Chorei muito vendo o vídeo da Glaice. Que Deus abençoe essa família 🙏" },
   { nome: "Doador anônimo", valor: 500, tempo: "há 2h", msg: "" },
-  { nome: "Patricia Souza", valor: 75, tempo: "há 2h 15min", msg: "Força pro Sr. Francivaldo e pras crianças! Vocês não estão sozinhos." },
-  { nome: "João Henrique", valor: 20, tempo: "há 3h", msg: "" },
-  { nome: "Beatriz O.", valor: 250, tempo: "há 4h", msg: "Compartilhei com todo mundo. Vamos ajudar essa família!" },
+  { nome: "Patricia Souza", valor: 100, tempo: "há 2h 30min", msg: "Força pro tratamento da Maíte! Vocês não estão sozinhos." },
+  { nome: "João Henrique", valor: 50, tempo: "há 3h", msg: "" },
+  { nome: "Beatriz O.", valor: 300, tempo: "há 4h", msg: "Compartilhei com todo mundo. Vamos ajudar a Maíte!" },
   { nome: "Doador anônimo", valor: 1000, tempo: "há 5h", msg: "" },
 ];
 
@@ -108,6 +108,22 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
       {activeTab === "Sobre" && (
         <div style={{ padding: "1.75rem 1.5rem", fontFamily: "'Lato', sans-serif" }}>
 
+          {/* Badge categoria */}
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "#edfaf3",
+            border: "1px solid #b8edcf",
+            borderRadius: "6px",
+            padding: "4px 10px",
+            marginBottom: "1rem",
+          }}>
+            <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 700, fontSize: "0.7rem", color: "#1aad56", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              🏥 Saúde · Criança
+            </span>
+          </div>
+
           <h2 style={{
             fontFamily: "'Montserrat', sans-serif",
             fontWeight: 800,
@@ -116,132 +132,65 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             margin: "0 0 14px",
             lineHeight: 1.35,
           }}>
-            🎥 Esse vídeo vai te fazer entender por que essa família precisa de você
+            🎥 Assista ao vídeo da mãe da Maíte e entenda por que ela precisa de você
           </h2>
 
+          {/* Foto da campanha */}
           <div style={{
-            position: "relative",
-            width: "100%",
-            paddingBottom: "56.25%",
             borderRadius: "12px",
             overflow: "hidden",
             marginBottom: "1.75rem",
             boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
+            lineHeight: 0,
           }}>
-            <iframe
-              src="https://www.youtube.com/embed/zx8M-DV7GXk"
-              title="A história do Sr. Francivaldo e seus filhos"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                border: "none",
-              }}
+            <img
+              src={`${import.meta.env.BASE_URL}img/maite.png`}
+              alt="Maíte e sua mãe Glaice"
+              loading="lazy"
+              decoding="async"
+              style={{ width: "100%", display: "block" }}
             />
           </div>
 
-          <SectionHeading>💔 Um pai de 47 anos, 4 filhos pequenos e nenhuma ajuda</SectionHeading>
+          <SectionHeading>💔 Um erro médico mudou a vida da Maíte antes mesmo dela começar</SectionHeading>
 
           <p className="paragrafo-historia">
-            O <b className="destacar-no-texto">Sr. Francivaldo tem 47 anos</b> e do dia para a noite se viu completamente sozinho — sua esposa foi embora e o deixou com <b className="destacar-no-texto">quatro filhos pequenos</b> para criar: Eduardo (14 anos), Maria Gabriele (11 anos), Maurício (8 anos) e Maria Julia, a caçulinha de apenas <b className="destacar-no-texto">6 anos</b>.
+            Nenhuma mãe imagina que o nascimento do seu filho será o início de uma batalha diária pela vida. Mas foi exatamente isso que aconteceu com <b className="destacar-no-texto">Glaice</b>, mãe da pequena <b className="destacar-no-texto">Maíte</b>.
           </p>
           <br />
           <p className="paragrafo-historia">
-            Sem renda suficiente, sem apoio, e sem ter a quem recorrer, esse pai acorda todo dia com uma única missão: <b className="destacar-no-texto">garantir que seus filhos não passem fome</b>. E ele cumpre essa missão mesmo quando dói — literalmente.
+            Durante o fim de semana, <b className="destacar-no-texto">a bebê parou de se mexer</b>. A família foi ao hospital, mas os médicos não quiseram fazer a cesárea. Preferiram esperar. Esperaram o fim de semana inteiro. E quando chegou a segunda-feira — já era tarde demais.
           </p>
           <br />
           <p className="paragrafo-historia">
-            O Sr. Francivaldo tem um <b className="destacar-no-texto">deslocamento no osso do joelho</b>. O raio-x comprovou. O médico disse que ele precisa de tratamento urgente. Mas parar de trabalhar para ele não é uma opção — porque parar significa ver seus filhos passarem fome.
+            <b className="destacar-no-texto">Maíte chegou sem vida.</b> Os médicos precisaram ressuscitá-la. Ela sobreviveu — mas ficou com <b className="destacar-no-texto">graves sequelas neurológicas</b> causadas pela falta de oxigênio no parto. Sequelas que poderiam ter sido evitadas. Sequelas que hoje fazem parte do cotidiano dessa família.
           </p>
-
-          <div style={{ margin: "1.25rem 0" }}>
-            <picture>
-              <source
-                srcSet={`${import.meta.env.BASE_URL}img/raio-x.webp`}
-                type="image/webp"
-              />
-              <img
-                src={`${import.meta.env.BASE_URL}img/raio-x.png`}
-                alt="Raio-X do joelho do Sr. Francivaldo mostrando o deslocamento ósseo"
-                loading="lazy"
-                decoding="async"
-                style={{
-                  width: "100%",
-                  display: "block",
-                  borderRadius: "12px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-                }}
-              />
-            </picture>
-            <div style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "8px",
-              marginTop: "10px",
-              padding: "0 4px",
-            }}>
-              <div>
-                <p style={{
-                  margin: 0,
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  color: "#374151",
-                  fontFamily: "'Lato', sans-serif",
-                }}>
-                  Exame de imagem — Raio-X do joelho
-                </p>
-                <p style={{
-                  margin: "2px 0 0",
-                  fontSize: "0.72rem",
-                  color: "#6b7280",
-                  fontFamily: "'Lato', sans-serif",
-                  lineHeight: 1.5,
-                }}>
-                  Paciente: Francivaldo Pereira Ricardo &nbsp;·&nbsp; UPA 24h &nbsp;·&nbsp; 27/02/2026
-                </p>
-              </div>
-            </div>
-          </div>
-
           <br />
           <p className="paragrafo-historia">
-            Então ele vai. Dia após dia. Com a perna fora do lugar, <b className="destacar-no-texto">mancando, arrastando o pé</b>, saindo de casa cedo para trabalhar. E muitas vezes, ao final do dia, <b className="destacar-no-texto">ele mesmo fica sem comer para que as crianças possam se alimentar</b>.
+            Maíte hoje tem <b className="destacar-no-texto">2 anos</b>. E luta todos os dias. Sua mãe Glaice está processando o hospital, mas enquanto a Justiça não resolve, <b className="destacar-no-texto">o tratamento precisa continuar</b> — e ele custa caro.
           </p>
 
           <div className="btn-donation-centro-wrap">
             <button type="button" className="btn-donation btn-donation--cta-centro" onClick={onDonate}>
               <span className="btn-donation__inner">
-                <span>QUERO AJUDAR O SR. FRANCIVALDO</span>
+                <span>QUERO AJUDAR A MAÍTE</span>
                 <span aria-hidden="true">💖</span>
               </span>
             </button>
           </div>
 
-          <SectionHeading>😢 O que essas crianças precisam agora</SectionHeading>
+          <SectionHeading>👩 A mãe que vende açaí para salvar a filha</SectionHeading>
 
           <p className="paragrafo-historia">
-            Não estamos falando de luxo. Estamos falando do básico que qualquer criança merece:
+            Para pagar o tratamento da Maíte, <b className="destacar-no-texto">Glaice abriu uma açaiteria</b> no bairro Marcinhos. Ela está lá todos os dias, trabalhando com o marido Michel, com a esperança de conseguir dinheiro suficiente para pagar as consultas, as sessões de fisioterapia e os exames da filha.
           </p>
           <br />
           <p className="paragrafo-historia">
-            <b className="destacar-no-texto">Comida na mesa.</b> Eduardo, Maria Gabriele, Maurício e Maria Julia enfrentam dias sem ter o que comer. O pai faz o impossível, mas a renda não alcança.
+            Mas a loja está fraca. O movimento é pouco. E a conta do tratamento não espera. É por isso que um influencer que conhecia a história da Glaice entrou na açaiteria e perguntou se ela trocava um açaí por uma divulgação. Ela disse que sim.
           </p>
           <br />
           <p className="paragrafo-historia">
-            <b className="destacar-no-texto">Itens de higiene.</b> Produtos básicos como sabonete, pasta de dente e shampoo faltam com frequência nessa casa.
-          </p>
-          <br />
-          <p className="paragrafo-historia">
-            <b className="destacar-no-texto">Itens pessoais para Maria Gabriele.</b> A mocinha de 11 anos está crescendo e precisa de produtos de higiene feminina que a família não tem condições de comprar. Isso é dignidade. Isso é urgente.
-          </p>
-          <br />
-          <p className="paragrafo-historia">
-            <b className="destacar-no-texto">Tratamento para a perna do pai.</b> Se o Sr. Francivaldo não cuidar do joelho, pode perder permanentemente a capacidade de trabalhar — e então toda a família ficará desamparada.
+            <b className="destacar-no-texto">Esse vídeo viralizou.</b> E agora essa história chegou até você.
           </p>
 
           <div className="btn-donation-centro-wrap">
@@ -253,32 +202,63 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             </button>
           </div>
 
-          <SectionHeading>🙏 Você pode mudar a história dessa família hoje</SectionHeading>
+          <SectionHeading>🩺 O que a Maíte precisa agora</SectionHeading>
 
           <p className="paragrafo-historia">
-            O Sr. Francivaldo não pediu para estar nessa situação. Ele não desistiu dos filhos. Ele não parou de lutar. <b className="destacar-no-texto">Mas ele não consegue fazer isso sozinho.</b>
+            Não estamos falando de luxo. Estamos falando do tratamento básico que qualquer criança com sequelas neurológicas precisa:
           </p>
           <br />
           <p className="paragrafo-historia">
-            Qualquer valor que você puder contribuir vai diretamente para alimentar essas crianças, comprar itens de higiene e ajudar no tratamento da perna desse pai guerreiro.
+            <b className="destacar-no-texto">Fisioterapia intensiva.</b> As sessões precisam ser contínuas, sem interrupção. Cada semana sem fisioterapia é um retrocesso no desenvolvimento da Maíte.
           </p>
           <br />
           <p className="paragrafo-historia">
-            Não precisa ser muito. <b className="destacar-no-texto">R$ 30 já garante uma refeição para toda a família.</b> R$ 50 garante itens de higiene por uma semana. Cada real faz diferença real na vida dessas crianças.
+            <b className="destacar-no-texto">Acompanhamento neurológico.</b> Consultas com especialistas são caras e precisam acontecer regularmente para acompanhar a evolução da Maíte.
           </p>
           <br />
           <p className="paragrafo-historia">
-            Se você não puder contribuir agora, <b className="destacar-no-texto">compartilhe essa história</b>. Um compartilhamento pode chegar até a pessoa certa — e salvar esses quatro filhos que só têm o pai.
+            <b className="destacar-no-texto">Exames e avaliações.</b> Ressonâncias, eletroencefalogramas e avaliações multidisciplinares são essenciais para guiar o tratamento correto.
           </p>
           <br />
           <p className="paragrafo-historia">
-            <b className="destacar-no-texto">Eduardo, Maria Gabriele, Maurício e a pequena Maria Julia precisam de você hoje.</b>
+            <b className="destacar-no-texto">Fonoaudiologia e terapia ocupacional.</b> Para que a Maíte possa se comunicar, interagir e ter uma vida com mais dignidade e qualidade.
           </p>
 
           <div className="btn-donation-centro-wrap">
             <button type="button" className="btn-donation btn-donation--cta-centro" onClick={onDonate}>
               <span className="btn-donation__inner">
                 <span>QUERO AJUDAR AGORA</span>
+                <span aria-hidden="true">💖</span>
+              </span>
+            </button>
+          </div>
+
+          <SectionHeading>🙏 Você pode mudar a história da Maíte hoje</SectionHeading>
+
+          <p className="paragrafo-historia">
+            A Glaice não pediu para estar nessa situação. Ela não escolheu o erro médico que mudou a vida da filha. Ela não desistiu da Maíte. <b className="destacar-no-texto">Mas ela não consegue fazer isso sozinha.</b>
+          </p>
+          <br />
+          <p className="paragrafo-historia">
+            Qualquer valor que você puder contribuir vai diretamente para as sessões de fisioterapia, consultas com especialistas e exames da Maíte.
+          </p>
+          <br />
+          <p className="paragrafo-historia">
+            Não precisa ser muito. <b className="destacar-no-texto">R$50 já paga uma sessão de fisioterapia.</b> R$100 garante uma semana de tratamento. Cada real faz diferença real na vida dessa criança.
+          </p>
+          <br />
+          <p className="paragrafo-historia">
+            Se você não puder contribuir agora, <b className="destacar-no-texto">compartilhe essa história</b>. Um compartilhamento pode chegar até a pessoa certa — e garantir que a Maíte não perca nem um dia de tratamento.
+          </p>
+          <br />
+          <p className="paragrafo-historia">
+            <b className="destacar-no-texto">A Maíte lutou para sobreviver. Agora ela precisa de você para viver com dignidade.</b>
+          </p>
+
+          <div className="btn-donation-centro-wrap">
+            <button type="button" className="btn-donation btn-donation--cta-centro" onClick={onDonate}>
+              <span className="btn-donation__inner">
+                <span>ESTENDA SUAS MÃOS PELA MAÍTE</span>
                 <span aria-hidden="true">💖</span>
               </span>
             </button>
@@ -307,7 +287,8 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
               <Row label="Organizador" value="ONG Doação Solidária" />
               <Row label="CNPJ" value="19.284.731/0001-45" />
               <Row label="Contato" value="contato@doacaosolidaria.com.br" isEmail />
-              <Row label="Beneficiário" value="Francivaldo Pereira Ricardo (pai solo, 47 anos, 4 filhos)" />
+              <Row label="Beneficiária" value="Maíte (2 anos, sequelas neurológicas de parto)" />
+              <Row label="Responsável" value="Glaice (mãe da Maíte)" />
             </div>
             <p style={{
               fontFamily: "'Lato', sans-serif",
@@ -316,7 +297,7 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
               margin: "10px 0 0",
               lineHeight: 1.5,
             }}>
-              Todas as doações são processadas com segurança via PIX. Os recursos arrecadados são repassados integralmente ao beneficiário. Em caso de dúvidas, entre em contato pelo e-mail acima.
+              Todas as doações são processadas com segurança via PIX. Os recursos arrecadados são repassados integralmente para o tratamento da Maíte. Em caso de dúvidas, entre em contato pelo e-mail acima.
             </p>
           </div>
         </div>
@@ -396,7 +377,7 @@ export default function CampaignContent({ onDonate }: CampaignContentProps) {
             color: "#aaa",
             marginBottom: "1.25rem",
           }}>
-            {Math.round(ARRECADADO / 35).toLocaleString("pt-BR")} apoiadores · ordenado por mais recente
+            {Math.round(ARRECADADO / 50).toLocaleString("pt-BR")} apoiadores · ordenado por mais recente
           </p>
 
           <div style={{ display: "flex", flexDirection: "column" }}>

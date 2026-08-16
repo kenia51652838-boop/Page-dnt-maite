@@ -75,14 +75,9 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           boxShadow: "0 4px 24px rgba(0,0,0,0.13), 0 1px 4px rgba(0,0,0,0.08)",
           lineHeight: 0,
         }}>
-          <picture>
-            <source
-              srcSet={`${import.meta.env.BASE_URL}img/francivaldo.webp`}
-              type="image/webp"
-            />
-            <img
-              src={`${import.meta.env.BASE_URL}img/francivaldo.jpg`}
-              alt="Sr. Francivaldo e seus filhos"
+          <img
+              src={`${import.meta.env.BASE_URL}img/maite.png`}
+              alt="Maíte e sua mãe Glaice"
               fetchPriority="high"
               loading="eager"
               decoding="async"
@@ -91,7 +86,6 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
               style={{ width: "100%", display: "block", objectFit: "cover" }}
               onError={e => { (e.currentTarget as HTMLImageElement).style.opacity = "0"; }}
             />
-          </picture>
         </div>
       </div>
 
@@ -155,7 +149,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           marginBottom: "16px",
           letterSpacing: "-0.02em",
         }}>
-          4 filhos, 1 pai com a perna fraturada e a geladeira vazia. O Sr. Francivaldo não sabe como vai jantar hoje.
+          Maíte tem 2 anos e luta desde o primeiro dia de vida por causa de sequelas do parto
         </h1>
 
         {/* Mensagem do beneficiário */}
@@ -170,17 +164,12 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
             <div style={{
               width: 28, height: 28, borderRadius: "50%",
-              overflow: "hidden", flexShrink: 0,
+              background: "linear-gradient(135deg, #24CA68, #15944a)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
               border: "1.5px solid #16a34a",
             }}>
-              <picture>
-                <source srcSet={`${import.meta.env.BASE_URL}img/francivaldo.webp`} type="image/webp" />
-                <img
-                  src={`${import.meta.env.BASE_URL}img/francivaldo.jpg`}
-                  alt="Sr. Francivaldo"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-                />
-              </picture>
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: "0.7rem", fontFamily: "'Montserrat', sans-serif" }}>G</span>
             </div>
             <div>
               <span style={{
@@ -188,7 +177,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
                 fontWeight: 700, fontSize: "0.75rem",
                 color: "#15803d",
               }}>
-                Mensagem do beneficiário
+                Mensagem da mãe da Maíte
               </span>
               <span style={{
                 fontFamily: "'Lato', sans-serif",
@@ -196,7 +185,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
                 color: "#4ade80",
                 marginLeft: "6px",
               }}>
-                · Francivaldo Pereira Ricardo
+                · Glaice (mãe da Maíte)
               </span>
             </div>
           </div>
@@ -208,7 +197,7 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
             lineHeight: 1.6,
             fontStyle: "italic",
           }}>
-            "Hoje meus filhos me perguntaram se ia ter janta. Graças as doações que recebemos hoje, a resposta foi sim. Que Deus abençoe cada um."
+            "Não é fácil, é uma luta. Mas em nome de Jesus que com a ajuda de vocês a Maíte vai ter o tratamento que ela merece. Que Deus abençoe cada um de coração."
           </p>
         </div>
 
@@ -291,10 +280,10 @@ export default function HeroSection({ onDonate, formatBRL, arrecadado }: HeroSec
             </div>
             <div>
               <p style={{ margin: 0, fontFamily: "'Lato', sans-serif", fontSize: "0.82rem", fontWeight: 700, color: "#222" }}>
-                Equipe Vakinha
+                Vaquinha de Maíte ✓
               </p>
               <p style={{ margin: 0, fontFamily: "'Lato', sans-serif", fontSize: "0.73rem", color: "#aaa" }}>
-                Organizador · Criada em {criacao}
+                Criada em {criacao}
               </p>
             </div>
           </div>

@@ -101,7 +101,7 @@ export default function ExitIntentModal({ onDonate }: Props) {
             margin: 0,
             lineHeight: 1.35,
           }}>
-            Você está saindo sem ajudar o Sr. Francivaldo e seus 4 filhos...
+            Você está saindo sem ajudar a Maíte...
           </h2>
         </div>
 
@@ -115,7 +115,7 @@ export default function ExitIntentModal({ onDonate }: Props) {
             margin: "0 0 0.85rem",
             textAlign: "center",
           }}>
-            Eduardo, Maria Gabriele, Maurício e Maria Julia vão dormir sem saber se terão o que comer amanhã. O pai deles trabalha com a perna fraturada e ainda fica sem jantar para que eles possam comer.
+            Maíte tem 2 anos e sofre sequelas graves causadas por um erro médico no parto. Sua mãe, Glaice, vende açaí para tentar pagar o tratamento. Cada dia sem doação é um dia a menos de fisioterapia para a Maíte.
           </p>
           <p style={{
             fontFamily: "'Lato', sans-serif",
@@ -125,7 +125,7 @@ export default function ExitIntentModal({ onDonate }: Props) {
             textAlign: "center",
             margin: "0 0 1.5rem",
           }}>
-            R$30 já garante o jantar dessa família hoje.
+            R$50 já paga uma sessão de fisioterapia para a Maíte.
           </p>
 
           <button
@@ -147,7 +147,7 @@ export default function ExitIntentModal({ onDonate }: Props) {
               marginBottom: "12px",
             }}
           >
-            Quero ajudar essa família 💚
+            Quero ajudar a Maíte 💚
           </button>
 
           <button
