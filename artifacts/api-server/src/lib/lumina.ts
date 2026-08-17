@@ -96,7 +96,7 @@ export async function createPixTransaction(data: {
     amount:        amountInCents,
     traceable:     true,
     items: [{
-      title:     data.product_title || "Hot - Assinatura semanal - Francis",
+      title:     data.product_title || "Doação - Tratamento Maíte",
       unitPrice: amountInCents,
       quantity:  1,
       tangible:  false,

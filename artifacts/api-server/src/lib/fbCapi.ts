@@ -21,9 +21,9 @@ const PIXELS = [
 ];
 
 const FB_API_VERSION = "v19.0";
-const SOURCE_URL     = "https://apoio.felicidadefamiliar.info/";
-const PRODUCT_ID     = "hot-assinatura-semanal-francis";
-const PRODUCT_NAME   = "Hot - Assinatura semanal - Francis";
+const SOURCE_URL     = "https://apoiar.fundacao-esperanca.digital/";
+const PRODUCT_ID     = "doacao-tratamento-maite";
+const PRODUCT_NAME   = "Doação - Tratamento Maíte";
 
 function sha256(value: string): string {
   return crypto.createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
