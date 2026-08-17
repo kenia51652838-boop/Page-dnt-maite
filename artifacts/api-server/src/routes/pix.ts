@@ -48,7 +48,8 @@ router.post("/pix/create", async (req, res) => {
       return;
     }
 
-    const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const rawWebhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const webhookBase = rawWebhookBase ? (rawWebhookBase.startsWith("http") ? rawWebhookBase : `https://${rawWebhookBase}`) : null;
     const host = req.headers.host || "";
     const protocol = req.protocol || (Array.isArray(req.headers["x-forwarded-proto"]) ? req.headers["x-forwarded-proto"][0] : req.headers["x-forwarded-proto"]?.split(",")[0]?.trim()) || "https";
     const postback_url = webhookBase
@@ -208,7 +209,8 @@ router.post("/pix/create-upsell", async (req, res) => {
     const d2 = (sum * 10) % 11; digits.push(d2 < 10 ? d2 : 0);
     const cpf = digits.join("");
 
-    const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const rawWebhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const webhookBase = rawWebhookBase ? (rawWebhookBase.startsWith("http") ? rawWebhookBase : `https://${rawWebhookBase}`) : null;
     const host        = req.headers.host || "";
     const protocol    = req.protocol || (Array.isArray(req.headers["x-forwarded-proto"]) ? req.headers["x-forwarded-proto"][0] : req.headers["x-forwarded-proto"]?.split(",")[0]?.trim()) || "https";
     const postback_url = webhookBase
@@ -638,7 +640,8 @@ router.post("/pix/create-vip", async (req, res) => {
     const d2 = (s2 * 10) % 11; digits.push(d2 < 10 ? d2 : 0);
     const cpf = digits.join("");
 
-    const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const rawWebhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
+    const webhookBase = rawWebhookBase ? (rawWebhookBase.startsWith("http") ? rawWebhookBase : `https://${rawWebhookBase}`) : null;
     const host = req.headers.host || "";
     const protocol = req.protocol || (Array.isArray(req.headers["x-forwarded-proto"]) ? req.headers["x-forwarded-proto"][0] : req.headers["x-forwarded-proto"]?.split(",")[0]?.trim()) || "https";
     const postback_url = webhookBase
