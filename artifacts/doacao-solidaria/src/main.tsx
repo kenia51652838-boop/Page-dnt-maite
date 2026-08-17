@@ -10,6 +10,8 @@ const ALLOWED_HOSTS = [
   "salvar.esperancaunida.click",
   "apoio.campanhahoje.digital",
   "francis-production.up.railway.app",
+  "apoiar.fundacao-esperanca.digital",
+  "dnt-05-maite-production.up.railway.app",
 ];
 
 const DEV_PATTERNS = [
