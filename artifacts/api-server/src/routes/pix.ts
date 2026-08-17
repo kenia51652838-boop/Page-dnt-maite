@@ -50,7 +50,7 @@ router.post("/pix/create", async (req, res) => {
 
     const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
     const host = req.headers.host || "";
-    const protocol = req.headers["x-forwarded-proto"] || "https";
+    const protocol = req.protocol || (Array.isArray(req.headers["x-forwarded-proto"]) ? req.headers["x-forwarded-proto"][0] : req.headers["x-forwarded-proto"]?.split(",")[0]?.trim()) || "https";
     const postback_url = webhookBase
       ? `${webhookBase}/api/webhook/lumina`
       : `${protocol}://${host}/api/webhook/lumina`;
@@ -210,7 +210,7 @@ router.post("/pix/create-upsell", async (req, res) => {
 
     const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
     const host        = req.headers.host || "";
-    const protocol    = req.headers["x-forwarded-proto"] || "https";
+    const protocol    = req.protocol || (Array.isArray(req.headers["x-forwarded-proto"]) ? req.headers["x-forwarded-proto"][0] : req.headers["x-forwarded-proto"]?.split(",")[0]?.trim()) || "https";
     const postback_url = webhookBase
       ? `${webhookBase}/api/webhook/lumina`
       : `${protocol}://${host}/api/webhook/lumina`;
@@ -640,7 +640,7 @@ router.post("/pix/create-vip", async (req, res) => {
 
     const webhookBase = process.env["WEBHOOK_BASE_URL"]?.replace(/\/$/, "");
     const host = req.headers.host || "";
-    const protocol = req.headers["x-forwarded-proto"] || "https";
+    const protocol = req.protocol || (Array.isArray(req.headers["x-forwarded-proto"]) ? req.headers["x-forwarded-proto"][0] : req.headers["x-forwarded-proto"]?.split(",")[0]?.trim()) || "https";
     const postback_url = webhookBase
       ? `${webhookBase}/api/webhook/lumina`
       : `${protocol}://${host}/api/webhook/lumina`;
