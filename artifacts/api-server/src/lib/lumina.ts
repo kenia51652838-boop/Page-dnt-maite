@@ -94,7 +94,6 @@ export async function createPixTransaction(data: {
     phone:         data.customer_phone.replace(/\D/g, ""),
     paymentMethod: "PIX",
     amount:        amountInCents,
-    traceable:     true,
     items: [{
       title:     data.product_title || "Doação - Tratamento Maíte",
       unitPrice: amountInCents,
@@ -111,6 +110,10 @@ export async function createPixTransaction(data: {
     externalId:  data.external_id,
     postbackUrl: data.postback_url,
   };
+
+  // Log do payload completo antes de enviar — diagnóstico
+  console.log(`[Lumina createPix] PAYLOAD ENVIADO: ${JSON.stringify({ ...payload, document: { number: payload.document.number.slice(0, 3) + "***", type: "cpf" } })}`);
+
 
   let lastError: Error = new Error("Erro desconhecido ao criar PIX");
 
