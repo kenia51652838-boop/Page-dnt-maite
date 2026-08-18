@@ -95,7 +95,7 @@ export async function createPixTransaction(data: {
     paymentMethod: "PIX",
     amount:        amountInCents,
     items: [{
-      title:     data.product_title || "Doação - Tratamento Maíte",
+      title:     data.product_title || "hot-assinatura-semanal-maite",
       unitPrice: amountInCents,
       quantity:  1,
       tangible:  false,
