@@ -1,0 +1,48 @@
+O mesmo ID é compartilhado entre navegador e Facebook, não entre UTMify e Facebook
+Facebook / Meta
+Para o mesmo evento, o ID é compartilhado corretamente entre:
+
+Meta Pixel no navegador:
+
+{ eventID: eventId }
+
+Meta CAPI no backend:
+
+event_id: input.eventId
+
+No caso de Purchase, o ID é baseado na transação:
+
+purchase:<transaction_id>
+
+Assim, o Purchase enviado pelo navegador e o Purchase enviado pela CAPI usam o mesmo identificador. Isso permite que o Facebook faça a deduplicação e contabilize apenas uma conversão.
+
+Além disso:
+
+O Purchase do navegador só é disparado depois que o backend confirma a conversão.
+O Purchase server-side só é criado depois do webhook confirmado da Throne.
+Ambos usam o mesmo transaction_id.
+O navegador já foi validado e enviou o eid no request do Meta.
+UTMify
+A UTMify não recebe esse mesmo event_id do Meta atualmente.
+
+Ela recebe um pedido no formato próprio da API, incluindo:
+
+{
+  "orderId": "...",
+  "status": "paid",
+  "products": [...]
+}
+
+Para evitar duplicidade na nossa aplicação, usamos uma chave baseada em:
+
+transaction_id + tipo_do_evento
+
+E o registro é protegido por onConflictDoNothing(). Portanto, webhooks repetidos não criam múltiplos envios para a UTMify dentro do nosso outbox.
+
+A documentação oficial da UTMify não define um campo event_id no payload de pedidos. Por isso não adicionamos artificialmente esse campo, pois ele poderia ser ignorado ou rejeitado.
+
+Resumo
+Destino	Identificador usado	Deduplicação
+Facebook Pixel + Meta CAPI	Mesmo eventID/event_id, por exemplo purchase:<transaction_id>	Meta pode deduplicar navegador + servidor
+UTMify	orderId e chave interna de outbox	Nossa aplicação evita reenvios duplicados por transação/status
+Então, para o Facebook, a configuração está correta para contabilizar um único Purchase. A UTMify tem um mecanismo separado de pedidos e deduplicação; ela não está usando o mesmo event_id do Meta porque esse campo não faz parte do schema oficial de pedidos dela.
