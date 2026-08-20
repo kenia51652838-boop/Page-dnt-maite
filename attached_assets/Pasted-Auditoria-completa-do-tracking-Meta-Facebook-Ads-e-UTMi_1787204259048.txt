@@ -1,0 +1,896 @@
+Auditoria completa do tracking Meta/Facebook Ads e UTMify
+Escopo: checkout atual com Throne Elements e cartão de crédito.
+Data da auditoria: 20/08/2026.
+Alterações durante a auditoria: nenhuma. Esta resposta é somente análise.
+
+Resumo executivo
+Área	Status	Principal conclusão
+Meta Pixel browser-side	Implementado	Eventos usam eventID explícito
+Meta CAPI	Implementado parcialmente	Usa o mesmo ID do browser, mas faltam testes runtime e há gaps operacionais
+UTMify Pixel	Implementado parcialmente	Carrega uma vez por página, mas não há prova de que recebe o eventID do Meta
+API UTMify	Implementado parcialmente	Usa orderId e outbox deduplicado, mas não possui eventId no schema oficial
+UTMs	Implementado parcialmente	First-touch/last-touch persistidos, mas vários click IDs são perdidos antes do Meta/UTMify server-side
+Deduplicação	Implementado parcialmente	Boa no Meta e no outbox local; há risco de duplicação após crash no envio externo
+Pagamento único	Implementado parcialmente	Tracking está configurado como one_time, mas a modalidade do gateway não é comprovada por um campo explícito
+Assinatura	Ausente por design	Não existe fluxo real de assinatura ou renovação
+Webhook Throne	Implementado	HMAC, ledger, reconciliação e validações existem
+Retries	Implementado parcialmente	Outbox possui retry, mas há bug no despertar de falhas por configuração
+Segurança	Implementado parcialmente	HMAC e secrets estão protegidos, mas faltam rate limit, limites de payload e controles contra abuso
+1. Mapa da arquitetura
+Fluxo real
+Visitante
+  ↓
+Página HTML estática
+  ↓
+tracking.js captura UTMs, click IDs e anonymous_id
+  ↓
+Meta Pixel + UTMify Pixel carregam
+  ↓
+PageView browser-side
+  ↓
+/api/track-server
+  ↓
+Meta CAPI via outbox
+  ↓
+Usuário abre checkout Throne
+  ↓
+InitiateCheckout
+  ↓
+POST /api/throne/card-create
+  ↓
+Checkout e atribuição são persistidos no banco
+  ↓
+Gateway Throne Elements processa cartão
+  ↓
+AddPaymentInfo no callback de carregamento
+  ↓
+Throne envia webhook
+  ↓
+POST /api/throne/webhook
+  ↓
+HMAC + validação + ledger + reconciliação
+  ↓
+Meta Purchase via CAPI
+  ↓
+UTMify API via outbox
+  ↓
+Frontend consulta /api/throne/card-status
+  ↓
+Somente depois da confirmação local:
+Purchase browser-side
+
+Onde cada etapa acontece
+Etapa	Local	Arquivo/função	Rota
+Captura de atribuição	Navegador	tracking.js, attribution()	—
+Carregamento Meta	Navegador	initFB()	—
+Carregamento UTMify	HTML	Bootstrap oficial inline	—
+PageView	Navegador	fire("PageView")	—
+Envio Meta preliminar	Backend	track-server.ts	POST /api/track-server
+Criação checkout	Backend	throne-card-create.ts	POST /api/throne/card-create
+Consulta status	Backend	throne-card-status.ts	GET /api/throne/card-status
+Webhook	Backend	throne-webhook.ts	POST /api/throne/webhook
+Meta CAPI Purchase	Backend	metaEvent() + outbox	Worker interno
+UTMify API	Backend	utmifyOrder() + outbox	Worker interno
+Purchase browser-side	Navegador	callback onPaid	—
+O projeto é predominantemente HTML estático. Não há um router SPA compartilhado nem tracking de mudança de rota via pushState, replaceState ou popstate.
+
+2. Identificadores e atribuição
+Facebook
+_fbp
+Status: parcialmente implementado.
+
+Arquivo:
+
+artifacts/api-server/public/assets/js/tracking.js
+
+Função:
+
+getFbp()
+
+Comportamento:
+
+lê o cookie _fbp;
+não cria um _fbp real quando ele não existe;
+depende da existência do cookie criado pelo Meta Pixel ou pelo navegador.
+_fbc e fbclid
+Status: parcialmente implementado.
+
+Função:
+
+getFbc()
+
+Comportamento:
+
+lê _fbc;
+se não existir, procura fbclid na URL;
+cria um valor no formato:
+fb.1.<timestamp>.<fbclid>
+
+persiste _fbc como cookie de caminho /.
+Existe um detalhe problemático: quando encontra fbclid, o código também tenta escrever um _fbp vazio. Isso não cria um _fbp válido.
+
+external_id
+Status: implementado, mas com dois conceitos diferentes.
+
+Existem dois IDs:
+
+anonymous_id do navegador:
+
+gerado no localStorage;
+usado inicialmente como identidade externa.
+external_id do checkout:
+
+derivado deterministicamente da chave de idempotência;
+persistido no backend;
+retornado ao navegador após a criação do checkout;
+armazenado em sessionStorage.
+Após o checkout, o backend passa a usar o external_id derivado do checkout para o Meta CAPI.
+
+Isso é correto para associar a conversão ao checkout, mas o external_id do navegador e o external_id do checkout não são o mesmo valor em todos os momentos da jornada.
+
+UTMs e click IDs
+A função attribution() captura:
+
+src;
+sck;
+utm_source;
+utm_medium;
+utm_campaign;
+utm_content;
+utm_term;
+fbclid;
+gclid;
+gbraid;
+wbraid;
+ttclid;
+fbp;
+fbc;
+URL de origem;
+referrer.
+Persistência
+Dado	Persistência
+anonymous_id	localStorage
+First-touch	localStorage
+Last-touch	localStorage
+gclid	cookie _gcl_aw, aproximadamente 90 dias
+gbraid	sessionStorage
+wbraid	sessionStorage
+panini_last_external	sessionStorage
+fbp/fbc/ttp	cookies, conforme política do navegador
+Checkout/order/transaction	banco de dados
+First-touch e last-touch
+Status: implementado.
+
+A chave usada é:
+
+dnt_attribution_v1
+
+O first_touch é preservado. O last_touch é atualizado com os valores atuais disponíveis.
+
+No checkout, os dados são persistidos em checkoutAttributionsTable, incluindo:
+
+anonymousId;
+firstTouch;
+lastTouch;
+sourceUrl;
+referrer;
+fbp;
+fbc;
+dados do cliente;
+external_id.
+Perda de dados no server-side
+Há uma perda importante.
+
+O navegador captura:
+
+gclid;
+gbraid;
+wbraid;
+ttclid;
+_ttp;
+fbclid.
+Mas metaEvent() server-side só encaminha diretamente:
+
+fbp;
+fbc.
+Os demais click IDs são recebidos ou armazenados em partes do fluxo, mas não são convertidos em campos do payload Meta CAPI.
+
+A UTMify server-side também envia somente:
+
+src;
+sck;
+UTMs tradicionais.
+Não envia:
+
+fbclid;
+gclid;
+gbraid;
+wbraid;
+ttclid;
+_ttp;
+anonymous_id;
+first_touch.
+Sobre recarregar ou retornar ao checkout
+O banco preserva atribuição após reload e fechamento do navegador quando o checkout já foi criado.
+sessionStorage não sobrevive a uma nova aba ou a uma sessão independente.
+A reconciliação do webhook não depende do sessionStorage; depende do banco.
+Se o usuário nunca chegar a criar o checkout, a atribuição fica somente no navegador.
+Status geral da atribuição: parcialmente implementado.
+
+3. Pixels browser-side
+Meta Pixel
+Arquivo:
+
+artifacts/api-server/public/assets/js/tracking.js
+
+Função:
+
+initFB()
+
+Carrega:
+
+https://connect.facebook.net/en_US/fbevents.js
+
+E chama:
+
+fbq("init", pixelId)
+
+O Meta Pixel aparece uma vez por documento.
+
+UTMify Pixel
+O Pixel oficial está instalado como bootstrap inline nos documentos HTML.
+
+Abrange:
+
+14 documentos rastreados;
+8 páginas principais;
+6 arquivos de checkout, correspondentes a 3 variações duplicadas em 2 espelhos.
+A instalação validada possui:
+
+exatamente um bootstrap oficial por documento;
+exatamente um script carregado de:
+https://cdn.utmify.com.br/scripts/pixel/pixel.js
+
+HTTP 200 no navegador;
+pixelId definido;
+nenhuma duplicação após reload.
+Entretanto, o Pixel UTMify não é inicializado por uma função explícita do aplicativo e não existe chamada como:
+
+utmify.track("Purchase", ...)
+
+Também não há evidência no código de que ele captura automaticamente o eventID usado pelo Meta.
+
+Conclusão: o carregamento do Pixel está implementado, mas a paridade de IDs entre UTMify e Meta não está comprovada.
+
+GTM
+Existe código para GTM em tracking.js, mas:
+
+gtm
+
+está vazio na configuração atual.
+
+Não foi encontrado:
+
+snippet GTM estático duplicado;
+instalação UTMify via GTM;
+instalação paralela do Meta Pixel via GTM.
+Eventos browser-side
+PageView
+Status: implementado.
+
+Arquivo:
+
+tracking.js
+
+Função:
+
+fire("PageView")
+
+Momento:
+
+após carregar a configuração;
+após inicializar os pixels;
+com atraso aproximado de 200 ms;
+protegido por firedPageView.
+ID:
+
+UUID
+
+Destinos:
+
+Meta Pixel;
+Meta CAPI através de /api/track-server;
+GA/Google Ads, quando configurado;
+TikTok/Kwai, quando configurados;
+dataLayer.
+InitiateCheckout
+Status: implementado.
+
+Arquivo:
+
+public/donate/index.html
+
+Evento disparado quando o checkout é montado/inicializado.
+
+Payload redigido:
+
+{
+  "value": "<valor>",
+  "currency": "GBP",
+  "customer": {
+    "email": "<email>"
+  }
+}
+
+ID:
+
+UUID gerado pelo tracking.js
+
+Destinos:
+
+Meta Pixel;
+Meta CAPI via /api/track-server.
+AddPaymentInfo
+Status: implementado parcialmente.
+
+É disparado no callback onLoaded do checkout Throne.
+
+Payload:
+
+{
+  "value": "<valor>",
+  "currency": "GBP",
+  "checkout_id": "<checkout>",
+  "transaction_id": "<transaction>",
+  "customer": {
+    "email": "<email>"
+  }
+}
+
+ID:
+
+UUID gerado pelo tracking.js
+
+Importante: esse evento confirma apenas que o componente de pagamento foi carregado. Não significa que o cartão foi aprovado.
+
+Purchase browser-side
+Status: implementado com bloqueio server-side.
+
+O frontend só dispara Purchase quando:
+
+recebe o status do checkout;
+o provider indica pagamento aprovado;
+o banco local indica paid;
+existe o registro Meta CAPI de Purchase no outbox;
+existe purchase_event_id.
+O evento usa:
+
+purchase:<transaction_id>
+
+Payload:
+
+{
+  "event_id": "purchase:<transaction_id>",
+  "value": "<valor>",
+  "currency": "GBP",
+  "order_id": "<order_id>",
+  "checkout_id": "<order_id>",
+  "transaction_id": "<transaction_id>",
+  "server": false
+}
+
+O campo:
+
+server: false
+
+impede que esse disparo browser-side também crie uma conversão via /api/track-server.
+
+Subscribe
+Status: ausente.
+
+Não existe:
+
+Subscribe
+
+nem:
+
+subscription_id
+
+nem renovação real.
+
+Existe uma aba visual “Monthly”, mas ela não representa uma assinatura funcional e não gera evento Subscribe.
+
+4. Event ID e deduplicação
+Tabela de IDs
+Evento	ID browser	ID Meta CAPI	ID UTMify Pixel	ID API UTMify	É o mesmo ID?
+PageView	UUID	Mesmo event_id recebido no /api/track-server	Não comprovado	Não existe no schema	Browser/CAPI sim
+InitiateCheckout	UUID	Mesmo event_id	Não comprovado	Não existe no schema	Browser/CAPI sim
+AddPaymentInfo	UUID	Mesmo event_id	Não comprovado	Não existe no schema	Browser/CAPI sim
+Purchase	purchase:<transaction_id>	Mesmo purchase:<transaction_id>	Não comprovado	orderId + chave interna	Browser/CAPI sim; UTMify não
+Subscribe	Ausente	Ausente	Ausente	Ausente	N/A
+Meta
+Para eventos que percorrem browser e CAPI:
+
+browser usa eventID;
+CAPI usa event_id;
+nome do evento é o mesmo;
+valor e moeda são os mesmos;
+Purchase usa o mesmo ID determinístico.
+Isso está correto para deduplicação do Meta.
+
+Limitação da evidência
+A maior parte dos testes atuais são testes de contrato por regex. Eles confirmam que o código contém a estrutura esperada, mas não simulam uma entrega real ao Meta.
+
+O teste browser realizado confirmou:
+
+request Meta PageView;
+eid;
+product_id;
+billing_type;
+ausência de Purchase em navegação passiva.
+Não houve teste real de uma compra aprovada.
+
+UTMify
+A UTMify não recebe o event_id do Meta.
+
+A API oficial de pedidos usa:
+
+orderId
+
+e não possui campo documentado:
+
+eventId
+
+O payload usa:
+
+{
+  "orderId": "<order_id>",
+  "status": "paid",
+  "products": [
+    {
+      "id": "hot-one-payment-off01",
+      "planId": null,
+      "planName": null,
+      "quantity": 1,
+      "priceInCents": "<valor>"
+    }
+  ]
+}
+
+A aplicação cria uma chave interna:
+
+<transaction_id>:<event_type>
+
+E calcula o ID do outbox como hash de:
+
+destination + deliveryKey
+
+Isso evita múltiplos registros locais para o mesmo evento lógico.
+
+Risco
+Não existe header de idempotência específico no envio para a UTMify.
+
+Se o processo:
+
+enviar o pedido;
+receber resposta positiva;
+cair antes de marcar o registro como entregue;
+o retry poderá reenviar o mesmo pedido.
+
+A aplicação evita duplicação localmente, mas a deduplicação final pela UTMify não foi comprovada por documentação ou teste operacional.
+
+5. Pagamento único e assinatura
+Pagamento único
+Status: parcialmente implementado.
+
+O contrato de tracking usa:
+
+product_id: hot-one-payment-off01
+product_name: hot-one-payment-off01
+billing_type: one_time
+
+Isso aparece em:
+
+tracking.js;
+tracking.ts;
+Meta CAPI;
+validação do webhook;
+payload UTMify, por produto com planId: null e planName: null.
+Problema principal
+O billing_type é usado no tracking, mas não existe evidência de que ele seja enviado ao gateway Throne como campo que determine a cobrança.
+
+O payload do gateway contém principalmente:
+
+valor;
+moeda;
+cliente;
+external ID;
+idempotency key;
+metadata;
+itens/UTMs.
+Não foi encontrada uma configuração explícita como:
+
+billing_type: one_time
+
+nem:
+
+subscription_id
+
+nem:
+
+price_id recorrente
+
+Portanto:
+
+o tracking está separado como pagamento único;
+a validação do webhook exige o produto canônico;
+mas a configuração efetiva de cobrança única do gateway não pode ser comprovada apenas pelo código.
+É necessário confirmar essa modalidade no produto/configuração da conta Throne.
+
+Assinatura
+Status: ausente por design.
+
+Não existe:
+
+criação de assinatura;
+plano recorrente;
+subscription_id;
+renovação;
+cancelamento;
+pausa;
+falha de renovação;
+Subscribe;
+InvoicePaid.
+A aba Monthly é apenas visual.
+
+6. Fluxo do pagamento único
+InitiateCheckout
+Dispara quando o widget Throne é inicializado.
+
+Não representa aprovação do pagamento.
+
+AddPaymentInfo
+Dispara no callback onLoaded do widget.
+
+Representa que o método de pagamento foi carregado, não que a cobrança foi aprovada.
+
+Confirmação
+Existem dois mecanismos:
+
+Webhook
+Rota:
+
+POST /api/throne/webhook
+
+É a fonte de verdade durável para criar o Purchase server-side.
+
+Consulta de status
+Rota:
+
+GET /api/throne/card-status
+
+A consulta só retorna paid: true quando:
+
+o provider informa pagamento aprovado;
+o registro local está como paid;
+o outbox Meta Purchase existe.
+O endpoint não cria conversão sozinho.
+
+Validações do webhook
+Para pagamentos aprovados, são comparados:
+
+produto;
+valor;
+moeda;
+transaction ID;
+estado recebido.
+O valor é convertido de centavos para o payload Meta.
+
+Reembolsos e chargebacks
+A UTMify recebe status específicos para:
+
+refund.created;
+transaction.refunded;
+chargeback.created;
+chargeback.disputed;
+chargeback.won;
+chargeback.lost.
+O Meta recebe Purchase somente para o estado pago. Não foi encontrada uma rotina equivalente de reversão no Meta CAPI.
+
+7. Webhooks Throne
+Rota e assinatura
+POST /api/throne/webhook
+
+Arquivo:
+
+src/routes/throne-webhook.ts
+
+Características:
+
+raw body preservado antes do express.json;
+HMAC-SHA256;
+comparação constant-time;
+suporte a múltiplos nomes de header;
+suporte ao prefixo sha256=;
+secret obrigatório;
+payload validado;
+eventos registrados em ledger.
+Eventos tratados
+transaction.paid;
+transaction.expired;
+refund.created;
+transaction.refunded;
+chargeback.created;
+chargeback.disputed;
+chargeback.won;
+chargeback.lost.
+Webhook antes do checkout
+Status: implementado.
+
+O sistema grava o evento como pendente/deferred e tenta reconciliar quando o checkout é criado.
+
+Duplicidade
+A entrega do webhook é identificada por hash do corpo bruto.
+
+Isso significa:
+
+o mesmo corpo exato é deduplicado;
+o mesmo evento com serialização JSON diferente pode gerar outro hash;
+o provider event_id não é uma chave única global.
+Eventos fora de ordem
+Existe ordenação por ranking e timestamp, mas a lógica de reconciliação e a lógica de processamento normal não são totalmente idênticas. Há risco em eventos com timestamps iguais ou estados terminais conflitantes.
+
+8. Meta CAPI
+Payload real resumido
+{
+  "event_name": "Purchase",
+  "event_time": "<timestamp de processamento>",
+  "event_id": "purchase:<transaction_id>",
+  "action_source": "website",
+  "event_source_url": "<url>",
+  "user_data": {
+    "client_ip_address": "<ip quando disponível>",
+    "client_user_agent": "<user agent>",
+    "em": ["<sha256 do email>"],
+    "ph": ["<sha256 do telefone>"],
+    "external_id": ["<sha256 do external_id>"],
+    "fbp": "<valor>",
+    "fbc": "<valor>"
+  },
+  "custom_data": {
+    "value": "<valor>",
+    "currency": "GBP",
+    "order_id": "<order_id>",
+    "product_id": "hot-one-payment-off01",
+    "product_name": "hot-one-payment-off01",
+    "billing_type": "one_time",
+    "content_ids": ["hot-one-payment-off01"],
+    "content_type": "product",
+    "num_items": 1
+  }
+}
+
+Hashing
+São hashados:
+
+e-mail;
+telefone;
+external ID.
+Permanecem sem hash:
+
+IP;
+user agent;
+fbp;
+fbc;
+URL;
+valor;
+moeda;
+IDs do pedido.
+Gaps
+O event_time usa o momento de processamento, não necessariamente o timestamp original do provider.
+Em Purchase criado pelo webhook, o IP do cliente pode não estar disponível.
+gclid, gbraid, wbraid, ttclid e _ttp não chegam ao payload CAPI.
+Não há teste de integração real com Meta.
+A entrega depende do outbox e pode terminar em estado failed.
+9. UTMify server-side
+Payload
+A função é:
+
+utmifyOrder()
+
+Arquivo:
+
+src/lib/conversion-events.ts
+
+Campos enviados:
+
+orderId;
+platform;
+paymentMethod;
+status;
+createdAt;
+approvedDate;
+refundedAt;
+customer;
+products;
+trackingParameters;
+commission;
+isTest.
+Produto
+{
+  "id": "hot-one-payment-off01",
+  "name": "hot-one-payment-off01",
+  "planId": null,
+  "planName": null,
+  "quantity": 1,
+  "priceInCents": "<valor>"
+}
+
+A documentação oficial consultada da UTMify confirma que planId e planName são os campos de plano e aceitam null para produto avulso.
+
+O que não é enviado
+Não existe no payload:
+
+eventId
+
+Também não são enviados como campos próprios:
+
+transaction_id;
+fbp;
+fbc;
+fbclid;
+gclid;
+gbraid;
+wbraid;
+ttclid;
+_ttp;
+anonymous_id;
+first_touch.
+O identificador estável é orderId, enquanto a deduplicação interna usa a combinação de transaction ID e tipo de evento.
+
+10. Retries, fila e idempotência
+Outbox
+Existe uma fila persistente em banco para:
+
+Meta;
+UTMify.
+Cada destino tem controle independente.
+
+Retry
+Características observadas:
+
+timeout de aproximadamente 10 segundos;
+primeiro retry após aproximadamente 15 segundos;
+backoff exponencial;
+limite de aproximadamente 6 horas;
+máximo de 12 tentativas;
+lease de processamento de 5 minutos;
+reprocessamento de leases expirados;
+worker inicial e polling periódico.
+Problema encontrado
+A função:
+
+wakeConfiguredRetries()
+
+aparenta ter a condição invertida.
+
+Ela pode tentar acordar registros com erro meta_not_configured ou utmify_not_configured quando a integração está configurada, em vez de acordar quando a configuração foi corrigida.
+
+Esse é um problema de prioridade alta porque pode deixar eventos parados mesmo depois que o secret é adicionado.
+
+Dead letter
+Não foi encontrado:
+
+painel administrativo;
+rota de reprocessamento;
+dead-letter explícito;
+mecanismo operacional para reabrir facilmente uma entrega failed.
+Registros terminais permanecem no banco.
+
+11. Segurança
+Secrets/env vars observados
+Somente os nomes:
+
+PORT;
+THRONE_PUBLIC_KEY;
+THRONE_SECRET_KEY;
+THRONE_WEBHOOK_SECRET;
+META_ACCESS_TOKEN;
+META_ACCESS_TOKEN_PIXEL_ON;
+UTMIFY_API_TOKEN;
+DATABASE_URL;
+TRACKING_AUDIT_TOKEN;
+ALLOWED_ORIGINS;
+LOG_LEVEL;
+TRACKING_PREFIX;
+SESSION_SECRET.
+Nenhum valor foi exposto nesta auditoria.
+
+Pontos positivos
+Tokens Meta, UTMify e Throne ficam no backend.
+O Meta Pixel ID público não é secret.
+Dados de cartão não são armazenados pelo aplicativo.
+Não há CVV sendo processado pelo backend.
+Webhook exige assinatura.
+Purchase não pode ser criado pelo endpoint público /api/track-server.
+E-mail, telefone e external ID são hashados antes do Meta CAPI.
+Riscos
+Não há rate limit visível para criação de checkout ou /api/track-server.
+CORS não substitui autenticação.
+O endpoint público aceita dados de atribuição e cliente controlados pelo navegador.
+Isso pode gerar volume artificial de eventos/outbox.
+Não há limites explícitos de tamanho de payload em todas as rotas.
+Logs de erro do provider podem conter corpo de resposta sensível.
+Webhook não possui janela de replay por timestamp/nonce.
+O endpoint de auditoria usa comparação normal de token, não comparação constant-time.
+Não há evidência de política de retenção para raw webhook e payloads de outbox.
+Resultado final
+Área	Status	Problema encontrado	Prioridade
+Browser-side	Parcialmente implementado	Meta funciona; UTMify carrega, mas não há paridade explícita de event ID	Média
+Meta Pixel	Implementado	Sem tracking SPA e sem runtime completo de compra	Média
+Meta CAPI	Parcialmente implementado	Retry/entrega real não comprovados; click IDs são perdidos	Alta
+UTMify Pixel	Parcialmente implementado	Pixel carrega uma vez, mas não há prova de event ID compartilhado	Alta
+UTMify API	Parcialmente implementado	Usa orderId, mas não possui event ID nem idempotência externa comprovada	Alta
+UTMs	Parcialmente implementado	First/last touch persistidos; click IDs perdem-se no server-side	Alta
+Deduplicação	Parcialmente implementado	Meta está correto; UTMify pode reenviar após crash pós-2xx	Alta
+Pagamento único	Parcialmente implementado	Tracking é one_time; configuração efetiva do gateway não está comprovada	Alta
+Assinatura	Ausente por design	Não existe fluxo real de assinatura	Informativa
+Webhooks	Implementado	Sem janela anti-replay; provider event ID não é único	Média
+Retries	Parcialmente implementado	Bug provável em wakeConfiguredRetries; sem operação de dead-letter	Alta
+Segurança	Parcialmente implementado	Faltam rate limit, payload limits e revisão de logs/PII	Alta
+Respostas objetivas
+Meta Pixel e Meta CAPI usam o mesmo event_id?
+Sim, para eventos que passam pelos dois canais. O Purchase usa purchase:<transaction_id> em ambos.
+
+O UTMify Pixel recebe eventID explícito?
+Não foi comprovado. O bootstrap oficial carrega o Pixel, mas o aplicativo não chama o Pixel UTMify com o eventID do Meta.
+
+A API UTMify recebe um identificador estável?
+Sim. Recebe orderId, e a aplicação também usa uma chave interna baseada em transaction_id + event_type.
+
+A UTMify possui deduplicação própria comprovada?
+Não comprovada. A aplicação tem deduplicação no outbox. A deduplicação final do provider não foi validada.
+
+O Purchase só é disparado após confirmação server-side?
+Sim, no desenho atual. O CAPI Purchase depende do webhook. O browser só dispara depois de status local pago e existência do Purchase no outbox Meta.
+
+Pagamento único e assinatura estão separados?
+No tracking, sim. No gateway, não está completamente comprovado. Não existe fluxo de assinatura, mas também não foi encontrado um campo explícito de cobrança única no payload Throne.
+
+Renovações são diferenciadas da primeira conversão?
+Não aplicável. Não existe assinatura ou renovação implementada.
+
+Existe cenário de Purchase duplicado?
+Sim, potencialmente:
+
+retry após crash depois de resposta 2xx da Meta/UTMify;
+callback browser repetido sem uma trava específica;
+webhook semanticamente igual com serialização diferente;
+provider externo sem idempotency key comprovada.
+Existe cenário de perda de venda?
+Sim, potencialmente:
+
+integração configurada depois de uma falha not_configured;
+erro terminal após o máximo de retries;
+timeout na criação do checkout sem retry de aplicação;
+ausência de operação para reprocessar registros failed.
+O que precisa ser corrigido antes de considerar o tracking plenamente confiável?
+
+Prioridade alta
+Corrigir wakeConfiguredRetries().
+Criar testes runtime para Meta, UTMify, webhooks e banco.
+Confirmar no Throne que o produto está realmente configurado como cobrança única.
+Adicionar idempotência ou reconciliação explícita no envio à UTMify.
+Validar valores/moeda também no endpoint de status, não somente no webhook.
+Garantir a persistência server-side de click IDs necessários ao Meta/UTMify.
+Adicionar rate limit, limites de payload e proteção contra abuso.
+Criar reprocessamento administrativo para eventos failed.
+Reduzir/redigir corpos de erro de providers nos logs.
+Prioridade média
+Adicionar janela anti-replay ao webhook.
+Criar unicidade baseada no provider_event_id.
+Adicionar jitter nos retries.
+Implementar testes browser de paridade de IDs.
+Confirmar oficialmente se o Pixel UTMify suporta receber ou correlacionar um eventID customizado.
+Adicionar métricas e alertas de filas, retries, falhas e idade de reconciliação.
+Conclusão: a base está bem estruturada para Meta browser + Meta CAPI e o fluxo de Purchase está corretamente protegido contra criação pública. Porém, o sistema ainda deve ser classificado como parcialmente confiável em produção, principalmente por causa da ausência de confirmação do modo de cobrança no gateway, da paridade não comprovada com o UTMify Pixel, da falta de testes runtime e dos gaps de retry/deduplicação externa.
