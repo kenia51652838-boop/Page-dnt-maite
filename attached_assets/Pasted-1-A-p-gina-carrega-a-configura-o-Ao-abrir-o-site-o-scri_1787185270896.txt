@@ -1,0 +1,165 @@
+1. A página carrega a configuração
+Ao abrir o site, o script de tracking lê:
+
+api/tracking-config.json
+
+Essa configuração define quais ferramentas estão ativas.
+
+Atualmente existem:
+
+Facebook Pixel: ativo;
+Google Ads: configurado;
+GA4: vazio;
+TikTok: vazio;
+Kwai: vazio;
+UTMify: não configurada.
+2. O sistema captura os identificadores do visitante
+O script tenta capturar:
+
+_fbp: identificador do Facebook Pixel;
+_fbc: identificador criado a partir do fbclid do anúncio;
+gclid, gbraid, wbraid: identificadores do Google Ads;
+ttclid e _ttp: identificadores do TikTok;
+user-agent;
+URL atual e página de origem.
+Também cria um external_id estável para identificar a sessão do visitante.
+
+3. Todos os eventos passam por uma função central
+Quando alguma parte do site precisa registrar uma ação, chama:
+
+DntTrack.fire("NomeDoEvento", dados)
+
+Essa função central faz várias coisas ao mesmo tempo:
+
+gera um event_id;
+envia o evento ao Facebook Pixel no navegador;
+envia o evento para Google Ads, quando configurado;
+envia para outras plataformas ativas;
+adiciona o evento ao dataLayer;
+tenta enviar o mesmo evento para o backend server-side.
+O mesmo event_id é usado no navegador e no backend para permitir que a Meta identifique eventos duplicados.
+
+4. Eventos disparados no checkout
+PageView
+Disparado automaticamente quando a página termina de carregar.
+
+InitiateCheckout
+Disparado quando o site começa a criar o checkout da Throne.
+
+Isso significa que representa:
+
+Visitante escolheu o valor
+→ checkout começou a ser criado
+
+Não significa que houve pagamento.
+
+AddPaymentInfo
+Disparado quando o formulário de cartão da Throne é carregado corretamente.
+
+Representa:
+
+O formulário de pagamento ficou disponível
+
+Também não significa que houve pagamento.
+
+Purchase
+Disparado apenas depois que:
+
+a pessoa clica em Pay;
+a Throne processa o pagamento;
+o widget informa o evento de pagamento;
+o site consulta o status real da transação;
+o backend confirma que o status é paid, approved, succeeded ou completed.
+Só depois disso a página dispara o evento Purchase.
+
+5. Como o Facebook Pixel recebe
+No navegador, o evento é enviado diretamente para a Meta usando o Pixel:
+
+fbq("track", eventName, {
+  value,
+  currency,
+  eventID
+})
+
+O eventID permite que a Meta compare o evento do navegador com o eventual evento server-side e evite contagem duplicada.
+
+6. Como o Meta CAPI foi planejado
+O código também tenta enviar cada evento para o backend:
+
+POST /api/track-server.json
+
+O backend deveria então:
+
+validar o evento;
+verificar se o event_id já foi recebido;
+adicionar IP e user-agent;
+aplicar hash no e-mail e telefone;
+incluir _fbp e _fbc;
+enviar o evento para:
+https://graph.facebook.com/v19.0/{PIXEL_ID}/events
+
+Porém, existe uma diferença importante no código atual:
+
+Frontend chama: /api/track-server.json
+Backend possui: /api/track-server
+
+Por isso, os eventos server-side estão atualmente retornando 404 na produção. O código do CAPI existe, mas o frontend ainda está chamando a URL errada.
+
+7. Como os dados de identificação são reaproveitados
+O código tenta manter a mesma identidade durante o fluxo:
+
+PageView
+→ InitiateCheckout
+→ AddPaymentInfo
+→ Purchase
+
+Para isso, ele reaproveita:
+
+_fbp;
+_fbc;
+e-mail;
+external_id;
+identificador neutro da transação;
+event_id.
+No Purchase, o sistema tenta usar o external_id retornado pela criação do checkout, para que a Meta consiga relacionar a conversão com a jornada anterior.
+
+8. Como as UTMs estão hoje
+O checkout lê:
+
+utm_source
+utm_medium
+utm_campaign
+utm_content
+utm_term
+
+Mas atualmente elas não formam uma atribuição completa de venda.
+
+A URL original é enviada como source_url, então as UTMs podem aparecer dentro da URL. Porém:
+
+elas não são persistidas corretamente até o pagamento;
+não são enviadas de forma estruturada para o CAPI;
+o helper do checkout recebe um objeto utm, mas não o inclui no payload enviado;
+não existe integração com a UTMify.
+Resumo simples
+A lógica pretendida é:
+
+Pessoa entra pelo anúncio
+→ captura fbclid, _fbp, _fbc e UTMs
+→ dispara PageView
+→ escolhe o valor
+→ dispara InitiateCheckout
+→ formulário de cartão aparece
+→ dispara AddPaymentInfo
+→ pessoa paga
+→ backend confirma o status na Throne
+→ dispara Purchase
+→ envia conversão para Pixel e Meta CAPI
+
+Na implementação atual:
+
+o Facebook Pixel do navegador está estruturado;
+os eventos principais estão definidos;
+a confirmação de pagamento antes do Purchase está correta;
+o código do Meta CAPI existe, mas a URL usada pelo frontend está errada;
+a UTMify ainda não está integrada;
+as UTMs ainda precisam ser preservadas e associadas corretamente à compra.
