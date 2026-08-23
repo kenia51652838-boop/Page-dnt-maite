@@ -12,6 +12,8 @@ const ALLOWED_HOSTS = [
   "francis-production.up.railway.app",
   "apoiar.fundacao-esperanca.digital",
   "dnt-05-maite-production.up.railway.app",
+  "apoiar.unidos-com-esperanca.digital",
+  "apoie.caridade.digital",
 ];
 
 const DEV_PATTERNS = [
