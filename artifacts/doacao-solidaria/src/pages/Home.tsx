@@ -336,6 +336,7 @@ export default function Home() {
       } else {
         return "pending";
       }
+      return undefined;
     } catch (err) {
       console.warn("[verificar] erro ao checar status:", err);
       throw err;

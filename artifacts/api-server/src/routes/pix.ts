@@ -2,7 +2,7 @@ import { Router } from "express";
 import { createPixTransaction, type CreatePixResult } from "../lib/lumina";
 import { logger } from "../lib/logger";
 import { sendUtmifyOrder, type UtmifyTrackingParams } from "../lib/utmify";
-import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs, logError } from "../lib/txStore";
+import { saveTx, getTx, markPaid, markPaidByExternalId, markUtmifyNotified, logWebhook, getWebhookLogs, logError, type StoredTx } from "../lib/txStore";
 import { pixQueue } from "../lib/pixQueue";
 import { sendFbCapiPurchase, sendFbCapiInitiateCheckout } from "../lib/fbCapi";
 
@@ -484,7 +484,7 @@ router.post("/webhook/lumina", (req, res) => {
         // completou quando o webhook chega — garante que o fbp/fbc capturado no frontend
         // seja recuperado do banco em vez de cair no fallback sem esses dados.
         const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-        const tryFind = async (): Promise<typeof tx> => {
+        const tryFind = async (): Promise<StoredTx | undefined> => {
           let found = await markPaid(txId);
           if (!found) {
             found = await markPaidByExternalId(txId);
@@ -493,7 +493,7 @@ router.post("/webhook/lumina", (req, res) => {
           return found;
         };
 
-        let tx = await tryFind();
+        let tx: StoredTx | undefined = await tryFind();
         if (!tx) {
           await sleep(1000);
           logger.info({ txId }, "Webhook: transação não encontrada, tentando novamente (1s)...");

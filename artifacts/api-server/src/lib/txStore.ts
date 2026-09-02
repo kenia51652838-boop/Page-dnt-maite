@@ -10,6 +10,7 @@ export interface StoredTx {
   amountInCents:      number;
   customer:           UtmifyCustomer;
   tracking:           UtmifyTrackingParams;
+  paidAt?:            Date | null;
   utmifyNotifiedAt?:  Date | null;
 }
 
@@ -100,6 +101,7 @@ function rowToTx(row: Record<string, unknown>): StoredTx {
     amountInCents:     row.amount_in_cents as number,
     customer:          row.customer as UtmifyCustomer,
     tracking:          row.tracking as UtmifyTrackingParams,
+    paidAt:             row.paid_at ? new Date(row.paid_at as string) : null,
     utmifyNotifiedAt:  row.utmify_notified_at ? new Date(row.utmify_notified_at as string) : null,
   };
 }
@@ -139,6 +141,7 @@ export async function markPaid(orderId: string): Promise<StoredTx | undefined> {
     const tx = memStore.get(orderId);
     if (!tx || tx.status === "paid") return undefined;
     tx.status = "paid";
+    tx.paidAt = new Date();
     memStore.set(orderId, tx);
     return tx;
   }
@@ -250,7 +253,7 @@ export async function getWaitingPayment(): Promise<StoredTx[]> {
 
 export async function upsertAndMarkPaid(tx: StoredTx): Promise<void> {
   if (!pool) {
-    memStore.set(tx.orderId, { ...tx, status: "paid" });
+    memStore.set(tx.orderId, { ...tx, status: "paid", paidAt: tx.paidAt ?? new Date() });
     return;
   }
   await pool.query(
