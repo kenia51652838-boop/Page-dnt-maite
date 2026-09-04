@@ -14,6 +14,7 @@ const ALLOWED_HOSTS = [
   "dnt-05-maite-production.up.railway.app",
   "apoiar.unidos-com-esperanca.digital",
   "apoie.caridade.digital",
+  "page-dnt-off3-maite.zeabur.app",
 ];
 
 const DEV_PATTERNS = [
