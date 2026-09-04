@@ -2,8 +2,10 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "path";
+import { fileURLToPath } from "url";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { checkDatabase } from "./lib/database";
 
 const app: Express = express();
 
@@ -34,11 +36,23 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", ts: Date.now() });
-});
+async function healthHandler(_req: Request, res: Response) {
+  const databaseReady = await checkDatabase();
+  res.status(databaseReady ? 200 : 503).json({
+    status: databaseReady ? "ok" : "unavailable",
+    database: databaseReady ? "ready" : "unavailable",
+    ts: Date.now(),
+  });
+}
+
+app.get("/api/health", healthHandler);
+app.get("/api/healthz", healthHandler);
 
 app.use("/api", router);
+
+app.use("/api", (_req, res) => {
+  res.status(404).json({ error: "API route not found" });
+});
 
 // Error handler global para rotas /api — garante que erros sempre retornam JSON
 app.use("/api", (err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -49,10 +63,9 @@ app.use("/api", (err: Error, _req: Request, res: Response, _next: NextFunction) 
 });
 
 // Em produção, serve o frontend estático e fallback para SPA
-// process.cwd() = artifacts/api-server (pnpm muda o cwd para o pacote)
-// ../../ volta para a raiz do workspace
 if (process.env.NODE_ENV === "production") {
-  const staticDir = path.resolve(process.cwd(), "../../artifacts/doacao-solidaria/dist/public");
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const staticDir = path.resolve(moduleDir, "../../doacao-solidaria/dist/public");
   app.use(express.static(staticDir));
   app.get(/.*/, (_req, res) => {
     res.sendFile(path.join(staticDir, "index.html"));

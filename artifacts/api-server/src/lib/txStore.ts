@@ -1,5 +1,5 @@
-import pg from "pg";
 import { logger } from "./logger";
+import { databasePool as pool } from "./database";
 import type { UtmifyCustomer, UtmifyTrackingParams } from "./utmify";
 
 export interface StoredTx {
@@ -17,30 +17,12 @@ export interface StoredTx {
 const memStore   = new Map<string, StoredTx>();
 const memByExtId = new Map<string, string>();
 
-const dbUrl = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
-const pool = dbUrl
-  ? new pg.Pool({
-      connectionString: dbUrl,
-      max: 5,
-      keepAlive: true,
-      keepAliveInitialDelayMillis: 10000,
-      idleTimeoutMillis: 0,
-    })
-  : null;
-
-if (pool) {
-  setInterval(async () => {
-    try { await pool.query("SELECT 1"); } catch { /* ignora */ }
-  }, 4 * 60 * 1000);
-}
-
-async function runMigrations() {
+export async function initializeTxStore(): Promise<void> {
   if (!pool) {
     logger.warn("[txStore] Sem banco configurado — usando memória");
     return;
   }
-  try {
-    await pool.query(`
+  await pool.query(`
       CREATE TABLE IF NOT EXISTS transactions (
         order_id            TEXT PRIMARY KEY,
         external_id         TEXT,
@@ -52,17 +34,17 @@ async function runMigrations() {
         paid_at             TIMESTAMPTZ,
         utmify_notified_at  TIMESTAMPTZ
       )
-    `);
-    logger.info("[txStore] Tabela transactions pronta");
+  `);
+  logger.info("[txStore] Tabela transactions pronta");
 
-    await Promise.all([
-      pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS external_id TEXT`),
-      pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS utmify_notified_at TIMESTAMPTZ`),
-      pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_external_id ON transactions(external_id)`),
-      pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)`),
-    ]);
+  await Promise.all([
+    pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS external_id TEXT`),
+    pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS utmify_notified_at TIMESTAMPTZ`),
+    pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_external_id ON transactions(external_id)`),
+    pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status)`),
+  ]);
 
-    await pool.query(`
+  await pool.query(`
       CREATE TABLE IF NOT EXISTS webhook_logs (
         id          SERIAL PRIMARY KEY,
         received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -70,10 +52,10 @@ async function runMigrations() {
         headers     JSONB,
         body        JSONB
       )
-    `);
-    logger.info("[txStore] Tabela webhook_logs pronta");
+  `);
+  logger.info("[txStore] Tabela webhook_logs pronta");
 
-    await pool.query(`
+  await pool.query(`
       CREATE TABLE IF NOT EXISTS error_logs (
         id           SERIAL PRIMARY KEY,
         occurred_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -83,14 +65,9 @@ async function runMigrations() {
         user_ip      TEXT,
         context      JSONB
       )
-    `);
-    logger.info("[txStore] Tabela error_logs pronta");
-  } catch (err) {
-    logger.error({ err }, "[txStore] Erro nas migrations");
-  }
+  `);
+  logger.info("[txStore] Tabela error_logs pronta");
 }
-
-runMigrations();
 
 function rowToTx(row: Record<string, unknown>): StoredTx {
   return {
@@ -189,7 +166,7 @@ export async function logWebhook(source: string, headers: Record<string, unknown
       [source, JSON.stringify(headers), JSON.stringify(body)],
     );
   } catch (err) {
-    console.error("[txStore] logWebhook error:", err);
+    logger.error({ err }, "[txStore] logWebhook error");
   }
 }
 
@@ -213,7 +190,7 @@ export async function logError(
   const msg   = err instanceof Error ? err.message : String(err);
   const stack = err instanceof Error ? (err.stack ?? null) : null;
   if (!pool) {
-    console.error(`[errorLog] ${route}: ${msg}`);
+    logger.error({ route, err }, "Error log (in-memory mode)");
     return;
   }
   try {
@@ -223,7 +200,7 @@ export async function logError(
       [route, msg, stack, userIp ?? null, context ? JSON.stringify(context) : null],
     );
   } catch (e) {
-    console.error("[txStore] logError falhou:", e);
+    logger.error({ err: e }, "[txStore] logError falhou");
   }
 }
 

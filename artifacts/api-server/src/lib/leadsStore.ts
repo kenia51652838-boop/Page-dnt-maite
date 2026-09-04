@@ -1,5 +1,5 @@
-import pg from "pg";
 import { logger } from "./logger";
+import { databasePool as pool } from "./database";
 
 export interface Lead {
   id: string;
@@ -10,20 +10,13 @@ export interface Lead {
   createdAt: string;
 }
 
-const dbUrl = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
-const pool = dbUrl
-  ? new pg.Pool({
-      connectionString: dbUrl,
-      max: 5,
-      keepAlive: true,
-      keepAliveInitialDelayMillis: 10000,
-      idleTimeoutMillis: 0,
-    })
-  : null;
+export async function initializeLeadsStore(): Promise<void> {
+  if (!pool) {
+    logger.warn("[leadsStore] Sem banco configurado — usando memória");
+    return;
+  }
 
-if (pool) {
-  pool
-    .query(`
+  await pool.query(`
       CREATE TABLE IF NOT EXISTS leads (
         id            TEXT        PRIMARY KEY,
         name          TEXT        NOT NULL,
@@ -32,9 +25,8 @@ if (pool) {
         amount        INTEGER     NOT NULL DEFAULT 0,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
-    `)
-    .then(() => logger.info("Tabela leads pronta"))
-    .catch((err) => logger.error({ err }, "Erro ao criar tabela leads"));
+  `);
+  logger.info("Tabela leads pronta");
 }
 
 // Fallback em memória quando não há banco configurado

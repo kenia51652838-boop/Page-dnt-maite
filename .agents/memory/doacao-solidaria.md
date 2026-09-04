@@ -7,8 +7,8 @@ description: Key architectural decisions and constraints for the Doacao Solidari
 - Frontend: React+Vite (`artifacts/doacao-solidaria`)
 - Backend: Express (`artifacts/api-server`)
 - Payment: Lumina Pagamentos — PIX-only, webhook-only (no status query endpoint)
-- DB: PostgreSQL (Railway)
-- Deploy: GitHub → Railway auto-deploy (service "Francis")
+- DB: PostgreSQL
+- Deploy: GitHub → Zeabur
 
 ## Facebook Pixels
 - Oitavo: `1507785031003753` (token: `FB_TOKEN_OITAVO`)
@@ -43,5 +43,5 @@ description: Key architectural decisions and constraints for the Doacao Solidari
 ## Known Issues / Fixes Applied
 - `trust proxy: true` on Express app — use `req.ip` not manual x-forwarded-for parsing
 - Webhook retry (1s + 2s) before falling back to webhook-only data — fixes fbp missing on fast webhooks
-- `ENOTFOUND base` on startup = non-critical secondary DB error, ignore
+- Em produção, banco ausente ou inválido deve impedir a API de iniciar; fallback em memória é exclusivo do desenvolvimento.
 - "Correspondência avançada manual" warning: partially resolved by re-init at checkout; PageView will still lack user data unless real form fields (email/phone) are added to page entry flow
